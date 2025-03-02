@@ -3750,9 +3750,6 @@ static int FS_GetModList( char *listbuf, int bufsize ) {
 				if ( FS_IsExt( pDirs[k], va(".%s",cl_selectedmod->string), strlen( pDirs[k] ) ) ) {
 					nPakDirs++;
 				}
-				if ( FS_IsExt( pDirs[k], va(".%s",cl_changemod->string), strlen( pDirs[k] ) ) ) {
-					nPakDirs++;
-				}
 			}
 
 			// we only use Sys_ListFiles to check whether files are present
@@ -4233,14 +4230,9 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 			// The next .pk3dir is before the next .pk3 file
 			// But wait, this could be any directory, we're filtering to only ending with ".pk3dir" here.
 			if (!FS_IsExt(pakdirs[pakdirsi], va(".%s",cl_selectedmod->string), len)) {
-				// This isn't a .moddir! Next!
+				// This isn't a .pk3dir! Next!
 				pakdirsi++;
-				if (!FS_IsExt(pakdirs[pakdirsi], va(".%s",cl_changemod->string), len)) {
-					// This isn't a .mapdir! Next!
-					pakdirsi++;
-					continue;
-				}
-				//continue;	//maybe it's not .moddir but .mapdir
+				continue;
 			}
 
 			// add the directory to the search path
