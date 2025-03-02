@@ -509,7 +509,7 @@ static void CL_ParseGamestate( msg_t *msg ) {
 	char			reconnectArgs[ MAX_CVAR_VALUE_STRING ];
 	qboolean		gamedirModified;
 	const char 		*info, *mapname;	//for client switching
-	qboolean 		*m_restart, *q_restart;	//for client switching
+	qboolean 		m_restart, q_restart;	//for client switching
 
 	Con_Close();
 
