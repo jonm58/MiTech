@@ -508,6 +508,7 @@ static void CL_ParseGamestate( msg_t *msg ) {
 	char			oldGame[ MAX_QPATH ];
 	char			reconnectArgs[ MAX_CVAR_VALUE_STRING ];
 	qboolean		gamedirModified;
+	const char 		*info, *mapname;	//for client switching
 
 	Con_Close();
 
@@ -627,6 +628,11 @@ static void CL_ParseGamestate( msg_t *msg ) {
 	}
 
 	cls.gameSwitch = qfalse;
+
+	info = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+	mapname = Info_ValueForKey( info, "mapname" );
+	Cbuf_AddText( "exec maps/default.cfg \n" );				//load default map script on client
+	Cbuf_AddText( va("exec maps/%s.cfg \n", mapname) );		//load map script on client
 
 	// This used to call CL_StartHunkUsers, but now we enter the download state before loading the cgame
 	CL_InitDownloads();
