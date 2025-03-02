@@ -4240,7 +4240,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 					pakdirsi++;
 					continue;
 				}
-				continue;
+				//continue;	//maybe it's not .moddir but .mapdir
 			}
 
 			// add the directory to the search path
