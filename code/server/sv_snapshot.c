@@ -436,6 +436,15 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		}
 		}
 
+		// Anticheat engine: Trace to check if the entity is visible from the player's POV
+		if (sv_anticheat->integer) {
+			trace_t trace;
+			SV_Trace(&trace, origin, NULL, NULL, ent->r.currentOrigin, frame->ps.clientNum, MASK_SOLID);
+			if (trace.fraction < 1.0f && trace.entityNum != ent->s.number) {
+				continue;  // Entity is behind a wall or obstacle
+			}
+		}
+
 		// add it
 		SV_AddIndexToSnapshot( svEnt, e, eNums );
 
