@@ -440,7 +440,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		if (sv_anticheatengine->integer && sv_ace_wallhack->integer) {
 			trace_t trace;
 			vec3_t corners[8];
-			qboolean visible = false;
+			qboolean visible = qfalse;
 			int k;
 
 			corners[0][0] = ent->r.currentOrigin[0] + ent->r.mins[0]; corners[0][1] = ent->r.currentOrigin[1] + ent->r.mins[1]; corners[0][2] = ent->r.currentOrigin[2] + ent->r.mins[2];  // Min по X, Y, Z
@@ -454,13 +454,13 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 
 			SV_Trace(&trace, origin, NULL, NULL, ent->r.currentOrigin, frame->ps.clientNum, CONTENTS_SOLID, qfalse);
 			if (trace.fraction < 1.0f && trace.entityNum != ent->s.number && (trace.contents & CONTENTS_TRANSLUCENT)) {
-				visible = true;
+				visible = qtrue;
 			}
 			if(!visible){
 				for (k = 0; k < 8; k++) {
 					SV_Trace(&trace, origin, NULL, NULL, corners[k], frame->ps.clientNum, CONTENTS_SOLID, qfalse);
 					if (trace.fraction < 1.0f && trace.entityNum != ent->s.number && (trace.contents & CONTENTS_TRANSLUCENT)) {
-						visible = true;
+						visible = qtrue;
 						break;
 					}
 				}
