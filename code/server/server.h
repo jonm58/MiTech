@@ -309,7 +309,8 @@ extern	cvar_t	*sv_pure;
 extern	cvar_t	*sv_floodProtect;
 extern	cvar_t	*sv_viewdistance;
 extern	cvar_t	*sv_lanForceRate;
-extern	cvar_t	*sv_anticheat;
+extern	cvar_t	*sv_anticheatengine;
+extern	cvar_t	*sv_ace_wallhack;
 
 extern	cvar_t *sv_levelTimeReset;
 extern	cvar_t *sv_filter;
