@@ -306,6 +306,19 @@ static void SV_AddIndexToSnapshot( svEntity_t *svEnt, int index, snapshotEntityN
 	eNums->numSnapshotEntities++;
 }
 
+qboolean IsEntityVisibleType(entity_t *ent) {
+    if (sv_ace_wallhack->integer == 1) {
+        // Только для игроков
+        return ent->s.eType == ET_PLAYER;
+    } else if (sv_ace_wallhack->integer == 2) {
+        // Для игроков и предметов
+        return (ent->s.eType == ET_PLAYER || ent->s.eType == ET_ITEM);
+    } else if (sv_ace_wallhack->integer == 3) {
+        // Для всего
+        return (ent->s.eType == ET_PLAYER || ent->s.eType == ET_GENERAL || ent->s.eType == ET_ITEM || ent->s.eType == ET_GRAPPLE);
+    }
+    return qfalse; // Если значение sv_ace_wallhack не соответствует ожидаемому, возвращаем false
+}
 
 /*
 ===============
@@ -437,7 +450,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		}
 
 		// Anticheat engine: Trace to check if the entity is visible from the player's POV
-		if (sv_anticheatengine->integer && sv_ace_wallhack->integer) {
+		if (sv_anticheatengine->integer && IsEntityVisibleType(ent)) {
 			trace_t trace;
 			vec3_t corners[8];
 			qboolean visible = qfalse;
@@ -473,7 +486,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 					}
 				}
 			}
-			if(!visible && (ent->s.eType != ET_MOVER && ent->s.eType != ET_BEAM)){	//if object not visible
+			if(!visible){	//if object not visible
 				continue;	//Entity blocked
 			}
 		}
