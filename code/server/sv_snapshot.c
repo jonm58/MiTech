@@ -306,7 +306,7 @@ static void SV_AddIndexToSnapshot( svEntity_t *svEnt, int index, snapshotEntityN
 	eNums->numSnapshotEntities++;
 }
 
-qboolean IsEntityVisibleType(entity_t *ent) {
+qboolean IsEntityVisibleType(gentity_t *ent) {
     if (sv_ace_wallhack->integer == 1) {
         // Только для игроков
         return ent->s.eType == ET_PLAYER;
