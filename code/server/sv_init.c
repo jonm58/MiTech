@@ -791,9 +791,9 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_mapChecksum, "Allows check for client server map to match." );
 	sv_lanForceRate = Cvar_Get( "sv_lanForceRate", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( sv_lanForceRate, "Forces LAN clients to the maximum rate instead of accepting client setting." );
-	sv_anticheatengine = Cvar_Get( "sv_anticheatengine", "0", CVAR_ARCHIVE_ND );
+	sv_anticheatengine = Cvar_Get( "sv_anticheatengine", "1", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_anticheatengine, "Enables or disables the SourceTech server-side anti-cheat engine." );
-	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "0", CVAR_ARCHIVE_ND );
+	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "1", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_ace_wallhack, "Enables or disables wallhack protection." );
 
 #ifdef USE_BANS
