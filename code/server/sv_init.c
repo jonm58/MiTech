@@ -792,7 +792,7 @@ void SV_Init( void )
 	sv_lanForceRate = Cvar_Get( "sv_lanForceRate", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( sv_lanForceRate, "Forces LAN clients to the maximum rate instead of accepting client setting." );
 	sv_anticheat = Cvar_Get( "sv_anticheat", "0", CVAR_ARCHIVE_ND );
-	Cvar_SetDescription( sv_anticheat, "Enables or disables the server-side anti-cheat in OpenSandbox on the SourceTech engine." );
+	Cvar_SetDescription( sv_anticheat, "Enables or disables the SourceTech server-side anti-cheat engine" );
 
 #ifdef USE_BANS
 	sv_banFile = Cvar_Get("sv_banFile", "serverbans.dat", CVAR_ARCHIVE);
