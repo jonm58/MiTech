@@ -791,10 +791,10 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_mapChecksum, "Allows check for client server map to match." );
 	sv_lanForceRate = Cvar_Get( "sv_lanForceRate", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( sv_lanForceRate, "Forces LAN clients to the maximum rate instead of accepting client setting." );
-	sv_anticheatengine = Cvar_Get( "sv_anticheatengine", "1", CVAR_ARCHIVE );
+	sv_anticheatengine = Cvar_Get( "sv_anticheatengine", "0", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_anticheatengine, "Enables or disables the SourceTech server-side anti-cheat engine." );
-	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "1", CVAR_ARCHIVE );
-	Cvar_SetDescription( sv_ace_wallhack, "Enables or disables wallhack protection. 0-Off 1-Players 2-Players+Items." );
+	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "2", CVAR_ARCHIVE );
+	Cvar_SetDescription( sv_ace_wallhack, "Enables or disables wallhack protection. 0-Off 1-Players(Fast) 2-Players 3-Players+Items." );
 
 #ifdef USE_BANS
 	sv_banFile = Cvar_Get("sv_banFile", "serverbans.dat", CVAR_ARCHIVE);
