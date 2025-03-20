@@ -794,7 +794,7 @@ void SV_Init( void )
 	sv_anticheatengine = Cvar_Get( "sv_anticheatengine", "1", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_anticheatengine, "Enables or disables the SourceTech server-side anti-cheat engine." );
 	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "1", CVAR_ARCHIVE );
-	Cvar_SetDescription( sv_ace_wallhack, "Enables or disables wallhack protection. 0-Off 1-Players 2-Players+Items 3-Player+Items+Objects." );
+	Cvar_SetDescription( sv_ace_wallhack, "Enables or disables wallhack protection. 0-Off 1-Players 2-Players+Items." );
 
 #ifdef USE_BANS
 	sv_banFile = Cvar_Get("sv_banFile", "serverbans.dat", CVAR_ARCHIVE);

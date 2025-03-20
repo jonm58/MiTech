@@ -309,13 +309,10 @@ static void SV_AddIndexToSnapshot( svEntity_t *svEnt, int index, snapshotEntityN
 qboolean IsEntityVisibleType(sharedEntity_t *ent) {
     if (sv_ace_wallhack->integer == 1) {
         // Только для игроков
-        return ent->s.eType == ET_PLAYER;
+        return (ent->s.eType == ET_PLAYER || ent->s.eType == ET_GRAPPLE);
     } else if (sv_ace_wallhack->integer == 2) {
         // Для игроков и предметов
-        return (ent->s.eType == ET_PLAYER || ent->s.eType == ET_ITEM);
-    } else if (sv_ace_wallhack->integer == 3) {
-        // Для всего
-        return (ent->s.eType == ET_PLAYER || ent->s.eType == ET_GENERAL || ent->s.eType == ET_ITEM || ent->s.eType == ET_GRAPPLE);
+        return (ent->s.eType == ET_PLAYER || ent->s.eType == ET_ITEM || ent->s.eType == ET_GRAPPLE);
     }
     return qfalse; // Если значение sv_ace_wallhack не соответствует ожидаемому, возвращаем false
 }
@@ -465,7 +462,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 			corners[6][0] = ent->r.currentOrigin[0] + ent->r.maxs[0]; corners[6][1] = ent->r.currentOrigin[1] + ent->r.maxs[1]; corners[6][2] = ent->r.currentOrigin[2] + ent->r.mins[2];  // Max по X, Max по Y, Min по Z
 			corners[7][0] = ent->r.currentOrigin[0] + ent->r.maxs[0]; corners[7][1] = ent->r.currentOrigin[1] + ent->r.maxs[1]; corners[7][2] = ent->r.currentOrigin[2] + ent->r.maxs[2];  // Max по X, Max по Y, Max по Z
 
-			SV_Trace(&trace, origin, NULL, NULL, ent->r.currentOrigin, frame->ps.clientNum, CONTENTS_SOLID, qfalse);
+			SV_Trace(&trace, origin, NULL, NULL, ent->r.currentOrigin, frame->ps.clientNum, CONTENTS_SOLID|CONTENTS_DETAIL, qfalse);
 			if (trace.fraction < 1.0f && trace.entityNum != ent->s.number) {
 				if(trace.contents & CONTENTS_TRANSLUCENT){
 					visible = qtrue;
@@ -475,7 +472,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 			}
 			if(!visible && ent->s.eType == ET_PLAYER){
 				for (k = 0; k < 8; k++) {
-					SV_Trace(&trace, origin, NULL, NULL, corners[k], frame->ps.clientNum, CONTENTS_SOLID, qfalse);
+					SV_Trace(&trace, origin, NULL, NULL, corners[k], frame->ps.clientNum, CONTENTS_SOLID|CONTENTS_DETAIL, qfalse);
 					if (trace.fraction < 1.0f && trace.entityNum != ent->s.number) {
 						if(trace.contents & CONTENTS_TRANSLUCENT){
 							visible = qtrue;
