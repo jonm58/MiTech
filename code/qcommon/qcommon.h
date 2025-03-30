@@ -299,9 +299,6 @@ PROTOCOL
 extern const int demo_protocols[];
 
 // override on command line, config files etc.
-#ifndef MASTER_SERVER_NAME
-#define MASTER_SERVER_NAME	"master.quake3arena.com"
-#endif
 #ifndef AUTHORIZE_SERVER_NAME
 #define	AUTHORIZE_SERVER_NAME	"authorize.quake3arena.com"
 #endif

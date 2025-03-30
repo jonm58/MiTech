@@ -48,7 +48,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define MAX_MASTER_SERVERS      5	// number of supported master servers
 
 #define GAMENAME_FOR_MASTER		"OpenSandbox"
-#define HEARTBEAT_FOR_MASTER	"OpenSandbox-1"
+#define HEARTBEAT_FOR_MASTER	"OpenSandbox"
 
 #define DEMOEXT	"dm_"			// standard demo extension
 
