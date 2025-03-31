@@ -716,9 +716,6 @@ void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t min
 		}
 	}
 
-	TransposeMatrix(matrix, transpose);
-	RotatePoint(trace.plane.normal, transpose);
-
 	// clip to other solid entities
 	SV_ClipMoveToEntities ( &clip );
 
