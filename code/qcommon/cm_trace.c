@@ -1481,9 +1481,9 @@ if(!onTrace){
 	#endif
 } else {
 	#ifdef USE_BSP_COLMODELS
-		CM_Trace( &trace, start_l, end_l, mins, maxs, indexAdjusted, origin, brushmask, capsule, &sphere );
+		CM_Trace( &trace, start_l, end_l, symetricSize[0], symetricSize[1], indexAdjusted, origin, brushmask, qtrue, &sphere );
 	#else
-		CM_Trace( &trace, start_l, end_l, mins, maxs, model, origin, brushmask, capsule, &sphere );
+		CM_Trace( &trace, start_l, end_l, symetricSize[0], symetricSize[1], model, origin, brushmask, qtrue, &sphere );
 	#endif	
 }
 
