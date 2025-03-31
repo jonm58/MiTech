@@ -640,7 +640,7 @@ void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t min
 	int			i;
     vec3_t 		rotated_start = {start[0], start[1], start[2]};
     vec3_t 		rotated_end = {end[0], end[1], end[2]};
-	vec3_t		matrix[3];
+	vec3_t		matrix[3], transpose[3];
 
 	if ( !mins ) {
 		mins = vec3_origin;
@@ -683,6 +683,12 @@ void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t min
 			clip.boxmins[i] = clip.end[i] + clip.mins[i] - 1;
 			clip.boxmaxs[i] = clip.start[i] + clip.maxs[i] + 1;
 		}
+	}
+
+	if ( clip.trace.fraction != 1.0 ) {
+		// rotation of bmodel collision plane
+		TransposeMatrix(matrix, transpose);
+		RotatePoint(clip.trace.plane.normal, transpose);
 	}
 
 	// clip to other solid entities
