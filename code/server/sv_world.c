@@ -577,37 +577,6 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 	}
 }
 
-void RotatePointWithAngles(float point[3], float matrix[3][3]) {
-    float x = point[0];
-    float y = point[1];
-    float z = point[2];
-
-    point[0] = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2] * z;
-    point[1] = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2] * z;
-    point[2] = matrix[2][0] * x + matrix[2][1] * y + matrix[2][2] * z;
-}
-
-void CreateRotationMatrix(float angles[3], float matrix[3][3]) {
-    float cosX = cosf(angles[0]);
-    float sinX = sinf(angles[0]);
-    float cosY = cosf(angles[1]);
-    float sinY = sinf(angles[1]);
-    float cosZ = cosf(angles[2]);
-    float sinZ = sinf(angles[2]);
-
-    matrix[0][0] = cosY * cosZ;
-    matrix[0][1] = -cosY * sinZ;
-    matrix[0][2] = sinY;
-
-    matrix[1][0] = sinX * sinY * cosZ + cosX * sinZ;
-    matrix[1][1] = -sinX * sinY * sinZ + cosX * cosZ;
-    matrix[1][2] = -sinX * cosY;
-
-    matrix[2][0] = -cosX * sinY * cosZ + sinX * sinZ;
-    matrix[2][1] = cosX * sinY * sinZ + sinX * cosZ;
-    matrix[2][2] = cosX * cosY;
-}
-
 /*
 ==================
 SV_Trace
@@ -671,7 +640,7 @@ void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t min
 	int			i;
     vec3_t 		rotated_start = {start[0], start[1], start[2]};
     vec3_t 		rotated_end = {end[0], end[1], end[2]};
-	vec3_t		matrix[3], transpose[3];
+	vec3_t		matrix[3];
 
 	if ( !mins ) {
 		mins = vec3_origin;
