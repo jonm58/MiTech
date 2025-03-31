@@ -636,47 +636,54 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 }
 
 void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, qboolean capsule, const vec3_t angles ) {
-	moveclip_t	clip;
-	int			i;
-    vec3_t 		rotated_start = {start[0], start[1], start[2]};
-    vec3_t 		rotated_end = {end[0], end[1], end[2]};
-	vec3_t		matrix[3], transpose[3];
+	moveclip_t clip;
+	int i;
+	vec3_t rotated_start = {start[0], start[1], start[2]};
+	vec3_t rotated_end = {end[0], end[1], end[2]};
+	vec3_t offset, symetricSize[2];
+	vec3_t matrix[3], transpose[3];
+	qboolean rotated = qfalse;
 
-	if ( !mins ) {
-		mins = vec3_origin;
+	if (!mins) mins = vec3_origin;
+	if (!maxs) maxs = vec3_origin;
+
+	Com_Memset(&clip, 0, sizeof(clip));
+
+	for (i = 0; i < 3; i++) {
+		offset[i] = (mins[i] + maxs[i]) * 0.5;
+		symetricSize[0][i] = mins[i] - offset[i];
+		symetricSize[1][i] = maxs[i] - offset[i];
+		rotated_start[i] = start[i] + offset[i];
+		rotated_end[i] = end[i] + offset[i];
 	}
-	if ( !maxs ) {
-		maxs = vec3_origin;
+
+	VectorSubtract(rotated_start, start, rotated_start);
+	VectorSubtract(rotated_end, start, rotated_end);
+
+	if (angles[0] || angles[1] || angles[2]) {
+		rotated = qtrue;
+		CreateRotationMatrix(angles, matrix);
+		RotatePoint(rotated_start, matrix);
+		RotatePoint(rotated_end, matrix);
 	}
 
-	Com_Memset ( &clip, 0, sizeof ( clip ) );
-
-	CreateRotationMatrix(angles, matrix);
-	RotatePoint(rotated_start, matrix);
-	RotatePoint(rotated_end, matrix);
-
-	// clip to world
-	CM_BoxTrace( &clip.trace, rotated_start, rotated_end, mins, maxs, 0, contentmask, capsule );
+	CM_BoxTrace(&clip.trace, rotated_start, rotated_end, symetricSize[0], symetricSize[1], 0, contentmask, capsule);
 	clip.trace.entityNum = clip.trace.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
-	if ( clip.trace.fraction == 0 ) {
+	if (clip.trace.fraction == 0) {
 		*results = clip.trace;
-		return;		// blocked immediately by the world
+		return;
 	}
 
 	clip.contentmask = contentmask;
 	clip.start = start;
-	VectorCopy( rotated_end, clip.end );
+	VectorCopy(rotated_end, clip.end);
 	clip.mins = mins;
 	clip.maxs = maxs;
 	clip.passEntityNum = passEntityNum;
 	clip.capsule = capsule;
 
-	// create the bounding box of the entire move
-	// we can limit it to the part of the move not
-	// already clipped off by the world, which can be
-	// a significant savings for line of sight and shot traces
-	for ( i=0 ; i<3 ; i++ ) {
-		if ( rotated_end[i] > rotated_start[i] ) {
+	for (i = 0; i < 3; i++) {
+		if (rotated_end[i] > rotated_start[i]) {
 			clip.boxmins[i] = clip.start[i] + clip.mins[i] - 1;
 			clip.boxmaxs[i] = clip.end[i] + clip.maxs[i] + 1;
 		} else {
@@ -685,14 +692,12 @@ void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t min
 		}
 	}
 
-	if ( clip.trace.fraction != 1.0 ) {
-		// rotation of bmodel collision plane
+	if (rotated && clip.trace.fraction != 1.0) {
 		TransposeMatrix(matrix, transpose);
 		RotatePoint(clip.trace.plane.normal, transpose);
 	}
 
-	// clip to other solid entities
-	SV_ClipMoveToEntities ( &clip );
+	SV_ClipMoveToEntities(&clip);
 
 	*results = clip.trace;
 }
