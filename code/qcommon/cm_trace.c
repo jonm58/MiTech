@@ -1148,6 +1148,8 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 	vec3_t		offset;
 	cmodel_t	*cmod;
 
+	capsule = qtrue;
+
 	cmod = CM_ClipHandleToModel( model );
 
 	cm.checkcount++;		// for multi-check avoidance
@@ -1481,9 +1483,9 @@ if(!onTrace){
 	#endif
 } else {
 	#ifdef USE_BSP_COLMODELS
-		CM_Trace( &trace, start_l, end_l, symetricSize[0], symetricSize[1], indexAdjusted, origin, brushmask, qtrue, &sphere );
+		CM_Trace( &trace, start, end, symetricSize[0], symetricSize[1], indexAdjusted, origin, brushmask, capsule, &sphere );
 	#else
-		CM_Trace( &trace, start_l, end_l, symetricSize[0], symetricSize[1], model, origin, brushmask, qtrue, &sphere );
+		CM_Trace( &trace, start, end, symetricSize[0], symetricSize[1], model, origin, brushmask, capsule, &sphere );
 	#endif	
 }
 
