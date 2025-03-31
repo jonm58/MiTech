@@ -671,6 +671,7 @@ void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t min
 	int			i;
     vec3_t 		rotated_start = {start[0], start[1], start[2]};
     vec3_t 		rotated_end = {end[0], end[1], end[2]};
+	float 		matrix[3][3];
 
 	if ( !mins ) {
 		mins = vec3_origin;
