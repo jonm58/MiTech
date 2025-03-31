@@ -51,11 +51,7 @@ void		CM_BoxTrace_SourceTech( trace_t *results, const vec3_t start, const vec3_t
 void		CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
 						const vec3_t mins, const vec3_t maxs,
 						clipHandle_t model, int brushmask,
-						const vec3_t origin, const vec3_t angles, qboolean capsule );
-void		CM_TransformedBoxTrace_SourceTech( trace_t *results, const vec3_t start, const vec3_t end,
-						const vec3_t mins, const vec3_t maxs,
-						clipHandle_t model, int brushmask,
-						const vec3_t origin, const vec3_t angles, qboolean capsule );
+						const vec3_t origin, const vec3_t angles, qboolean capsule, qboolean onTrace );
 
 byte		*CM_ClusterPVS (int cluster);
 

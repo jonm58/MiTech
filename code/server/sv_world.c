@@ -486,7 +486,7 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 
 	CM_TransformedBoxTrace ( trace, (float *)start, (float *)end,
 		(float *)mins, (float *)maxs, clipHandle,  contentmask,
-		origin, angles, capsule);
+		origin, angles, capsule, qfalse);
 
 	if ( trace->fraction < 1 ) {
 		trace->entityNum = touch->s.number;
@@ -554,7 +554,7 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 
 		CM_TransformedBoxTrace ( &trace, (float *)clip->start, (float *)clip->end,
 			(float *)clip->mins, (float *)clip->maxs, clipHandle,  clip->contentmask,
-			origin, angles, clip->capsule);
+			origin, angles, clip->capsule, qfalse);
 
 		if ( trace.allsolid ) {
 			clip->trace.allsolid = qtrue;
@@ -650,7 +650,7 @@ void SV_Trace_SourceTech( trace_t *results, const vec3_t start, const vec3_t min
 	Com_Memset ( &clip, 0, sizeof ( clip ) );
 
 	// clip to world
-	CM_TransformedBoxTrace( &clip.trace, start, end, mins, maxs, 0, contentmask, origin, angles, capsule );
+	CM_TransformedBoxTrace( &clip.trace, start, end, mins, maxs, 0, contentmask, origin, angles, capsule, qtrue );
 	clip.trace.entityNum = clip.trace.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	if ( clip.trace.fraction == 0 ) {
 		*results = clip.trace;
