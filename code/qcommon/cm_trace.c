@@ -1435,8 +1435,10 @@ void CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t 
 	}
 
 	// subtract origin offset
-	//VectorSubtract( start_l, origin, start_l );
-	//VectorSubtract( end_l, origin, end_l );
+	if(!onTrace){
+	VectorSubtract( start_l, origin, start_l );
+	VectorSubtract( end_l, origin, end_l );
+	}
 
 	// rotate start and end into the models frame of reference
 	if ( angles[0] || angles[1] || angles[2] ) {
