@@ -1463,8 +1463,8 @@ if(!onTrace){
 		//		 bevels invalid.
 		//		 However this is correct for capsules since a capsule itself is rotated too.
 		CreateRotationMatrix(angles, matrix);
-		RotatePoint(start_l, matrix);
-		RotatePoint(end_l, matrix);
+		RotatePoint(start, matrix);
+		RotatePoint(end, matrix);
 		// rotated sphere offset for capsule
 		sphere.offset[0] = matrix[0][ 2 ] * t;
 		sphere.offset[1] = -matrix[1][ 2 ] * t;
@@ -1483,9 +1483,9 @@ if(!onTrace){
 	#endif
 } else {
 	#ifdef USE_BSP_COLMODELS
-		CM_Trace( &trace, start_l, end_l, symetricSize[0], symetricSize[1], indexAdjusted, origin, brushmask, capsule, &sphere );
+		CM_Trace( &trace, start, end, symetricSize[0], symetricSize[1], indexAdjusted, origin, brushmask, capsule, &sphere );
 	#else
-		CM_Trace( &trace, start_l, end_l, symetricSize[0], symetricSize[1], model, origin, brushmask, capsule, &sphere );
+		CM_Trace( &trace, start, end, symetricSize[0], symetricSize[1], model, origin, brushmask, capsule, &sphere );
 	#endif	
 }
 
