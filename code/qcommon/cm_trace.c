@@ -1463,8 +1463,8 @@ if(!onTrace){
 		//		 bevels invalid.
 		//		 However this is correct for capsules since a capsule itself is rotated too.
 		CreateRotationMatrix(angles, matrix);
-		RotatePoint(start, matrix);
-		RotatePoint(end, matrix);
+		//RotatePoint(start, matrix);
+		//RotatePoint(end, matrix);
 		// rotated sphere offset for capsule
 		sphere.offset[0] = matrix[0][ 2 ] * t;
 		sphere.offset[1] = -matrix[1][ 2 ] * t;
