@@ -51,7 +51,7 @@ typedef uint32_t glIndex_t;
 #define	REFENTITYNUM_MASK	((1<<REFENTITYNUM_BITS) - 1)
 // the last N-bit number (2^REFENTITYNUM_BITS - 1) is reserved for the special world refentity,
 //  and this is reflected by the value of MAX_REFENTITIES (which therefore is not a power-of-2)
-#define	MAX_REFENTITIES		((1<<(REFENTITYNUM_BITS+4) - 1)
+#define	MAX_REFENTITIES		((1<<(REFENTITYNUM_BITS+4)) - 1)
 #define	REFENTITYNUM_WORLD	((1<<REFENTITYNUM_BITS) - 1)
 // 14 bits
 // can't be increased without changing bit packing for drawsurfs
