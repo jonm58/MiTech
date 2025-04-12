@@ -850,7 +850,11 @@ void RB_StageIteratorSky( void ) {
 		GL_State( 0 );
 		GL_Cull( CT_FRONT_SIDED );
 
-		DrawSkyBox( tess.shader );
+		if(strlen(r_customSky->string)){
+			DrawSkyBox( RE_RegisterShaderLightMap(r_customSky->string, 0) );
+		} else {
+			DrawSkyBox( tess.shader );
+		}
 	}
 
 	// generate the vertexes for all the clouds, which will be drawn
