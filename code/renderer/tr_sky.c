@@ -468,7 +468,7 @@ static void DrawSkySide( image_t *image, const int mins[2], const int maxs[2] )
 }
 
 
-static void DrawSkyBox( const shader_t *shader )
+static void DrawSkyBox( shader_t *shader )
 {
 	int		i;
 	sky_min = 0;
