@@ -1205,10 +1205,6 @@ extern	qboolean			superSampled;
 //
 // cvars
 //
-extern cvar_t	*r_flareSize;
-extern cvar_t	*r_flareFade;
-extern cvar_t	*r_flareCoeff;			// coefficient for the flare intensity falloff function. 
-
 extern cvar_t	*r_railWidth;
 extern cvar_t	*r_railCoreWidth;
 extern cvar_t	*r_railSegmentLength;
@@ -1289,7 +1285,6 @@ extern	cvar_t	*r_shownormals;					// draws wireframe normals
 extern	cvar_t	*r_clear;						// force screen clear every frame
 
 extern	cvar_t	*r_shadows;						// controls shadows: 0 = none, 1 = blur, 2 = stencil, 3 = black planar projection
-extern	cvar_t	*r_flares;						// light flares
 
 extern	cvar_t	*r_intensity;
 
@@ -1587,20 +1582,6 @@ void R_AddBrushModelSurfaces( trRefEntity_t *e );
 void R_AddWorldSurfaces( void );
 qboolean R_inPVS( const vec3_t p1, const vec3_t p2 );
 
-
-/*
-============================================================
-
-FLARES
-
-============================================================
-*/
-
-void R_ClearFlares( void );
-
-void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t normal );
-void RB_AddDlightFlares( void );
-void RB_RenderFlares( void );
 
 /*
 ============================================================

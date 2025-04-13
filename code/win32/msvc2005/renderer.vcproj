@@ -291,10 +291,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_flares.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\renderercommon\tr_font.c"
 				>
 			</File>
