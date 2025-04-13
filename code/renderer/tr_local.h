@@ -603,6 +603,7 @@ typedef enum {
 	SF_MD3,
 	SF_MDR,
 	SF_IQM,
+	SF_FLARE,
 	SF_ENTITY,				// beams, rails, lightning, etc that can be determined by entity
 
 	SF_NUM_SURFACE_TYPES,
@@ -636,6 +637,14 @@ typedef struct srfPoly_s {
 	int				numVerts;
 	polyVert_t		*verts;
 } srfPoly_t;
+
+
+typedef struct srfFlare_s {
+	surfaceType_t	surfaceType;
+	vec3_t			origin;
+	vec3_t			normal;
+	vec3_t			color;
+} srfFlare_t;
 
 typedef struct srfGridMesh_s {
 	surfaceType_t	surfaceType;
@@ -1094,6 +1103,7 @@ typedef struct {
 	image_t					*scratchImage[ MAX_VIDEO_HANDLES ];
 	image_t					*fogImage;
 	image_t					*dlightImage;	// inverse-quare highlight for projective adding
+	image_t					*flareImage;
 	image_t					*whiteImage;			// full of 0xff
 	image_t					*identityLightImage;	// full of tr.identityLightByte
 
