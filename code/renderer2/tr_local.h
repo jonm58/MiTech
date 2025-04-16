@@ -40,8 +40,8 @@ Suite 120, Rockville, Maryland 20850 USA.
 #include "tr_extramath.h"
 #include "tr_fbo.h"
 #include "tr_postprocess.h"
-#include "../renderercommon/iqm.h"
-#include "../renderercommon/qgl.h"
+#include "../renderer/iqm.h"
+#include "../renderer/qgl.h"
 
 #define GLE(ret, name, ...) extern name##proc * qgl##name;
 QGL_1_1_PROCS;
