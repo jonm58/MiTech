@@ -813,6 +813,8 @@ endif
 
 Q3REND2OBJ = \
   $(B)/rend2/tr_animation.o \
+  $(B)/rend2/tr_animation_mds.o \
+  $(B)/rend2/tr_animation_mdm.o \
   $(B)/rend2/tr_backend.o \
   $(B)/rend2/tr_bsp.o \
   $(B)/rend2/tr_cmds.o \
@@ -826,11 +828,12 @@ Q3REND2OBJ = \
   $(B)/rend2/tr_glsl.o \
   $(B)/rend2/tr_image.o \
   $(B)/rend2/tr_image_bmp.o \
+  $(B)/rend2/tr_image_dds.o \
+  $(B)/rend2/tr_image_ftx.o \
   $(B)/rend2/tr_image_jpg.o \
   $(B)/rend2/tr_image_pcx.o \
   $(B)/rend2/tr_image_png.o \
   $(B)/rend2/tr_image_tga.o \
-  $(B)/rend2/tr_image_dds.o \
   $(B)/rend2/tr_init.o \
   $(B)/rend2/tr_light.o \
   $(B)/rend2/tr_main.o \
