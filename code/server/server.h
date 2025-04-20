@@ -243,7 +243,7 @@ typedef struct {
 
 	int			snapFlagServerBit;			// ^= SNAPFLAG_SERVERCOUNT every SV_SpawnServer()
 
-	client_t	*clients;					// [sv_maxclients->integer];
+	client_t	*clients;					// [MAX_CLIENTS];
 	int			numSnapshotEntities;		// PACKET_BACKUP*MAX_SNAPSHOT_ENTITIES
 	entityState_t	*snapshotEntities;		// [numSnapshotEntities]
 	int			nextHeartbeatTime;

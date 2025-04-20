@@ -235,28 +235,6 @@ static void SV_CreateBaseline( void ) {
 	}
 }
 
-
-/*
-===============
-SV_BoundMaxClients
-===============
-*/
-static int SV_BoundMaxClients( int minimum ) {
-	// get the current maxclients value
-	Cvar_Get( "sv_maxclients", "128", 0 );
-
-	if ( sv_maxclients->integer < minimum ) {
-		Cvar_SetIntegerValue( "sv_maxclients", minimum );
-		sv_maxclients->modified = qfalse;
-		return minimum;
-	}
-
-	sv_maxclients->modified = qfalse;
-
-	return sv_maxclients->integer;
-}
-
-
 /*
 ===============
 SV_SetSnapshotParams
