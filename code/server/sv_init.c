@@ -276,7 +276,7 @@ static void SV_Startup( void ) {
 		Com_Error( ERR_FATAL, "SV_Startup: svs.initialized" );
 	}
 
-	SV_AllocClients( MAX_CLIENTS );
+	SV_AllocClients( MAX_CLIENTS+1 );
 
 	svs.initialized = qtrue;
 
