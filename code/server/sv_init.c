@@ -446,10 +446,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	if ( !Cvar_VariableIntegerValue( "sv_running" ) ) {
 		SV_Startup();
 	} else {
-		// check for maxclients change
-		if ( sv_maxclients->modified ) {
-			SV_ChangeMaxClients();
-		}
+		SV_ChangeMaxClients();
 	}
 
 #ifndef DEDICATED

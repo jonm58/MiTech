@@ -1323,15 +1323,15 @@ void SV_Frame( int msec ) {
 		return;
 	}
 
-	if(sv_maxclients->modified){
+	if(sv_maxclients->modified && sv.state == SS_GAME){
 		Com_Printf( "variable sv_maxclients change -- restarting.\n" );
 		SV_SpawnServer( mapname, qfalse );
 	}
-	if(sv_gametype->modified){
+	if(sv_gametype->modified && sv.state == SS_GAME){
 		Com_Printf( "variable sv_gametype change -- restarting.\n" );
 		SV_SpawnServer( mapname, qfalse );
 	}
-	if(sv_pure->modified){
+	if(sv_pure->modified && sv.state == SS_GAME){
 		Com_Printf( "variable sv_pure change -- restarting.\n" );
 		SV_SpawnServer( mapname, qfalse );
 	}
