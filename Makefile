@@ -761,6 +761,7 @@ endif
 ifeq ($(USE_SYSTEM_VORBIS),0)
 	@if [ ! -d $(B)/client/vorbis ];then $(MKDIR) $(B)/client/vorbis;fi
 endif
+	@if [ ! -d $(B)/client/libmad ];then $(MKDIR) $(B)/client/libmad;fi
 	@if [ ! -d $(B)/rend1 ];then $(MKDIR) $(B)/rend1;fi
 	@if [ ! -d $(B)/rend2 ];then $(MKDIR) $(B)/rend2;fi
 	@if [ ! -d $(B)/rend2/glsl ];then $(MKDIR) $(B)/rend2/glsl;fi
