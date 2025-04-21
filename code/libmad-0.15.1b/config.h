@@ -33,8 +33,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 /* #undef EXPERIMENTAL */
 
 #ifdef _WIN32
-#define Q_ARCH_X86_64 1  // для x64 архитектуры
-#define Q_LITTLE_ENDIAN 1  // Windows использует little-endian
+   #if defined (__i386__)
+      #define _M_IX86
+   #endif
+   #if defined (__x86_64__) || defined (__amd64__)
+      #define _M_AMD64
+   #endif
 #endif
 
 #ifdef _WIN32
