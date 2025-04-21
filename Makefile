@@ -383,8 +383,7 @@ ifeq ($(USE_CODEC_MP3),1)
     endif
   endif
 
-  CLIENT_CFLAGS += $(MAD_CFLAGS)
-  CLIENT_LIBS += $(MAD_LIBS)
+  BASE_CFLAGS += $(MAD_CFLAGS)
 endif
 
 ARCHEXT=
