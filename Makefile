@@ -215,9 +215,9 @@ UDIR=$(MOUNT_DIR)/unix
 W32DIR=$(MOUNT_DIR)/win32
 BLIBDIR=$(MOUNT_DIR)/botlib
 JPDIR=$(MOUNT_DIR)/libjpeg
-OGGDIR=$(MOUNT_DIR)/ibogg-1.3.3
-VORBISDIR=$(MOUNT_DIR)/libvorbis-1.3.6
-MADDIR=$(MOUNT_DIR)/libmad-0.15.1b
+OGGDIR=$(MOUNT_DIR)/libogg
+VORBISDIR=$(MOUNT_DIR)/libvorbis
+MADDIR=$(MOUNT_DIR)/libmad
 
 bin_path=$(shell which $(1) 2> /dev/null)
 
