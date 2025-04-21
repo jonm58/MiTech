@@ -356,11 +356,9 @@ ifeq ($(USE_CODEC_MP3),1)
   MAD_CFLAGS = -I$(MADDIR)/include
   ifeq ($(ARCH),x86)
     MAD_CFLAGS += -DFPM_INTEL
-    MAD_CFLAGS += -D_WIN32
   else
   ifeq ($(ARCH),x86_64)
     MAD_CFLAGS += -DFPM_64BIT
-    MAD_CFLAGS += -D_WIN32
   else
   ifeq ($(ARCH),ppc)
     MAD_CFLAGS += -DFPM_PPC
