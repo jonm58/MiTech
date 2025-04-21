@@ -32,6 +32,7 @@ USE_LOCAL_HEADERS= 1
 USE_SYSTEM_JPEG  = 0
 
 USE_OGG_VORBIS    = 1
+USE_CODEC_MP3     = 1
 USE_SYSTEM_OGG    = 0
 USE_SYSTEM_VORBIS = 0
 
@@ -213,9 +214,10 @@ CMDIR=$(MOUNT_DIR)/qcommon
 UDIR=$(MOUNT_DIR)/unix
 W32DIR=$(MOUNT_DIR)/win32
 BLIBDIR=$(MOUNT_DIR)/botlib
-JPDIR=$(MOUNT_DIR)/libjpeg
-OGGDIR=$(MOUNT_DIR)/libogg
-VORBISDIR=$(MOUNT_DIR)/libvorbis
+JPDIR=$(MOUNT_DIR)/jpeg-8c
+OGGDIR=$(MOUNT_DIR)/ibogg-1.3.3
+VORBISDIR=$(MOUNT_DIR)/libvorbis-1.3.6
+MADDIR=$(MOUNT_DIR)/libmad-0.15.1b
 
 bin_path=$(shell which $(1) 2> /dev/null)
 
@@ -1008,6 +1010,21 @@ VORBISOBJ = \
 endif
 endif
 
+ifeq ($(USE_CODEC_MP3),1)
+MADOBJ = \
+  $(B)/client/libmad/bit.o \
+  $(B)/client/libmad/decoder.o \
+  $(B)/client/libmad/fixed.o \
+  $(B)/client/libmad/frame.o \
+  $(B)/client/libmad/huffman.o \
+  $(B)/client/libmad/layer3.o \
+  $(B)/client/libmad/layer12.o \
+  $(B)/client/libmad/stream.o \
+  $(B)/client/libmad/synth.o \
+  $(B)/client/libmad/timer.o \
+  $(B)/client/libmad/version.o
+endif
+
 Q3OBJ = \
   $(B)/client/cl_cgame.o \
   $(B)/client/cl_cin.o \
@@ -1107,6 +1124,11 @@ endif
 ifeq ($(USE_OGG_VORBIS),1)
   Q3OBJ += $(OGGOBJ) $(VORBISOBJ) \
     $(B)/client/snd_codec_ogg.o
+endif
+
+ifeq ($(USE_CODEC_MP3),1)
+  Q3OBJ += $(MADOBJ) \
+    $(B)/client/snd_codec_mp3.o
 endif
 
 ifneq ($(USE_RENDERER_DLOPEN),1)
@@ -1374,6 +1396,9 @@ $(B)/client/ogg/%.o: $(OGGDIR)/src/%.c
 	$(DO_CC)
 
 $(B)/client/vorbis/%.o: $(VORBISDIR)/lib/%.c
+	$(DO_CC)
+
+$(B)/client/libmad/%.o: $(MADDIR)/%.c
 	$(DO_CC)
 
 $(B)/client/%.o: $(SDLDIR)/%.c
