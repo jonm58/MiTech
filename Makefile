@@ -1400,7 +1400,7 @@ $(B)/client/vorbis/%.o: $(VORBISDIR)/lib/%.c
 	$(DO_CC)
 
 $(B)/client/libmad/%.o: $(MADDIR)/%.c
-	$(DO_CC)
+	$(DO_CC) -DFPM_DEFAULT
 
 $(B)/client/%.o: $(SDLDIR)/%.c
 	$(DO_CC)
