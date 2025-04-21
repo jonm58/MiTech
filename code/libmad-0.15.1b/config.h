@@ -33,6 +33,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 /* #undef EXPERIMENTAL */
 
 #ifdef _WIN32
+#define Q_ARCH_X86_64 1  // для x64 архитектуры
+#define Q_LITTLE_ENDIAN 1  // Windows использует little-endian
+#endif
+
+#ifdef _WIN32
 
 /* Define to 1 if you have the <assert.h> header file. */
 #define HAVE_ASSERT_H 1
