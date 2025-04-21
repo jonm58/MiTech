@@ -55,7 +55,7 @@ int SV_BotAllocateClient( void ) {
 		}
 	}
 
-	if ( i == sv.maxclients-1 ) {
+	if ( i == sv.maxclients ) {
 		return -1;
 	}
 

@@ -778,9 +778,7 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, fileHandle
 	while ( demo_protocols[ i ] )
 	{
 		Com_sprintf( name, name_len, "demos/%s.%s%d", arg, DEMOEXT, demo_protocols[ i ] );
-		FS_BypassPure();
 		FS_FOpenFileRead( name, handle, qtrue );
-		FS_RestorePure();
 		if ( *handle != FS_INVALID_HANDLE )
 		{
 			Com_Printf( "Demo file: %s\n", name );
@@ -875,9 +873,7 @@ static void CL_PlayDemo_f( void ) {
 		if ( demo_protocols[ i ] || protocol == com_protocol->integer  )
 		{
 			Com_sprintf(name, sizeof(name), "demos/%s", arg);
-			FS_BypassPure();
 			FS_FOpenFileRead( name, &hFile, qtrue );
-			FS_RestorePure();
 		}
 		else
 		{
@@ -1137,7 +1133,6 @@ update cl_guid using QKEY_FILE and optional prefix
 */
 static void CL_UpdateGUID( const char *prefix, int prefix_len )
 {
-#ifdef USE_Q3KEY
 	fileHandle_t f;
 	int len;
 
@@ -1149,9 +1144,6 @@ static void CL_UpdateGUID( const char *prefix, int prefix_len )
 	else
 		Cvar_Set( "cl_guid", Com_MD5File( QKEY_FILE, QKEY_SIZE,
 			prefix, prefix_len ) );
-#else
-	Cvar_Set( "cl_guid", Com_MD5Buf( &cl_cdkey[0], sizeof(cl_cdkey), prefix, prefix_len));
-#endif
 }
 
 
@@ -1251,10 +1243,6 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NONE );
 	}
 
-	// Remove pure paks
-	FS_PureServerSetLoadedPaks( "", "" );
-	FS_PureServerSetReferencedPaks( "", "" );
-
 	FS_ClearPakReferences( FS_GENERAL_REF | FS_UI_REF | FS_CGAME_REF );
 
 	if ( CL_GameSwitch() ) {
@@ -1279,9 +1267,6 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 
 	// allow cheats locally
 	Cvar_Set( "sv_cheats", "1" );
-
-	// not connected to a pure server anymore
-	cl_connectedToPureServer = 0;
 
 	CL_UpdateGUID( NULL, 0 );
 
@@ -1334,91 +1319,6 @@ void CL_ForwardCommandToServer( const char *string ) {
 		CL_AddReliableCommand( cmd, qfalse );
 	}
 }
-
-/*
-===================
-CL_RequestAuthorization
-
-Authorization server protocol
------------------------------
-
-All commands are text in Q3 out of band packets (leading 0xff 0xff 0xff 0xff).
-
-Whenever the client tries to get a challenge from the server it wants to
-connect to, it also blindly fires off a packet to the authorize server:
-
-getKeyAuthorize <challenge> <cdkey>
-
-cdkey may be "demo"
-
-
-#OLD The authorize server returns a:
-#OLD
-#OLD keyAthorize <challenge> <accept | deny>
-#OLD
-#OLD A client will be accepted if the cdkey is valid and it has not been used by any other IP
-#OLD address in the last 15 minutes.
-
-
-The server sends a:
-
-getIpAuthorize <challenge> <ip>
-
-The authorize server returns a:
-
-ipAuthorize <challenge> <accept | deny | demo | unknown >
-
-A client will be accepted if a valid cdkey was sent by that ip (only) in the last 15 minutes.
-If no response is received from the authorize server after two tries, the client will be let
-in anyway.
-===================
-*/
-#ifndef STANDALONE
-static void CL_RequestAuthorization( void ) {
-	char	nums[64];
-	int		i, j, l;
-	cvar_t	*fs;
-
-	if ( !cls.authorizeServer.port ) {
-		Com_Printf( "Resolving %s\n", AUTHORIZE_SERVER_NAME );
-		if ( !NET_StringToAdr( AUTHORIZE_SERVER_NAME, &cls.authorizeServer, NA_IP ) ) {
-			Com_Printf( "Couldn't resolve address\n" );
-			return;
-		}
-
-		cls.authorizeServer.port = BigShort( PORT_AUTHORIZE );
-		Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", AUTHORIZE_SERVER_NAME,
-			cls.authorizeServer.ipv._4[0], cls.authorizeServer.ipv._4[1],
-			cls.authorizeServer.ipv._4[2], cls.authorizeServer.ipv._4[3],
-			BigShort( cls.authorizeServer.port ) );
-	}
-	if ( cls.authorizeServer.type == NA_BAD ) {
-		return;
-	}
-
-	// only grab the alphanumeric values from the cdkey, to avoid any dashes or spaces
-	j = 0;
-	l = strlen( cl_cdkey );
-	if ( l > 32 ) {
-		l = 32;
-	}
-	for ( i = 0 ; i < l ; i++ ) {
-		if ( ( cl_cdkey[i] >= '0' && cl_cdkey[i] <= '9' )
-				|| ( cl_cdkey[i] >= 'a' && cl_cdkey[i] <= 'z' )
-				|| ( cl_cdkey[i] >= 'A' && cl_cdkey[i] <= 'Z' )
-			 ) {
-			nums[j] = cl_cdkey[i];
-			j++;
-		}
-	}
-	nums[j] = 0;
-
-	fs = Cvar_Get( "cl_anonymous", "0", CVAR_INIT | CVAR_SYSTEMINFO );
-
-	NET_OutOfBandPrint(NS_CLIENT, &cls.authorizeServer, "getKeyAuthorize %i %s", fs->integer, nums );
-}
-#endif
-
 
 /*
 ======================================================================
@@ -1699,37 +1599,6 @@ static void CL_Rcon_f( void ) {
 	NET_SendPacket( NS_CLIENT, len, message, &rcon_address );
 }
 
-
-/*
-=================
-CL_SendPureChecksums
-=================
-*/
-static void CL_SendPureChecksums( void ) {
-	char cMsg[ MAX_STRING_CHARS-1 ];
-	int len;
-
-	if ( !cl_connectedToPureServer || clc.demoplaying )
-		return;
-
-	// if we are pure we need to send back a command with our referenced pk3 checksums
-	len = sprintf( cMsg, "cp %d ", cl.serverId );
-	strcpy( cMsg + len, FS_ReferencedPakPureChecksums( sizeof( cMsg ) - len - 1 ) );
-
-	CL_AddReliableCommand( cMsg, qfalse );
-}
-
-
-/*
-=================
-CL_ResetPureClientAtServer
-=================
-*/
-static void CL_ResetPureClientAtServer( void ) {
-	CL_AddReliableCommand( "vdr", qfalse );
-}
-
-
 /*
 =================
 CL_Vid_Restart
@@ -1758,9 +1627,6 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	// shutdown the renderer and clear the renderer interface
 	CL_ShutdownRef( shutdownCode ); // REF_KEEP_CONTEXT, REF_KEEP_WINDOW, REF_DESTROY_WINDOW
 
-	// client is no longer pure until new checksums are sent
-	CL_ResetPureClientAtServer();
-
 	// clear pak references
 	FS_ClearPakReferences( FS_UI_REF | FS_CGAME_REF );
 
@@ -1782,8 +1648,6 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	if ( ( cls.state > CA_CONNECTED && cls.state != CA_CINEMATIC ) || cls.startCgame ) {
 		cls.cgameStarted = qtrue;
 		CL_InitCGame();
-		// send pure checksums
-		CL_SendPureChecksums();
 	}
 
 	cls.startCgame = qfalse;
@@ -1831,7 +1695,6 @@ static void CL_Snd_Restart_f( void )
 	CL_Vid_Restart( REF_KEEP_CONTEXT /*REF_KEEP_WINDOW*/ );
 }
 
-
 /*
 ==================
 CL_PK3List_f
@@ -1840,17 +1703,6 @@ CL_PK3List_f
 void CL_OpenedPK3List_f( void ) {
 	Com_Printf("Opened PK3 Names: %s\n", FS_LoadedPakNames());
 }
-
-
-/*
-==================
-CL_PureList_f
-==================
-*/
-static void CL_ReferencedPK3List_f( void ) {
-	Com_Printf( "Referenced PK3 Names: %s\n", FS_ReferencedPakNames() );
-}
-
 
 /*
 ==================
@@ -1874,7 +1726,6 @@ static void CL_Configstrings_f( void ) {
 		Com_Printf( "%4i: %s\n", i, cl.gameState.stringData + ofs );
 	}
 }
-
 
 /*
 ==============
@@ -2007,9 +1858,6 @@ static void CL_DownloadsComplete( void ) {
 		Cmd_AddCommand( "callvote", NULL );
 		Cmd_SetCommandCompletionFunc( "callvote", CL_CompleteCallvote );
 	}
-
-	// set pure checksums
-	CL_SendPureChecksums();
 
 	CL_WritePacket( 2 );
 }
@@ -2250,10 +2098,6 @@ static void CL_CheckForResend( void ) {
 	switch ( cls.state ) {
 	case CA_CONNECTING:
 		// requesting a challenge .. IPv6 users always get in as authorize server supports no ipv6.
-#ifndef STANDALONE
-		if (!Cvar_VariableIntegerValue("com_standalone") && clc.serverAddress.type == NA_IP && !Sys_IsLANAddress( &clc.serverAddress ) )
-			CL_RequestAuthorization();
-#endif
 		// The challenge request shall be followed by a client challenge so no malicious server can hijack this connection.
 		NET_OutOfBandPrint( NS_CLIENT, &clc.serverAddress, "getchallenge %d %s", clc.challenge, GAMENAME_FOR_MASTER );
 		break;
@@ -3391,7 +3235,6 @@ static void CL_InitRef( void ) {
 	rimp.FS_WriteFile = FS_WriteFile;
 	rimp.FS_FreeFileList = FS_FreeFileList;
 	rimp.FS_ListFiles = FS_ListFiles;
-	//rimp.FS_FileIsInPAK = FS_FileIsInPAK;
 	rimp.FS_FileExists = FS_FileExists;
 
 	rimp.Cvar_Get = Cvar_Get;
@@ -3580,7 +3423,6 @@ static void CL_CompleteVideoName(const char *args, int argNum )
 	}
 }
 
-
 /*
 ===============
 CL_GenerateQKey
@@ -3589,7 +3431,6 @@ test to see if a valid QKEY_FILE exists.  If one does not, try to generate
 it by filling it with 2048 bytes of random data.
 ===============
 */
-#ifdef USE_Q3KEY
 static void CL_GenerateQKey(void)
 {
 	int len = 0;
@@ -3622,8 +3463,6 @@ static void CL_GenerateQKey(void)
 		Com_Printf( "QKEY generated\n" );
 	}
 }
-#endif
-
 
 /*
 ** CL_GetModeInfo
@@ -4098,7 +3937,7 @@ static void CL_SetServerInfo(serverInfo_t *server, const char *info, int ping) {
 			Q_strncpyz(server->hostName,Info_ValueForKey(info, "hostname"), MAX_NAME_LENGTH);
 			Q_strncpyz(server->addonName,Info_ValueForKey(info, "addonname"), MAX_NAME_LENGTH);
 			Q_strncpyz(server->mapName, Info_ValueForKey(info, "mapname"), MAX_NAME_LENGTH);
-			server->maxClients = atoi(Info_ValueForKey(info, "sv_maxclients"));
+			server->maxClients = atoi(Info_ValueForKey(info, "g_maxClients"));
 			Q_strncpyz(server->game,Info_ValueForKey(info, "game"), MAX_NAME_LENGTH);
 			server->gameType = atoi(Info_ValueForKey(info, "gametype"));
 			server->netType = atoi(Info_ValueForKey(info, "nettype"));
@@ -5011,7 +4850,7 @@ qboolean CL_Download( const char *cmd, const char *pakname, qboolean autoDownloa
 		if ( !name[0] )
 			return qfalse;
 		s = va( "maps/%s.bsp", name );
-		if ( FS_FileIsInPAK( s, NULL, url ) )
+		if ( FS_FileIsInPAK( s, url ) )
 		{
 			Com_Printf( S_COLOR_YELLOW " map %s already exists in %s.pk3\n", name, url );
 			return qfalse;

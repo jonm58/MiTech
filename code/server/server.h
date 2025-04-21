@@ -66,7 +66,6 @@ typedef struct snapshotFrame_s {
 typedef struct {
 	serverState_t	state;
 	qboolean		restarting;			// if true, send configstring changes during SS_LOADING
-	int				pure;				// fixed at level spawn
 	int				maxclients;			// fixed at level spawn
 	int				serverId;			// changes each server start
 	int				restartedServerId;	// changes each map restart
@@ -202,8 +201,6 @@ typedef struct client_s {
 	int				ping;
 	int				rate;				// bytes / second, 0 - unlimited
 	int				snapshotMsec;		// requests a snapshot every snapshotMsec unless rate choked
-	qboolean		pureAuthentic;
-	qboolean		gotCP;				// TTimo - additional flag to distinguish between a bad pure checksum, and no cp command at all
 	netchan_t		netchan;
 	// TTimo
 	// queuing outgoing fragmented messages to send them properly, without udp packet bursts
@@ -262,7 +259,6 @@ typedef struct {
 
 } serverStatic_t;
 
-#ifdef USE_BANS
 #define SERVER_MAXBANS	1024
 // Structure for managing bans
 typedef struct
@@ -273,7 +269,6 @@ typedef struct
 
 	qboolean isexception;
 } serverBan_t;
-#endif
 
 //=============================================================================
 
@@ -287,7 +282,6 @@ extern	cvar_t	*sv_zombietime;
 extern	cvar_t	*sv_rconPassword;
 extern	cvar_t	*sv_privatePassword;
 extern	cvar_t	*sv_allowDownload;
-extern	cvar_t	*sv_maxclients;
 extern	cvar_t	*sv_maxclientsPerIP;
 extern	cvar_t	*sv_clientTLD;
 
@@ -305,7 +299,6 @@ extern	cvar_t	*sv_minRate;
 extern	cvar_t	*sv_maxRate;
 extern	cvar_t	*sv_dlRate;
 extern	cvar_t	*sv_gametype;
-extern	cvar_t	*sv_pure;
 extern	cvar_t	*sv_floodProtect;
 extern	cvar_t	*sv_viewdistance;
 extern	cvar_t	*sv_lanForceRate;
@@ -315,11 +308,9 @@ extern	cvar_t	*sv_ace_wallhack;
 extern	cvar_t *sv_levelTimeReset;
 extern	cvar_t *sv_filter;
 
-#ifdef USE_BANS
 extern	cvar_t	*sv_banFile;
 extern	serverBan_t serverBans[SERVER_MAXBANS];
 extern	int serverBansCount;
-#endif
 
 //===========================================================
 

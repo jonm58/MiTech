@@ -312,7 +312,7 @@ static void LAN_GetServerInfo( int source, int n, char *buf, int buflen ) {
 		Info_SetValueForKey( info, "addonname", server->addonName);
 		Info_SetValueForKey( info, "mapname", server->mapName);
 		Info_SetValueForKey( info, "clients", va("%i",server->clients));
-		Info_SetValueForKey( info, "sv_maxclients", va("%i",server->maxClients));
+		Info_SetValueForKey( info, "g_maxClients", va("%i",server->maxClients));
 		Info_SetValueForKey( info, "ping", va("%i",server->ping));
 		Info_SetValueForKey( info, "minping", va("%i",server->minPing));
 		Info_SetValueForKey( info, "maxping", va("%i",server->maxPing));
@@ -657,51 +657,6 @@ static void Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
 		*buf = '\0';
 	}
 }
-
-
-/*
-====================
-CLUI_GetCDKey
-====================
-*/
-static void CLUI_GetCDKey( char *buf, int buflen ) {
-#ifndef STANDALONE
-	const char *gamedir;
-	gamedir = Cvar_VariableString( "fs_game" );
-	if ( UI_usesUniqueCDKey() && gamedir[0] != '\0' ) {
-		Com_Memcpy( buf, &cl_cdkey[16], 16 );
-		buf[16] = '\0';
-	} else {
-		Com_Memcpy( buf, cl_cdkey, 16 );
-		buf[16] = '\0';
-	}
-#else
-	*buf = '\0';
-#endif
-}
-
-
-/*
-====================
-CLUI_SetCDKey
-====================
-*/
-#ifndef STANDALONE
-static void CLUI_SetCDKey( char *buf ) {
-	const char *gamedir;
-	gamedir = Cvar_VariableString( "fs_game" );
-	if ( UI_usesUniqueCDKey() && gamedir[0] != '\0' ) {
-		Com_Memcpy( &cl_cdkey[16], buf, 16 );
-		cl_cdkey[32] = '\0';
-		// set the flag so the flag will be written at the next opportunity
-		cvar_modifiedFlags |= CVAR_ARCHIVE;
-	} else {
-		Com_Memcpy( cl_cdkey, buf, 16 );
-		// set the flag so the flag will be written at the next opportunity
-		cvar_modifiedFlags |= CVAR_ARCHIVE;
-	}
-}
-#endif
 
 
 /*
@@ -1065,14 +1020,9 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return Hunk_MemoryRemaining();
 
 	case UI_GET_CDKEY:
-		VM_CHECKBOUNDS( uivm, args[1], args[2] );
-		CLUI_GetCDKey( VMA(1), args[2] );
 		return 0;
 
 	case UI_SET_CDKEY:
-#ifndef STANDALONE
-		CLUI_SetCDKey( VMA(1) );
-#endif
 		return 0;
 
 	case UI_SET_PBCLSTATUS:
@@ -1161,7 +1111,7 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 
 	case UI_VERIFY_CDKEY:
-		return Com_CDKeyValidate(VMA(1), VMA(2));
+		return 0;
 
 	// engine extensions
 	case UI_R_ADDREFENTITYTOSCENE2:
@@ -1244,31 +1194,11 @@ void CL_InitUI( void ) {
 
 	// load the dll or bytecode
 	interpret = Cvar_VariableIntegerValue( "vm_ui" );
-	if ( cl_connectedToPureServer )
-	{
-		// if sv_pure is set we only allow qvms to be loaded
-		if ( interpret != VMI_COMPILED && interpret != VMI_BYTECODE )
-			interpret = VMI_COMPILED;
-	}
 
 	uivm = VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall, interpret );
 	if ( !uivm ) {
-		if ( cl_connectedToPureServer && CL_GameSwitch() ) {
-			// server-side modification may require and reference only single custom ui.qvm
-			// so allow referencing everything until we download all files
-			// new gamestate will be requested after downloads complete
-			// which will correct filesystem permissions
-			fs_reordered = qfalse;
-			FS_PureServerSetLoadedPaks( "", "" );
-			uivm = VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall, interpret );
-			if ( !uivm ) {
-				Cvar_Set("cl_selectedmod", "default");
-				Com_Error( ERR_DROP, "VM_Create on UI failed, default mod restored" );
-			}
-		} else {
-			Cvar_Set("cl_selectedmod", "default");
-			Com_Error( ERR_DROP, "VM_Create on UI failed, default mod restored" );
-		}
+		Cvar_Set("cl_selectedmod", "default");
+		Com_Error( ERR_DROP, "VM_Create on UI failed, default mod restored" );
 	}
 
 	// sanity check
@@ -1291,18 +1221,6 @@ void CL_InitUI( void ) {
 		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
 	}
 }
-
-
-#ifndef STANDALONE
-qboolean UI_usesUniqueCDKey( void ) {
-	if (uivm) {
-		return (VM_Call( uivm, 0, UI_HASUNIQUECDKEY ) != 0);
-	} else {
-		return qfalse;
-	}
-}
-#endif
-
 
 /*
 ====================

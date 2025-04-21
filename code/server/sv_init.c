@@ -427,12 +427,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		SV_ChangeMaxClients();
 	}
 
-#ifndef DEDICATED
-	// remove pure paks that may left from client-side
-	FS_PureServerSetLoadedPaks( "", "" );
-	FS_PureServerSetReferencedPaks( "", "" );
-#endif
-
 	// clear pak references
 	FS_ClearPakReferences( 0 );
 
@@ -481,12 +475,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Cvar_Set( "cl_paused", "0" );
 #endif
 
-	// get latched value
-	sv_pure = Cvar_Get( "sv_pure", "0", CVAR_SYSTEMINFO | CVAR_LATCH );
-
-	// VMs can change latched cvars instantly which could cause side-effects in SV_UserMove()
-	sv.pure = sv_pure->integer;
-
 	// get a new checksum feed and restart the file system
 	srand( Com_Milliseconds() );
 	Com_RandomBytes( (byte*)&sv.checksumFeed, sizeof( sv.checksumFeed ) );
@@ -521,8 +509,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// don't allow a map_restart if game is modified
 	sv_gametype->modified = qfalse;
-
-	sv_pure->modified = qfalse;
 
 	// run a few frames to allow everything to settle
 	for ( i = 0; i < 3; i++ ) {
@@ -576,9 +562,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	SV_BotFrame( sv.time );
 	svs.time += 100;
 
-	// we need to touch the cgame and ui qvm because they could be in
-	// separate pk3 files and the client will need to download the pk3
-	// files with the latest cgame and ui qvm to pass the pure check
 	FS_TouchFileInPak( "qvm/cgame.qvm" );
 	FS_TouchFileInPak( "qvm/ui.qvm" );
 
@@ -599,36 +582,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	Cvar_Set( "sv_paks", "" );
 	Cvar_Set( "sv_pakNames", "" ); // not used on client-side
-
-	if ( sv.pure != 0 ) {
-		int freespace, pakslen, infolen;
-		qboolean overflowed = qfalse;
-		qboolean infoTruncated = qfalse;
-
-		p = FS_LoadedPakChecksums( &overflowed );
-
-		pakslen = strlen( p ) + 9; // + strlen( "\\sv_paks\\" )
-		freespace = SV_RemainingGameState();
-		infolen = strlen( Cvar_InfoString_Big( CVAR_SYSTEMINFO, &infoTruncated ) );
-
-		if ( infoTruncated ) {
-			Com_Printf( S_COLOR_YELLOW "WARNING: truncated systeminfo!\n" );
-		}
-
-		if ( pakslen > freespace || infolen + pakslen >= BIG_INFO_STRING || overflowed ) {
-			// switch to degraded pure mode
-			// this could *potentially* lead to a false "unpure client" detection
-			// which is better than guaranteed drop
-			Com_DPrintf( S_COLOR_YELLOW "WARNING: skipping sv_paks setup to avoid gamestate overflow\n" );
-		} else {
-			// the server sends these to the clients so they will only
-			// load pk3s also loaded at the server
-			Cvar_Set( "sv_paks", p );
-			if ( *p == '\0' ) {
-				Com_Printf( S_COLOR_YELLOW "WARNING: sv_pure set but no PK3 files loaded\n" );
-			}
-		}
-	}
 
 	// save systeminfo and serverinfo strings
 	SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO, NULL ) );
@@ -683,12 +636,9 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_mapname, "Display the name of the current map being used on a server." );
 	sv_privateClients = Cvar_Get( "sv_privateClients", "0", 0 );
 	Cvar_CheckRange( sv_privateClients, "0", va( "%i", MAX_CLIENTS-1 ), CV_INTEGER );
-	Cvar_SetDescription( sv_privateClients, "The number of spots, out of sv_maxclients, reserved for players with the server password (sv_privatePassword)." );
+	Cvar_SetDescription( sv_privateClients, "The number of spots, out of g_maxClients, reserved for players with the server password (sv_privatePassword)." );
 	sv_hostname = Cvar_Get ("sv_hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_hostname, "Sets the name of the server." );
-	sv_maxclients = Cvar_Get ("sv_maxclients", "128", CVAR_SERVERINFO );
-	Cvar_CheckRange( sv_maxclients, "1", XSTRING(MAX_CLIENTS), CV_INTEGER );
-	Cvar_SetDescription( sv_maxclients, "Maximum number of people allowed to join the server dedicated server memory optimizations." );
 
 	sv_maxclientsPerIP = Cvar_Get( "sv_maxclientsPerIP", "3", CVAR_ARCHIVE );
 	Cvar_CheckRange( sv_maxclientsPerIP, "1", NULL, CV_INTEGER );
@@ -712,8 +662,6 @@ void SV_Init( void )
 	// systeminfo
 	Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_serverid = Cvar_Get( "sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
-	sv_pure = Cvar_Get( "sv_pure", "0", CVAR_SYSTEMINFO | CVAR_LATCH );
-	Cvar_SetDescription( sv_pure, "Requires clients to only get data from pk3 files the server is using." );
 	Cvar_Get( "sv_paks", "", CVAR_SYSTEMINFO | CVAR_ROM );
 	Cvar_Get( "sv_pakNames", "", CVAR_SYSTEMINFO | CVAR_ROM );
 	Cvar_Get( "sv_referencedPaks", "", CVAR_SYSTEMINFO | CVAR_ROM );
@@ -765,10 +713,8 @@ void SV_Init( void )
 	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "2", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_ace_wallhack, "Enables or disables wallhack protection. 0-Off 1-Players(Fast) 2-Players 3-Players+Items." );
 
-#ifdef USE_BANS
 	sv_banFile = Cvar_Get("sv_banFile", "serverbans.dat", CVAR_ARCHIVE);
 	Cvar_SetDescription( sv_banFile, "Name of the file that is used for storing the server bans." );
-#endif
 
 	sv_levelTimeReset = Cvar_Get( "sv_levelTimeReset", "0", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( sv_levelTimeReset, "Whether or not to reset leveltime after new map loads." );
@@ -782,10 +728,8 @@ void SV_Init( void )
 	// init the botlib here because we need the pre-compiler in the UI
 	SV_BotInitBotLib();
 
-#ifdef USE_BANS
 	// Load saved bans
 	Cbuf_AddText("rehashbans\n");
-#endif
 
 	// track group cvar changes
 	Cvar_SetGroup( sv_lanForceRate, CVG_SERVER );

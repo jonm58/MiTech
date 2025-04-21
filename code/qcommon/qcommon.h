@@ -50,7 +50,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define XSTRING(x)	STRING(x)
 #define STRING(x)	#x
 
-//#define	PRE_RELEASE_DEMO
 #define DELAY_WRITECONFIG
 
 //============================================================================
@@ -663,9 +662,6 @@ issues.
 #define FS_GENERAL_REF	0x01
 #define FS_UI_REF		0x02
 #define FS_CGAME_REF	0x04
-// number of id paks that will never be autodownloaded from baseq3/missionpack
-#define NUM_ID_PAKS		9
-#define NUM_TA_PAKS		4
 
 typedef enum {
 	H_SYSTEM,
@@ -754,12 +750,9 @@ int		FS_FOpenFileRead( const char *qpath, fileHandle_t *file, qboolean uniqueFIL
 
 void FS_TouchFileInPak( const char *filename );
 
-void FS_BypassPure( void );
-void FS_RestorePure( void );
-
 int FS_Home_FOpenFileRead( const char *filename, fileHandle_t *file );
 
-qboolean FS_FileIsInPAK( const char *filename, int *pChecksum, char *pakName );
+qboolean FS_FileIsInPAK( const char *filename, char *pakName );
 // returns qtrue if a file is in the PAK file, otherwise qfalse
 
 int		FS_PakIndexForHandle( fileHandle_t f );
@@ -814,29 +807,13 @@ int		FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin );
 qboolean FS_FilenameCompare( const char *s1, const char *s2 );
 
 const char *FS_LoadedPakNames( void );
-const char *FS_LoadedPakChecksums( qboolean *overflowed );
-// Returns a space separated string containing the checksums of all loaded pk3 files.
-// Servers with sv_pure set will get this string and pass it to clients.
 
 qboolean FS_ExcludeReference( void );
 const char *FS_ReferencedPakNames( void );
 const char *FS_ReferencedPakChecksums( void );
-const char *FS_ReferencedPakPureChecksums( int maxlen );
-// Returns a space separated string containing the checksums of all loaded 
-// AND referenced pk3 files. Servers with sv_pure set will get this string 
-// back from clients for pure validation 
 
 void FS_ClearPakReferences( int flags );
 // clears referenced booleans on loaded pk3s
-
-void FS_PureServerSetReferencedPaks( const char *pakSums, const char *pakNames );
-void FS_PureServerSetLoadedPaks( const char *pakSums, const char *pakNames );
-// If the string is empty, all data sources will be allowed.
-// If not empty, only pk3 files that match one of the space
-// separated checksums will be checked for files, with the
-// sole exception of .cfg files.
-
-qboolean FS_IsPureChecksum( int sum );
 
 qboolean FS_InvalidGameDir( const char *gamedir );
 qboolean FS_idPak( const char *pak, const char *base, int numPaks );
@@ -918,10 +895,6 @@ MISC
 ==============================================================
 */
 
-// centralizing the declarations for cl_cdkey
-// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=470
-extern char cl_cdkey[34];
-
 // customizable client window title
 extern char cl_title[ MAX_CVAR_VALUE_STRING ];
 
@@ -970,7 +943,6 @@ char		*Com_MD5Buf( const char *data, int length, const char *data2, int length2 
 void		Com_MD5Init( void );
 int			Com_MD5Addr( const netadr_t *addr, int timestamp );
 
-qboolean	Com_CDKeyValidate( const char *key, const char *checksum );
 qboolean	Com_EarlyParseCmdLine( char *commandLine, char *con_title, int title_size, int *vid_xpos, int *vid_ypos );
 int			Com_Split( char *in, char **out, int outsz, int delim );
 
@@ -1227,7 +1199,6 @@ void SV_RemoveDedicatedCommands( void );
 // UI interface
 //
 qboolean UI_GameCommand( void );
-qboolean UI_usesUniqueCDKey(void);
 
 /*
 ==============================================================

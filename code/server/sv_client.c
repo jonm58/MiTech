@@ -164,8 +164,6 @@ SV_IsBanned
 Check whether a certain address is banned
 ==================
 */
-#ifdef USE_BANS
-
 static qboolean SV_IsBanned( const netadr_t *from, qboolean isexception )
 {
 	int index;
@@ -191,8 +189,6 @@ static qboolean SV_IsBanned( const netadr_t *from, qboolean isexception )
 
 	return qfalse;
 }
-#endif
-
 
 /*
 ==================
@@ -484,14 +480,12 @@ void SV_DirectConnect( const netadr_t *from ) {
 
 	Com_DPrintf( "SVC_DirectConnect()\n" );
 
-#ifdef USE_BANS
 	// Check whether this client is banned.
 	if(SV_IsBanned(from, qfalse))
 	{
 		NET_OutOfBandPrint(NS_SERVER, &from, "print\nYou are banned from this server.\n");
 		return;
 	}
-#endif
 
 	// Prevent using connect as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
@@ -1031,9 +1025,6 @@ static void SV_SendClientGameState( client_t *client ) {
 
 	client->downloading = qfalse;
 
-	client->pureAuthentic = qfalse;
-	client->gotCP = qfalse;
-
 	// to start generating delta for packet entities
 	client->gentity = SV_GentityNum( client - svs.clients );
 
@@ -1068,15 +1059,7 @@ static void SV_SendClientGameState( client_t *client ) {
 		if ( *sv.configstrings[ start ] != '\0' ) {
 			MSG_WriteByte( &msg, svc_configstring );
 			MSG_WriteShort( &msg, start );
-			if ( start == CS_SYSTEMINFO && sv.pure != sv_pure->integer ) {
-				// make sure we send latched sv.pure, not forced cvar value
-				char systemInfo[BIG_INFO_STRING];
-				Q_strncpyz( systemInfo, sv.configstrings[ start ], sizeof( systemInfo ) );
-				Info_SetValueForKey_s( systemInfo, sizeof( systemInfo ), "sv_pure", va( "%i", sv.pure ) );
-				MSG_WriteBigString( &msg, systemInfo );
-			} else {
-				MSG_WriteBigString( &msg, sv.configstrings[start] );
-			}
+			MSG_WriteBigString( &msg, sv.configstrings[start] );
 		}
 		if ( client->csUpdated[start] ) {
 			csUpdated = qtrue;
@@ -1340,21 +1323,6 @@ static int SV_WriteDownloadToClient( client_t *cl )
 				// paks to prevent downloading of arbitrary files.
 				Cmd_TokenizeStringIgnoreQuotes( sv_referencedPakNames->string );
 				numRefPaks = Cmd_Argc();
-
-				for(curindex = 0; curindex < numRefPaks; curindex++)
-				{
-					if(!FS_FilenameCompare(Cmd_Argv(curindex), pakbuf))
-					{
-						unreferenced = 0;
-
-						// now that we know the file is referenced,
-						// check whether it's legal to download it.
-						missionPack = FS_idPak(pakbuf, BASETA, NUM_TA_PAKS);
-						idPack = missionPack || FS_idPak(pakbuf, BASEGAME, NUM_ID_PAKS);
-
-						break;
-					}
-				}
 			}
 		}
 
@@ -1386,16 +1354,9 @@ static int SV_WriteDownloadToClient( client_t *cl )
 				(sv_allowDownload->integer & DLF_NO_UDP) ) {
 
 				Com_Printf("clientDownload: %d : \"%s\" download disabled\n", (int) (cl - svs.clients), cl->downloadName);
-				if ( sv.pure != 0 ) {
-					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\n\n"
-										"You will need to get this file elsewhere before you "
-										"can connect to this pure server.\n", cl->downloadName);
-				} else {
-					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\n\n"
-                    "The server you are connecting to is not a pure server, "
-                    "set autodownload to No in your settings and you might be "
-                    "able to join the game anyway.\n", cl->downloadName);
-				}
+				Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\n\n"
+                "Set autodownload to No in your settings and you might be "
+                "able to join the game anyway.\n", cl->downloadName);
 			} else {
         // NOTE TTimo this is NOT supposed to happen unless bug in our filesystem scheme?
         //   if the pk3 is referenced, it must have been found somewhere in the filesystem
@@ -1580,164 +1541,6 @@ The client is going to disconnect, so remove the connection immediately  FIXME: 
 static void SV_Disconnect_f( client_t *cl ) {
 	SV_DropClient( cl, "disconnected" );
 }
-
-
-/*
-=================
-SV_VerifyPaks_f
-
-If we are pure, disconnect the client if they do no meet the following conditions:
-
-1. the first two checksums match our view of cgame and ui
-2. there are no any additional checksums that we do not have
-
-This routine would be a bit simpler with a goto but i abstained
-
-=================
-*/
-static void SV_VerifyPaks_f( client_t *cl ) {
-	int nChkSum1, nChkSum2, nClientPaks, i, j, nCurArg;
-	int nClientChkSum[512];
-	const char *pArg;
-	qboolean bGood = qtrue;
-
-	// if we are pure, we "expect" the client to load certain things from
-	// certain pk3 files, namely we want the client to have loaded the
-	// ui and cgame that we think should be loaded based on the pure setting
-	//
-	if ( sv.pure != 0 ) {
-
-		nChkSum1 = nChkSum2 = 0;
-
-		// we run the game, so determine which cgame and ui the client "should" be running
-		bGood = FS_FileIsInPAK( "qvm/cgame.qvm", &nChkSum1, NULL );
-		bGood &= FS_FileIsInPAK( "qvm/ui.qvm", &nChkSum2, NULL );
-
-		nClientPaks = Cmd_Argc();
-
-		if ( nClientPaks > ARRAY_LEN( nClientChkSum ) )
-			nClientPaks = ARRAY_LEN( nClientChkSum );
-
-		// start at arg 2 ( skip serverId cl_paks )
-		nCurArg = 1;
-
-		pArg = Cmd_Argv(nCurArg++);
-		if ( !*pArg ) {
-			bGood = qfalse;
-		}
-		else
-		{
-			// we may get incoming cp sequences from a previous serverId, which we need to ignore
-			if ( atoi( pArg ) != sv.serverId /* || !cl->gamestateAcked */ ) {
-				Com_DPrintf( "ignoring outdated cp command from client %s\n", cl->name );
-				return;
-			}
-		}
-
-		// we basically use this while loop to avoid using 'goto' :)
-		while (bGood) {
-
-			// must be at least 6: "cl_paks cgame ui @ firstref ... numChecksums"
-			// numChecksums is encoded
-			if (nClientPaks < 6) {
-				bGood = qfalse;
-				break;
-			}
-			// verify first to be the cgame checksum
-			pArg = Cmd_Argv(nCurArg++);
-			if ( !*pArg || *pArg == '@' || atoi(pArg) != nChkSum1 ) {
-				bGood = qfalse;
-				break;
-			}
-			// verify the second to be the ui checksum
-			pArg = Cmd_Argv(nCurArg++);
-			if ( !*pArg || *pArg == '@' || atoi(pArg) != nChkSum2 ) {
-				bGood = qfalse;
-				break;
-			}
-			// should be sitting at the delimeter now
-			pArg = Cmd_Argv(nCurArg++);
-			if (*pArg != '@') {
-				bGood = qfalse;
-				break;
-			}
-			// store checksums since tokenization is not re-entrant
-			for (i = 0; nCurArg < nClientPaks; i++) {
-				nClientChkSum[i] = atoi(Cmd_Argv(nCurArg++));
-			}
-
-			// store number to compare against (minus one cause the last is the number of checksums)
-			nClientPaks = i - 1;
-
-			// make sure none of the client check sums are the same
-			// so the client can't send 5 the same checksums
-			for (i = 0; i < nClientPaks; i++) {
-				for (j = 0; j < nClientPaks; j++) {
-					if (i == j)
-						continue;
-					if (nClientChkSum[i] == nClientChkSum[j]) {
-						bGood = qfalse;
-						break;
-					}
-				}
-				if (bGood == qfalse)
-					break;
-			}
-			if (bGood == qfalse)
-				break;
-
-			// check if the client has provided any pure checksums of pk3 files not loaded by the server
-			for ( i = 0; i < nClientPaks; i++ ) {
-				if ( !FS_IsPureChecksum( nClientChkSum[i] ) ) {
-					bGood = qfalse;
-					break;
-				}
-			}
-			if ( bGood == qfalse ) {
-				break;
-			}
-
-			// check if the number of checksums was correct
-			nChkSum1 = sv.checksumFeed;
-			for (i = 0; i < nClientPaks; i++) {
-				nChkSum1 ^= nClientChkSum[i];
-			}
-			nChkSum1 ^= nClientPaks;
-			if (nChkSum1 != nClientChkSum[nClientPaks]) {
-				bGood = qfalse;
-				break;
-			}
-
-			// break out
-			break;
-		}
-
-		cl->gotCP = qtrue;
-
-		if ( bGood ) {
-			cl->pureAuthentic = qtrue;
-		} else {
-			cl->pureAuthentic = qfalse;
-			cl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
-			cl->state = CS_ZOMBIE; // skip delta generation
-			SV_SendClientSnapshot( cl );
-			cl->state = CS_ACTIVE;
-			SV_DropClient( cl, "Unpure client detected. Invalid .PK3 files referenced!" );
-		}
-	}
-}
-
-
-/*
-=================
-SV_ResetPureClient_f
-=================
-*/
-static void SV_ResetPureClient_f( client_t *cl ) {
-	cl->pureAuthentic = qfalse;
-	cl->gotCP = qfalse;
-}
-
 
 /*
 =================
@@ -1960,8 +1763,6 @@ typedef struct {
 static const ucmd_t ucmds[] = {
 	{"userinfo", SV_UpdateUserinfo_f},
 	{"disconnect", SV_Disconnect_f},
-	{"cp", SV_VerifyPaks_f},
-	{"vdr", SV_ResetPureClient_f},
 	{"download", SV_BeginDownload_f},
 	{"nextdl", SV_NextDownload_f},
 	{"stopdl", SV_StopDownload_f},
@@ -2173,22 +1974,8 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	// if this is the first usercmd we have received
 	// this gamestate, put the client into the world
 	if ( cl->state == CS_PRIMED ) {
-		if ( sv.pure != 0 && !cl->gotCP ) {
-			// we didn't get a cp yet, don't assume anything and just send the gamestate all over again
-			if ( !SVC_RateLimit( &cl->gamestate_rate, 2, 1000 ) ) {
-				Com_DPrintf( "%s: didn't get cp command, resending gamestate\n", cl->name );
-				SV_SendClientGameState( cl );
-			}
-			return;
-		}
 		SV_ClientEnterWorld( cl );
 		// the moves can be processed normally
-	}
-
-	// a bad cp command was sent, drop the client
-	if ( sv.pure != 0 && !cl->pureAuthentic ) {
-		SV_DropClient( cl, "Cannot validate pure client!" );
-		return;
 	}
 
 	if ( cl->state != CS_ACTIVE ) {

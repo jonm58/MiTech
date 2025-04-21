@@ -99,7 +99,7 @@ Disconnects the client with a message
 ===============
 */
 static void SV_GameDropClient( int clientNum, const char *reason ) {
-	if ( clientNum < 0 || clientNum >= sv.maxclients-1 ) {
+	if ( clientNum < 0 || clientNum >= sv.maxclients ) {
 		return;
 	}
 	SV_DropClient( svs.clients + clientNum, reason );

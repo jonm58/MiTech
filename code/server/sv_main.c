@@ -32,7 +32,6 @@ cvar_t	*sv_zombietime;			// seconds to sink messages after disconnect
 cvar_t	*sv_rconPassword;		// password for remote server commands
 cvar_t	*sv_privatePassword;	// password for the privateClient slots
 cvar_t	*sv_allowDownload;
-cvar_t	*sv_maxclients;
 cvar_t	*sv_maxclientsPerIP;
 cvar_t	*sv_clientTLD;
 
@@ -50,7 +49,6 @@ cvar_t	*sv_minRate;
 cvar_t	*sv_maxRate;
 cvar_t	*sv_dlRate;
 cvar_t	*sv_gametype;
-cvar_t	*sv_pure;
 cvar_t	*sv_floodProtect;
 cvar_t	*sv_viewdistance;
 cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
@@ -60,11 +58,9 @@ cvar_t	*sv_ace_wallhack;
 cvar_t *sv_levelTimeReset;
 cvar_t *sv_filter;
 
-#ifdef USE_BANS
 cvar_t	*sv_banFile;
 serverBan_t serverBans[SERVER_MAXBANS];
 int serverBansCount = 0;
-#endif
 
 /*
 =============================================================================
@@ -787,9 +783,8 @@ static void SVC_Info( const netadr_t *from ) {
 	Info_SetValueForKey( infostring, "mapname", sv_mapname->string );
 	Info_SetValueForKey( infostring, "clients", va("%i", count) );
 	Info_SetValueForKey( infostring, "g_humanplayers", va( "%i", humans ) );
-	Info_SetValueForKey( infostring, "sv_maxclients", va( "%i", sv.maxclients - sv_privateClients->integer ) );
+	Info_SetValueForKey( infostring, "g_maxClients", va( "%i", sv.maxclients - sv_privateClients->integer ) );
 	Info_SetValueForKey( infostring, "gametype", va( "%i", sv_gametype->integer ) );
-	Info_SetValueForKey( infostring, "pure", va( "%i", sv.pure ) );
 	Info_SetValueForKey( infostring, "g_needpass", va( "%d", Cvar_VariableIntegerValue( "g_needpass" ) ) );
 	gamedir = Cvar_VariableString( "fs_game" );
 	if ( *gamedir != '\0' ) {
@@ -953,10 +948,6 @@ static void SV_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		SV_GetChallenge( from );
 	} else if (!Q_stricmp(c, "connect")) {
 		SV_DirectConnect( from );
-#ifndef STANDALONE
-	} else if (!Q_stricmp(c, "ipAuthorize")) {
-		// removed from codebase since stateless challenges
-#endif
 	} else if (!Q_stricmp(c, "disconnect")) {
 		// if a client starts up a local server, we may see some spurious
 		// server disconnect messages when their new server sees our final

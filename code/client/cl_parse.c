@@ -328,7 +328,6 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 
 //=====================================================================
 
-int cl_connectedToPureServer;
 int cl_connectedToCheatServer;
 
 /*
@@ -357,9 +356,6 @@ void CL_SystemInfoChanged( qboolean onlyGame ) {
 	if ( clc.demoplaying ) {
 		return;
 	}
-
-	s = Info_ValueForKey( systemInfo, "sv_pure" );
-	cl_connectedToPureServer = atoi( s );
 
 	// parse/update fs_game in first place
 	s = Info_ValueForKey( systemInfo, "fs_game" );
@@ -393,21 +389,6 @@ void CL_SystemInfoChanged( qboolean onlyGame ) {
 		Cvar_SetCheatState();
 	}
 
-	if ( com_sv_running->integer ) {
-		// no filesystem restrictions for localhost
-		FS_PureServerSetLoadedPaks( "", "" );
-		FS_PureServerSetReferencedPaks( "", "" );
-	} else {
-		// check pure server string
-		s = Info_ValueForKey( systemInfo, "sv_paks" );
-		t = Info_ValueForKey( systemInfo, "sv_pakNames" );
-		FS_PureServerSetLoadedPaks( s, t );
-
-		s = Info_ValueForKey( systemInfo, "sv_referencedPaks" );
-		t = Info_ValueForKey( systemInfo, "sv_referencedPakNames" );
-		FS_PureServerSetReferencedPaks( s, t );
-	}
-
 	// scan through all the variables in the systeminfo and locally set cvars to match
 	s = systemInfo;
 	do {
@@ -419,7 +400,7 @@ void CL_SystemInfoChanged( qboolean onlyGame ) {
 		}
 
 		// we don't really need any of these server cvars to be set on client-side
-		if ( !Q_stricmp( key, "sv_pure" ) || !Q_stricmp( key, "sv_serverid" ) || !Q_stricmp( key, "sv_fps" ) ) {
+		if ( !Q_stricmp( key, "sv_serverid" ) || !Q_stricmp( key, "sv_fps" ) ) {
 			continue;
 		}
 		if ( !Q_stricmp( key, "sv_paks" ) || !Q_stricmp( key, "sv_pakNames" ) ) {
@@ -440,13 +421,8 @@ void CL_SystemInfoChanged( qboolean onlyGame ) {
 			// If this cvar may not be modified by a server discard the value.
 			if ( !(cvar_flags & ( CVAR_SYSTEMINFO | CVAR_SERVER_CREATED | CVAR_USER_CREATED ) ) )
 			{
-#ifndef STANDALONE
-				if ( Q_stricmp( key, "g_synchronousClients" ) && Q_stricmp( key, "pmove_fixed" ) && Q_stricmp( key, "pmove_msec" ) )
-#endif
-				{
-					Com_Printf( S_COLOR_YELLOW "WARNING: server is not allowed to set %s=%s\n", key, value );
-					continue;
-				}
+				Com_Printf( S_COLOR_YELLOW "WARNING: server is not allowed to set %s=%s\n", key, value );
+				continue;
 			}
 
 			Cvar_SetSafe( key, value );
