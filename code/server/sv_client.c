@@ -483,7 +483,7 @@ void SV_DirectConnect( const netadr_t *from ) {
 	// Check whether this client is banned.
 	if(SV_IsBanned(from, qfalse))
 	{
-		NET_OutOfBandPrint(NS_SERVER, &from, "print\nYou are banned from this server.\n");
+		NET_OutOfBandPrint(NS_SERVER, from, "print\nYou are banned from this server.\n");
 		return;
 	}
 
