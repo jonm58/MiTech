@@ -1426,3 +1426,11 @@ $(B)/ded/%.o: $(W32DIR)/%.c
 
 $(B)/ded/%.o: $(W32DIR)/%.rc
 	$(DO_WINDRES)
+
+install: release
+	@for i in $(TARGETS); do \
+		if [ -f $(BR)$$i ]; then \
+			$(INSTALL) -D -m 0755 "$(BR)/$$i" "$(DESTDIR)$$i"; \
+			$(STRIP) "$(DESTDIR)$$i"; \
+		fi \
+	done

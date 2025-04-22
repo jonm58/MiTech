@@ -23,7 +23,7 @@ jobs:
             prefix: mingw-w64-x86_64
 
           - btype: Release
-            rule: release
+            rule: install
 
     defaults:
       run:
@@ -67,7 +67,7 @@ jobs:
         btype: [Release]
         include:
           - btype: Release
-            rule: release
+            rule: install
 
           - arch: x86
             use_sdl: USE_SDL=0
@@ -115,7 +115,7 @@ jobs:
         btype: [Release]
         include:
           - btype: Release
-            rule: release
+            rule: install
 
     steps:
 
