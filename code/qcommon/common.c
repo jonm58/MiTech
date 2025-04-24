@@ -111,7 +111,6 @@ cvar_t	*os_32bit;
 cvar_t	*os_linux;
 cvar_t	*os_windows;
 cvar_t	*os_macos;
-cvar_t	*cl_inputmode;
 
 cvar_t	*com_cameraMode;
 #if defined(_WIN32) && defined(_DEBUG)
@@ -3672,9 +3671,6 @@ void Com_Init( char *commandLine ) {
 	#else
 	os_macos = Cvar_Get("os_macos", "0", CVAR_ARCHIVE);
 	#endif
-
-	cl_inputmode = Cvar_Get("cl_inputmode", "0", 0);
-
 
 	FS_InitFilesystem();
 
