@@ -1325,8 +1325,6 @@ RB_ShowImages
 
 Draw all the images to the screen, on top of whatever
 was there.  This is used to test for texture thrashing.
-
-Also called by RE_EndRegistration
 ===============
 */
 void RB_ShowImages( void ) {

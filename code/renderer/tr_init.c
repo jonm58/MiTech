@@ -1943,11 +1943,8 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	ri.Cmd_RemoveCommand( "shaderstate" );
 
 	if ( tr.registered ) {
-		//R_IssuePendingRenderCommands();
 		R_DeleteTextures();
 	}
-
-	R_DoneFreeType();
 
 	// shut down platform specific OpenGL stuff
 	if ( code != REF_KEEP_CONTEXT ) {
@@ -1973,23 +1970,6 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	tr.registered = qfalse;
 	tr.inited = qfalse;
 }
-
-
-/*
-=============
-RE_EndRegistration
-
-Touch all images to make sure they are resident (probably obsolete on modern systems)
-=============
-*/
-static void RE_EndRegistration( void ) {
-	//FBO_BindMain(); // otherwise we may draw images to the back buffer
-	//R_IssuePendingRenderCommands();
-	//if ( !ri.Sys_LowPhysicalMemory() ) {
-	//	RB_ShowImages();
-	//}
-}
-
 
 /*
 @@@@@@@@@@@@@@@@@@@@@
@@ -2021,7 +2001,6 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
 	re.LoadWorld = RE_LoadWorldMap;
 	re.SetWorldVisData = RE_SetWorldVisData;
-	re.EndRegistration = RE_EndRegistration;
 
 	re.BeginFrame = RE_BeginFrame;
 	re.EndFrame = RE_EndFrame;

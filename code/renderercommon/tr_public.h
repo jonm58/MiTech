@@ -63,10 +63,6 @@ typedef struct {
 	// of sharing it with the clipmodel subsystem
 	void	(*SetWorldVisData)( const byte *vis );
 
-	// EndRegistration will draw a tiny polygon with each texture, forcing
-	// them to be loaded into card memory
-	void	(*EndRegistration)( void );
-
 	// a scene is built up by calls to R_ClearScene and the various R_Add functions.
 	// Nothing is drawn until R_RenderScene is called.
 	void	(*ClearScene)( void );
