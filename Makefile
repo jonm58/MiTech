@@ -765,7 +765,6 @@ Q3REND1OBJ = \
   $(B)/rend1/tr_cmds.o \
   $(B)/rend1/tr_curve.o \
   $(B)/rend1/tr_flares.o \
-  $(B)/rend1/tr_font.o \
   $(B)/rend1/tr_image.o \
   $(B)/rend1/tr_image_png.o \
   $(B)/rend1/tr_image_jpg.o \
@@ -801,7 +800,6 @@ Q3REND2OBJ = \
   $(B)/rend2/tr_extensions.o \
   $(B)/rend2/tr_fbo.o \
   $(B)/rend2/tr_flares.o \
-  $(B)/rend2/tr_font.o \
   $(B)/rend2/tr_glsl.o \
   $(B)/rend2/tr_image.o \
   $(B)/rend2/tr_image_bmp.o \
@@ -865,7 +863,6 @@ Q3RENDVOBJ = \
   $(B)/rendv/tr_bsp.o \
   $(B)/rendv/tr_cmds.o \
   $(B)/rendv/tr_curve.o \
-  $(B)/rendv/tr_font.o \
   $(B)/rendv/tr_image.o \
   $(B)/rendv/tr_image_png.o \
   $(B)/rendv/tr_image_jpg.o \

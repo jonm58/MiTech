@@ -182,7 +182,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, const char *
 	struct dirent *d;
 	DIR		*fdir;
 	qboolean dironly = wantsubs;
-	char		search[MAX_OSPATH*2+MAX_QPATH+1];
+	char		search[MAX_OSPATH*2+MAX_QEXTENDEDPATH+1];
 	int			nfiles;
 	int			extLen;
 	int			length;

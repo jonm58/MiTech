@@ -321,7 +321,7 @@ Sys_ListFiles
 =============
 */
 char **Sys_ListFiles( const char *directory, const char *extension, const char *filter, int *numfiles, qboolean wantsubs ) {
-	char		search[MAX_OSPATH*2+MAX_QPATH+1];
+	char		search[MAX_OSPATH*2+MAX_QEXTENDEDPATH+1];
 	int			nfiles;
 	char		**listCopy;
 	char		*list[MAX_FOUND_FILES];

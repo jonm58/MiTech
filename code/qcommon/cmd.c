@@ -384,7 +384,7 @@ static void Cmd_Exec_f( void ) {
 		char *c;
 		void *v;
 	} f;
-	char filename[MAX_QPATH];
+	char filename[MAX_QEXTENDEDPATH];
 
 	quiet = !Q_stricmp(Cmd_Argv(0), "execq");
 

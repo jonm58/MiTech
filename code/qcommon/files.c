@@ -3511,7 +3511,7 @@ FS_GetModDescription
 */
 static void FS_GetModDescription( const char *modDir, char *description, int descriptionLen ) {
 	fileHandle_t	descHandle;
-	char			descPath[MAX_QPATH];
+	char			descPath[MAX_QEXTENDEDPATH];
 	int				nDescLen;
 
 	Com_sprintf( descPath, sizeof ( descPath ), "%s%cdescription.txt", modDir, PATH_SEP );

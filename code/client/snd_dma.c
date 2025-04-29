@@ -40,8 +40,7 @@ static void S_Base_StopBackgroundTrack( void );
 static void S_memoryLoad( sfx_t *sfx );
 
 static snd_stream_t *s_backgroundStream = NULL;
-static char s_backgroundLoop[MAX_QPATH];
-//static char		s_backgroundMusic[MAX_QPATH]; //TTimo: unused
+static char s_backgroundLoop[MAX_QEXTENDEDPATH];
 
 static byte		buffer2[ 0x10000 ]; // for muted painting
 
@@ -243,7 +242,7 @@ static sfx_t *S_FindName( const char *name ) {
 		return NULL;
 	}
 
-	if ( strlen( name ) >= MAX_QPATH ) {
+	if ( strlen( name ) >= MAX_QEXTENDEDPATH ) {
 		Com_Printf( S_COLOR_YELLOW "WARNING: Sound name is too long: %s\n", name );
 		return NULL;
 	}
@@ -319,8 +318,8 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 		return 0;
 	}
 
-	if ( strlen( name ) >= MAX_QPATH ) {
-		Com_Printf( "Sound name exceeds MAX_QPATH\n" );
+	if ( strlen( name ) >= MAX_QEXTENDEDPATH ) {
+		Com_Printf( "Sound name exceeds MAX_QEXTENDEDPATH\n" );
 		return 0;
 	}
 

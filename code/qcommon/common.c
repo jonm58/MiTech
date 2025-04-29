@@ -859,10 +859,10 @@ Com_FilterPath
 int Com_FilterPath( const char *filter, const char *name )
 {
 	int i;
-	char new_filter[MAX_QPATH];
-	char new_name[MAX_QPATH];
+	char new_filter[MAX_QEXTENDEDPATH];
+	char new_name[MAX_QEXTENDEDPATH];
 
-	for (i = 0; i < MAX_QPATH-1 && filter[i]; i++) {
+	for (i = 0; i < MAX_QEXTENDEDPATH-1 && filter[i]; i++) {
 		if ( filter[i] == '\\' || filter[i] == ':' ) {
 			new_filter[i] = '/';
 		}
@@ -871,7 +871,7 @@ int Com_FilterPath( const char *filter, const char *name )
 		}
 	}
 	new_filter[i] = '\0';
-	for (i = 0; i < MAX_QPATH-1 && name[i]; i++) {
+	for (i = 0; i < MAX_QEXTENDEDPATH-1 && name[i]; i++) {
 		if ( name[i] == '\\' || name[i] == ':' ) {
 			new_name[i] = '/';
 		}
@@ -3945,7 +3945,7 @@ Write the config file to a specific name
 ===============
 */
 static void Com_WriteConfig_f( void ) {
-	char	filename[MAX_QPATH];
+	char	filename[MAX_QEXTENDEDPATH];
 	const char *ext;
 
 	if ( Cmd_Argc() != 2 ) {
