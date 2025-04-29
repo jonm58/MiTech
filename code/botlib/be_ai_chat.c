@@ -335,7 +335,7 @@ void BotQueueConsoleMessage(int chatstate, int type, const char *message)
 	m = AllocConsoleMessage();
 	if (!m)
 	{
-		botimport.Print(PRT_ERROR, "empty console message heap\n");
+		//botimport.Print(PRT_ERROR, "empty console message heap\n");
 		return;
 	} //end if
 	cs->handle++;
