@@ -341,9 +341,6 @@ static void R_LoadMergedLightmaps( const lump_t *l, byte *image )
 	// create all the lightmaps
 	tr.numLightmaps = l->filelen / (LIGHTMAP_SIZE * LIGHTMAP_SIZE * 3);
 
-	// we are about to upload textures
-	//R_IssuePendingRenderCommands();
-
 	tr.numLightmaps = SetLightmapParams( tr.numLightmaps, glConfig.maxTextureSize );
 
 	tr.lightmaps = ri.Hunk_Alloc( tr.numLightmaps * sizeof(image_t *), h_low );
@@ -372,9 +369,6 @@ static void R_LoadMergedLightmaps( const lump_t *l, byte *image )
 		ri.Printf( PRINT_DEVELOPER, "lightmaps[%i]=%i\n", i, tr.lightmaps[i]->texnum );
 	}
 
-	//if ( r_lightmap->integer == 2 )	{
-	//	ri.Printf( PRINT_ALL, "Brightest lightmap value: %d\n", ( int ) ( maxIntensity * 255 ) );
-	//}
 }
 
 /*
@@ -425,19 +419,12 @@ static void R_LoadLightmaps( const lump_t *l ) {
 	// create all the lightmaps
 	tr.numLightmaps = numLightmaps;
 
-	// we are about to upload textures
-	//R_IssuePendingRenderCommands();
-
 	tr.lightmaps = ri.Hunk_Alloc( tr.numLightmaps * sizeof(image_t *), h_low );
 	for ( i = 0 ; i < tr.numLightmaps ; i++ ) {
 		maxIntensity = R_ProcessLightmap( image, buf + i * LIGHTMAP_SIZE * LIGHTMAP_SIZE * 3, maxIntensity );
 		tr.lightmaps[i] = R_CreateImage( va( "*lightmap%d", i ), NULL, image, LIGHTMAP_SIZE, LIGHTMAP_SIZE,
 			lightmapFlags | IMGFLAG_CLAMPTOEDGE );
 	}
-
-	//if ( r_lightmap->integer == 2 )	{
-	//	ri.Printf( PRINT_ALL, "Brightest lightmap value: %d\n", ( int ) ( maxIntensity * 255 ) );
-	//}
 }
 
 
