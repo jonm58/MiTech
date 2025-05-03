@@ -382,23 +382,6 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 		com_errorEntered = qfalse;
 
 		Q_longjmp( abortframe, 1 );
-	} else if ( code == ERR_NEED_CD ) {
-		SV_Shutdown( "Server didn't have CD" );
-		Com_EndRedirect();
-#ifndef DEDICATED
-		if ( com_cl_running && com_cl_running->integer ) {
-			CL_Disconnect( qfalse );
-			VM_Forced_Unload_Start();
-			CL_FlushMemory();
-			VM_Forced_Unload_Done();
-			CL_CDDialog();
-		} else {
-			Com_Printf( "Server didn't have CD\n" );
-		}
-#endif
-		com_errorEntered = qfalse;
-
-		Q_longjmp( abortframe, 1 );
 	} else {
 		VM_Forced_Unload_Start();
 #ifndef DEDICATED
