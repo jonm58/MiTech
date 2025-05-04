@@ -564,7 +564,6 @@ CL_InitUI
 ====================
 */
 void CL_InitUI( void ) {
-	int		v;
 	vmInterpret_t		interpret;
 
 	// disallow vl.collapse for UI elements

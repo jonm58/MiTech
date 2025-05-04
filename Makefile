@@ -23,13 +23,13 @@ ifeq ($(COMPILE_PLATFORM),mingw32)
   endif
 endif
 
-BUILD_CLIENT     = 1
-BUILD_SERVER     = 1
+BUILD_CLIENT      = 1
+BUILD_SERVER      = 1
 
-USE_SDL          = 1
-USE_CURL         = 1
+USE_SDL           = 1
+USE_CURL          = 1
 USE_LOCAL_HEADERS = 1
-USE_SYSTEM_JPEG  = 0
+USE_SYSTEM_JPEG   = 0
 
 USE_OGG_VORBIS    = 1
 USE_SYSTEM_OGG    = 0
@@ -37,11 +37,11 @@ USE_SYSTEM_VORBIS = 0
 USE_CODEC_MP3     = 1
 USE_INTERNAL_MP3  = 1
 
-USE_VULKAN       = 1
-USE_OPENGL       = 1
-USE_OPENGL2      = 0
-USE_OPENGL_API   = 1
-USE_VULKAN_API   = 1
+USE_VULKAN        = 1
+USE_OPENGL        = 1
+USE_OPENGL2       = 0
+USE_OPENGL_API    = 1
+USE_VULKAN_API    = 1
 
 # valid options: opengl, vulkan, opengl2
 RENDERER_DEFAULT = opengl

@@ -196,21 +196,6 @@ or configs will never get loaded from disk!
 
 */
 
-// every time a new demo pk3 file is built, this checksum must be updated.
-// the easiest way to get it is to just run the game and see what it spits out
-#define	DEMO_PAK0_CHECKSUM	2985612116u
-static const unsigned pak_checksums[] = {
-	1566731103u,
-	298122907u,
-	412165236u,
-	2991495316u,
-	1197932710u,
-	4087071573u,
-	3709064859u,
-	908855077u,
-	977125798u
-};
-
 // if this is defined, the executable positively won't work with any paks other
 // than the demo pak, even if productid is present.  This is only used for our
 // last demo release to prevent the mac and linux users from using the demo
@@ -3182,29 +3167,6 @@ static int FS_AddFileToList( const char *name, char **list, int nfiles ) {
 	return nfiles;
 }
 
-
-/*
-===============
-FS_AllowListExternal
-===============
-*/
-static qboolean FS_AllowListExternal( const char *extension ) 
-{
-	if ( !extension )
-		return qfalse;
-
-	if ( !Q_stricmp( extension, ".shader" ) )
-		return qfalse;
-
-	if ( !Q_stricmp( extension, ".shaderx" ) )
-		return qfalse;
-	
-	if ( !Q_stricmp( extension, ".mtr" ) )
-		return qfalse;
-
-	return qtrue;
-}
-
 static fnamecallback_f fnamecallback = NULL;
 
 void FS_SetFilenameCallback( fnamecallback_f func ) 
@@ -4562,22 +4524,6 @@ static void FS_Startup( void ) {
 #endif
 }
 
-
-static void FS_PrintSearchPaths( void )
-{
-	const searchpath_t *path = fs_searchpaths;
-
-	Com_Printf( "\nSearch paths:\n" );
-
-	while ( path )
-	{
-		if ( path->dir && path->policy == DIR_STATIC )
-			Com_Printf( " * %s\n", path->dir->path );
-
-		path = path->next;
-	}
-}
-
 /*
 =====================
 FS_LoadedPakNames
@@ -4737,23 +4683,6 @@ void FS_ClearPakReferences( int flags ) {
 		// is the element a pak file and has it been referenced?
 		if ( search->pack ) {
 			search->pack->referenced &= ~flags;
-		}
-	}
-}
-
-/*
-=====================
-FS_ApplyDirPolicy
-
-Set access rights for non-regular (pk3dir) directories
-=====================
-*/
-static void FS_SetDirPolicy( dirPolicy_t policy ) {
-	searchpath_t	*search;
-
-	for ( search = fs_searchpaths ; search ; search = search->next ) {
-		if ( search->dir && search->policy != DIR_STATIC ) {
-			search->policy = policy;
 		}
 	}
 }

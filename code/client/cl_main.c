@@ -3740,9 +3740,9 @@ void CL_Init( void ) {
 	Cmd_AddCommand( "modelist", CL_ModeList_f );
 
 	Cvar_Set( "cl_running", "1" );
-#ifdef USE_MD5
+
 	CL_GenerateQKey();
-#endif
+
 	Cvar_Get( "cl_guid", "", CVAR_USERINFO | CVAR_ROM | CVAR_PROTECTED );
 	CL_UpdateGUID( NULL, 0 );
 

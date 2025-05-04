@@ -748,7 +748,6 @@ static vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc ) {
 	int					length;
 	unsigned int		dataLength;
 	unsigned int		dataAlloc;
-	int					i;
 	char				filename[MAX_QPATH], *errorMsg;
 	unsigned int		crc32sum;
 	qboolean			tryjts;

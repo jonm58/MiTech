@@ -3893,10 +3893,6 @@ Writes key bindings and archived cvars to config file if modified
 ===============
 */
 void Com_WriteConfiguration( void ) {
-#ifndef DEDICATED
-	const char *basegame;
-	const char *gamedir;
-#endif
 	// if we are quitting without fully initializing, make sure
 	// we don't write out anything
 	if ( !com_fullyInitialized ) {
@@ -3909,11 +3905,6 @@ void Com_WriteConfiguration( void ) {
 	cvar_modifiedFlags &= ~CVAR_ARCHIVE;
 
 	Com_WriteConfigToFile( Q3CONFIG_CFG );
-
-#ifndef DEDICATED
-	gamedir = FS_GetCurrentGameDir();
-	basegame = FS_GetBaseGameDir();
-#endif
 }
 
 

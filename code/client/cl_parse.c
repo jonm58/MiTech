@@ -341,7 +341,7 @@ gamestate, and possibly during gameplay.
 */
 void CL_SystemInfoChanged( qboolean onlyGame ) {
 	const char		*systemInfo;
-	const char		*s, *t;
+	const char		*s;
 	char			key[BIG_INFO_KEY];
 	char			value[BIG_INFO_VALUE];
 

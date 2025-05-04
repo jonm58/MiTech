@@ -1260,7 +1260,6 @@ static int SV_WriteDownloadToClient( client_t *cl )
 	int unreferenced = 1;
 	char errorMessage[1024];
 	char pakbuf[MAX_QPATH], *pakptr;
-	int numRefPaks;
 	msg_t msg;
 	byte msgBuffer[MAX_DOWNLOAD_BLKSIZE*2+8];
 
@@ -1276,12 +1275,10 @@ static int SV_WriteDownloadToClient( client_t *cl )
 			*pakptr = '\0';
 
 			// Check for pk3 filename extension
-			if ( !Q_stricmp( pakptr + 1, "pk3" ) )
-			{
+			if ( !Q_stricmp( pakptr + 1, "pk3" ) ){
 				// Check whether the file appears in the list of referenced
 				// paks to prevent downloading of arbitrary files.
 				Cmd_TokenizeStringIgnoreQuotes( sv_referencedPakNames->string );
-				numRefPaks = Cmd_Argc();
 			}
 		}
 
