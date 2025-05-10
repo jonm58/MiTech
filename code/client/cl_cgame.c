@@ -493,7 +493,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return CM_InlineModel( args[1] );
 
 	case CG_CM_TEMPBOXMODEL:
-		return CM_TempBoxModel( VMA(1), VMA(2), /*int capsule*/ qfalse );
+		return CM_TempBoxModel( VMA(1), VMA(2) );
 
 	case CG_CM_POINTCONTENTS:
 		return CM_PointContents( VMA(1), args[2] );
@@ -502,11 +502,11 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return CM_TransformedPointContents( VMA(1), args[2], VMA(3), VMA(4) );
 
 	case CG_CM_BOXTRACE:
-		CM_BoxTrace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7], /*int capsule*/ qfalse );
+		CM_BoxTrace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7] );
 		return 0;
 
 	case CG_CM_TRANSFORMEDBOXTRACE:
-		CM_TransformedBoxTrace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7], VMA(8), VMA(9), /*int capsule*/ qfalse );
+		CM_TransformedBoxTrace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7], VMA(8), VMA(9) );
 		return 0;
 
 	case CG_CM_MARKFRAGMENTS:

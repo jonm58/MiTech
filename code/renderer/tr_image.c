@@ -99,14 +99,6 @@ void GL_TextureMode( const char *string ) {
 	gl_filter_min = mode->minimize;
 	gl_filter_max = mode->maximize;
 
-	// hack to prevent trilinear from being set on voodoo,
-	// because their driver freaks...
-	if ( glConfig.hardwareType == GLHW_3DFX_2D3D && gl_filter_max == GL_LINEAR &&
-		gl_filter_min == GL_LINEAR_MIPMAP_LINEAR ) {
-		gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
-		ri.Printf( PRINT_ALL, "Refusing to set trilinear on a voodoo.\n" );
-	}
-
 	// change all the existing mipmap texture objects
 	for ( i = 0; i < tr.numImages; i++ ) {
 		img = tr.images[ i ];

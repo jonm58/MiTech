@@ -1233,17 +1233,6 @@ static qboolean GLW_LoadOpenGL( const char *drivername )
 
 	Q_strncpyz( buffer, drivername, sizeof( buffer ) );
 	Q_strlwr( buffer );
-
-	if ( Q_stricmp( buffer, OPENGL_DRIVER_NAME ) == 0 || r_maskMinidriver->integer )
-	{
-		config->driverType = GLDRV_ICD;
-	}
-	else
-	{
-		config->driverType = GLDRV_STANDALONE;
-		Com_Printf( "...assuming '%s' is a standalone driver\n", drivername );
-	}
-
 	//
 	// load the driver and bind our function pointers to it
 	// 
@@ -1252,13 +1241,10 @@ static qboolean GLW_LoadOpenGL( const char *drivername )
 		cdsFullscreen = (r_fullscreen->integer != 0);
 
 		// create the window and set up the context
-		if ( GLW_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_colorbits->integer, cdsFullscreen, qfalse ) != RSERR_OK )
-		{
+		if ( GLW_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_colorbits->integer, cdsFullscreen, qfalse ) != RSERR_OK ){
 			// if we're on a 24/32-bit desktop try it again but with a 16-bit desktop
-			if ( r_colorbits->integer != 16 || cdsFullscreen != qtrue || r_mode->integer != 3 )
-			{
-				if ( GLW_StartDriverAndSetMode( 3, "", 16, qtrue, qfalse ) != RSERR_OK )
-				{
+			if ( r_colorbits->integer != 16 || cdsFullscreen != qtrue || r_mode->integer != 3 ){
+				if ( GLW_StartDriverAndSetMode( 3, "", 16, qtrue, qfalse ) != RSERR_OK ){
 					goto fail;
 				}
 			}
@@ -1363,7 +1349,6 @@ void GLimp_Init( glconfig_t *config )
 	if ( !GLW_StartOpenGL() )
 		return;
 
-	//glConfig.driverType = GLDRV_ICD;
 	config->hardwareType = GLHW_GENERIC;
 
 	// optional
@@ -1514,9 +1499,6 @@ void VKimp_Init( glconfig_t *config )
 	// load appropriate DLL and initialize subsystem
 	if ( !GLW_StartVulkan() )
 		return;
-
-	config->driverType = GLDRV_ICD;
-	config->hardwareType = GLHW_GENERIC;
 
 	// show main window after all initializations
 	ShowWindow( g_wv.hWnd, SW_SHOW );

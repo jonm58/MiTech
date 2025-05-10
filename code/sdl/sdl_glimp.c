@@ -623,10 +623,6 @@ void GLimp_Init( glconfig_t *config )
 		}
 	}
 
-	// These values force the UI to disable driver selection
-	config->driverType = GLDRV_ICD;
-	config->hardwareType = GLHW_GENERIC;
-
 	// This depends on SDL_INIT_VIDEO, hence having it here
 	IN_Init();
 
@@ -697,10 +693,8 @@ void VKimp_Init( glconfig_t *config )
 
 	// Create the window and set up the context
 	err = GLimp_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_fullscreen->integer, qtrue /* Vulkan */ );
-	if ( err != RSERR_OK )
-	{
-		if ( err == RSERR_FATAL_ERROR )
-		{
+	if ( err != RSERR_OK ){
+		if ( err == RSERR_FATAL_ERROR ){
 			Com_Error( ERR_FATAL, "VKimp_Init() - could not load Vulkan subsystem" );
 			return;
 		}
@@ -708,8 +702,7 @@ void VKimp_Init( glconfig_t *config )
 		Com_Printf( "Setting r_mode %d failed, falling back on r_mode %d\n", r_mode->integer, 3 );
 
 		err = GLimp_StartDriverAndSetMode( 3, "", r_fullscreen->integer, qtrue /* Vulkan */ );
-		if( err != RSERR_OK )
-		{
+		if( err != RSERR_OK ){
 			// Nothing worked, give up
 			Com_Error( ERR_FATAL, "VKimp_Init() - could not load Vulkan subsystem" );
 			return;
@@ -718,15 +711,10 @@ void VKimp_Init( glconfig_t *config )
 
 	qvkGetInstanceProcAddr = SDL_Vulkan_GetVkGetInstanceProcAddr();
 
-	if ( qvkGetInstanceProcAddr == NULL )
-	{
+	if ( qvkGetInstanceProcAddr == NULL ){
 		SDL_QuitSubSystem( SDL_INIT_VIDEO );
 		Com_Error( ERR_FATAL, "VKimp_Init: qvkGetInstanceProcAddr is NULL" );
 	}
-
-	// These values force the UI to disable driver selection
-	config->driverType = GLDRV_ICD;
-	config->hardwareType = GLHW_GENERIC;
 
 	// This depends on SDL_INIT_VIDEO, hence having it here
 	IN_Init();

@@ -398,11 +398,6 @@ static void R_LoadLightmaps( const lump_t *l ) {
 		return;
 	}
 
-	// if we are in r_vertexLight mode, we don't need the lightmaps at all
-	if ( r_vertexLight->integer || glConfig.hardwareType == GLHW_PERMEDIA2 ) {
-		return;
-	}
-
 	numLightmaps = l->filelen / (LIGHTMAP_SIZE * LIGHTMAP_SIZE * 3);
 
 	if ( r_mergeLightmaps->integer && numLightmaps > 1 ) {
@@ -493,10 +488,6 @@ static shader_t *ShaderForShaderNum( const int shaderNum, int lightmapNum ) {
 	}
 
 	dsh = &s_worldData.shaders[ shaderNum ];
-
-	if ( ( r_vertexLight->integer && tr.vertexLightingAllowed ) || glConfig.hardwareType == GLHW_PERMEDIA2 ) {
-		lightmapNum = LIGHTMAP_BY_VERTEX;
-	}
 
 	if ( r_fullbright->integer ) {
 		lightmapNum = LIGHTMAP_WHITEIMAGE;
@@ -2101,9 +2092,6 @@ static void R_LoadEntities( const lump_t *l ) {
 				break;
 			}
 			*vs++ = '\0';
-			if ( r_vertexLight->integer && tr.vertexLightingAllowed ) {
-				RE_RemapShader(value, s, "0");
-			}
 			continue;
 		}
 		// check for remapping of shaders

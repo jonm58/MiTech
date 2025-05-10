@@ -962,17 +962,12 @@ CM_TempBoxModel
 
 To keep everything totally uniform, bounding boxes are turned into small
 BSP trees instead of being compared directly.
-Capsules are handled differently though.
 ===================
 */
-clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule ) {
+clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs ) {
 
 	VectorCopy( mins, box_model.mins );
 	VectorCopy( maxs, box_model.maxs );
-
-	if ( capsule ) {
-		return CAPSULE_MODEL_HANDLE;
-	}
 
 	box_planes[0].dist = maxs[0];
 	box_planes[1].dist = -maxs[0];

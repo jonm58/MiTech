@@ -25,7 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "cm_polylib.h"
 
 #define	MAX_SUBMODELS			4096
-#define CAPSULE_MODEL_HANDLE	4096
 #define	BOX_MODEL_HANDLE		4095
 
 
@@ -198,15 +197,6 @@ extern	cvar_t		*cm_playerCurveClip;
 
 // cm_test.c
 
-// Used for oriented capsule collision detection
-typedef struct
-{
-	qboolean	use;
-	float		radius;
-	float		halfheight;
-	vec3_t		offset;
-} sphere_t;
-
 typedef struct {
 	vec3_t		start;
 	vec3_t		end;
@@ -219,7 +209,6 @@ typedef struct {
 	int			contents;	// ored contents of the model tracing through
 	qboolean	isPoint;	// optimized case
 	trace_t		trace;		// returned from trace call
-	sphere_t	sphere;		// sphere for oriendted capsule collision
 } traceWork_t;
 
 typedef struct leafList_s {

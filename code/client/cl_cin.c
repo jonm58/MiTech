@@ -983,7 +983,6 @@ static void setupQuad( long xOff, long yOff )
 
 static void readQuadInfo( byte *qData )
 {
-	const glconfig_t *config;
 	if (currentHandle < 0) return;
 
 	cinTable[currentHandle].xsize    = qData[0]+qData[1]*256;
@@ -1008,20 +1007,6 @@ static void readQuadInfo( byte *qData )
 
 	cinTable[currentHandle].drawX = cinTable[currentHandle].CIN_WIDTH;
 	cinTable[currentHandle].drawY = cinTable[currentHandle].CIN_HEIGHT;
-
-	// rage pro is very slow at 512 wide textures, voodoo can't do it at all
-	config = re.GetConfig();
-	if ( config->hardwareType == GLHW_RAGEPRO || config->maxTextureSize <= 256 ) {
-		if ( cinTable[currentHandle].drawX > 256 ) {
-			cinTable[currentHandle].drawX = 256;
-		}
-		if ( cinTable[currentHandle].drawY > 256 ) {
-			cinTable[currentHandle].drawY = 256;
-		}
-		if ( cinTable[currentHandle].CIN_WIDTH != 256 || cinTable[currentHandle].CIN_HEIGHT != 256 ) {
-			Com_Printf( "HACK: approxmimating cinematic for Rage Pro or Voodoo\n" );
-		}
-	}
 }
 
 

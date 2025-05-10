@@ -1367,7 +1367,7 @@ CM_TraceThroughPatchCollide
 */
 void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
 	int i, j, hit, hitnum;
-	float offset, enterFrac, leaveFrac, t;
+	float offset, enterFrac, leaveFrac;
 	patchPlane_t *pp;
 	facet_t	*facet;
 	float plane[4], bestplane[4];
@@ -1397,27 +1397,11 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 		pp = &pc->planes[ facet->surfacePlane ];
 		VectorCopy(pp->plane, plane);
 		plane[3] = pp->plane[3];
-		if ( tw->sphere.use ) {
-			// adjust the plane distance appropriately for radius
-			plane[3] += tw->sphere.radius;
 
-			// find the closest point on the capsule to the plane
-			t = DotProduct( plane, tw->sphere.offset );
-			if ( t > 0.0f ) {
-				VectorSubtract( tw->start, tw->sphere.offset, startp );
-				VectorSubtract( tw->end, tw->sphere.offset, endp );
-			}
-			else {
-				VectorAdd( tw->start, tw->sphere.offset, startp );
-				VectorAdd( tw->end, tw->sphere.offset, endp );
-			}
-		}
-		else {
-			offset = DotProduct( tw->offsets[ pp->signbits ], plane );
-			plane[3] -= offset;
-			VectorCopy( tw->start, startp );
-			VectorCopy( tw->end, endp );
-		}
+		offset = DotProduct( tw->offsets[ pp->signbits ], plane );
+		plane[3] -= offset;
+		VectorCopy( tw->start, startp );
+		VectorCopy( tw->end, endp );
 
 		if (!CM_CheckFacetPlane(plane, startp, endp, &enterFrac, &leaveFrac, &hit)) {
 			continue;
@@ -1436,28 +1420,12 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 				VectorCopy(pp->plane, plane);
 				plane[3] = pp->plane[3];
 			}
-			if ( tw->sphere.use ) {
-				// adjust the plane distance appropriately for radius
-				plane[3] += tw->sphere.radius;
 
-				// find the closest point on the capsule to the plane
-				t = DotProduct( plane, tw->sphere.offset );
-				if ( t > 0.0f ) {
-					VectorSubtract( tw->start, tw->sphere.offset, startp );
-					VectorSubtract( tw->end, tw->sphere.offset, endp );
-				}
-				else {
-					VectorAdd( tw->start, tw->sphere.offset, startp );
-					VectorAdd( tw->end, tw->sphere.offset, endp );
-				}
-			}
-			else {
-				// NOTE: this works even though the plane might be flipped because the bbox is centered
-				offset = DotProduct( tw->offsets[ pp->signbits ], plane );
-				plane[3] += fabs(offset);
-				VectorCopy( tw->start, startp );
-				VectorCopy( tw->end, endp );
-			}
+			// NOTE: this works even though the plane might be flipped because the bbox is centered
+			offset = DotProduct( tw->offsets[ pp->signbits ], plane );
+			plane[3] += fabs(offset);
+			VectorCopy( tw->start, startp );
+			VectorCopy( tw->end, endp );
 
 			if (!CM_CheckFacetPlane(plane, startp, endp, &enterFrac, &leaveFrac, &hit)) {
 				break;
@@ -1510,7 +1478,7 @@ CM_PositionTestInPatchCollide
 */
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
 	int i, j;
-	float offset, t;
+	float offset;
 	patchPlane_t *pp;
 	facet_t	*facet;
 	float plane[4];
@@ -1525,24 +1493,10 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 		pp = &pc->planes[ facet->surfacePlane ];
 		VectorCopy(pp->plane, plane);
 		plane[3] = pp->plane[3];
-		if ( tw->sphere.use ) {
-			// adjust the plane distance appropriately for radius
-			plane[3] += tw->sphere.radius;
 
-			// find the closest point on the capsule to the plane
-			t = DotProduct( plane, tw->sphere.offset );
-			if ( t > 0 ) {
-				VectorSubtract( tw->start, tw->sphere.offset, startp );
-			}
-			else {
-				VectorAdd( tw->start, tw->sphere.offset, startp );
-			}
-		}
-		else {
-			offset = DotProduct( tw->offsets[ pp->signbits ], plane);
-			plane[3] -= offset;
-			VectorCopy( tw->start, startp );
-		}
+		offset = DotProduct( tw->offsets[ pp->signbits ], plane);
+		plane[3] -= offset;
+		VectorCopy( tw->start, startp );
 
 		if ( DotProduct( plane, startp ) - plane[3] > 0.0f ) {
 			continue;
@@ -1558,25 +1512,10 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 				VectorCopy(pp->plane, plane);
 				plane[3] = pp->plane[3];
 			}
-			if ( tw->sphere.use ) {
-				// adjust the plane distance appropriately for radius
-				plane[3] += tw->sphere.radius;
-
-				// find the closest point on the capsule to the plane
-				t = DotProduct( plane, tw->sphere.offset );
-				if ( t > 0.0f ) {
-					VectorSubtract( tw->start, tw->sphere.offset, startp );
-				}
-				else {
-					VectorAdd( tw->start, tw->sphere.offset, startp );
-				}
-			}
-			else {
-				// NOTE: this works even though the plane might be flipped because the bbox is centered
-				offset = DotProduct( tw->offsets[ pp->signbits ], plane);
-				plane[3] += fabs(offset);
-				VectorCopy( tw->start, startp );
-			}
+			// NOTE: this works even though the plane might be flipped because the bbox is centered
+			offset = DotProduct( tw->offsets[ pp->signbits ], plane);
+			plane[3] += fabs(offset);
+			VectorCopy( tw->start, startp );
 
 			if ( DotProduct( plane, startp ) - plane[3] > 0.0f ) {
 				break;

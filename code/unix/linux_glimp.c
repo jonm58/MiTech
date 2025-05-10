@@ -1876,27 +1876,19 @@ void GLimp_Init( glconfig_t *config )
 	glw_state.config = config;
 
 	// load and initialize the specific OpenGL driver
-	if ( !GLW_StartOpenGL() )
-	{
+	if ( !GLW_StartOpenGL() ){
 		return;
 	}
-
-	// These values force the UI to disable driver selection
-	config->driverType = GLDRV_ICD;
-	config->hardwareType = GLHW_GENERIC;
 
 	// optional
 #define GLE( ret, name, ... ) q##name = GL_GetProcAddress( XSTRING( name ) );
 	QGL_Swp_PROCS;
 #undef GLE
 
-	if ( qglXSwapIntervalEXT || qglXSwapIntervalMESA || qglXSwapIntervalSGI )
-	{
+	if ( qglXSwapIntervalEXT || qglXSwapIntervalMESA || qglXSwapIntervalSGI ){
 		Com_Printf( "...using GLX_EXT_swap_control\n" );
 		Cvar_SetModified( "r_swapInterval", qtrue ); // force a set next frame
-	}
-	else
-	{
+	} else {
 		Com_Printf( "...GLX_EXT_swap_control not found\n" );
 	}
 
@@ -2009,10 +2001,6 @@ void VKimp_Init( glconfig_t *config )
 	{
 		return;
 	}
-
-	// These values force the UI to disable driver selection
-	config->driverType = GLDRV_ICD;
-	config->hardwareType = GLHW_GENERIC;
 
 	Key_ClearStates();
 
