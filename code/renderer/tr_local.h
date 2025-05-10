@@ -40,7 +40,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon.h"
 #include "../renderercommon/tr_public.h"
 #include "tr_common.h"
-#include "iqm.h"
 #include "qgl.h"
 
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
@@ -601,8 +600,6 @@ typedef enum {
 	SF_TRIANGLES,
 	SF_POLY,
 	SF_MD3,
-	SF_MDR,
-	SF_IQM,
 	SF_FLARE,
 	SF_ENTITY,				// beams, rails, lightning, etc that can be determined by entity
 
@@ -721,64 +718,6 @@ typedef struct {
 	drawVert_t		*verts;
 } srfTriangles_t;
 
-typedef struct {
-	vec3_t translate;
-	quat_t rotate;
-	vec3_t scale;
-} iqmTransform_t;
-
-// inter-quake-model
-typedef struct {
-	int		num_vertexes;
-	int		num_triangles;
-	int		num_frames;
-	int		num_surfaces;
-	int		num_joints;
-	int		num_poses;
-	struct srfIQModel_s	*surfaces;
-
-	int		*triangles;
-
-	// vertex arrays
-	float		*positions;
-	float		*texcoords;
-	float		*normals;
-	float		*tangents;
-	byte		*colors;
-	int		*influences; // [num_vertexes] indexes into influenceBlendVertexes
-
-	// unique list of vertex blend indexes/weights for faster CPU vertex skinning
-	byte		*influenceBlendIndexes; // [num_influences]
-	union {
-		float	*f;
-		byte	*b;
-	} influenceBlendWeights; // [num_influences]
-
-	// depending upon the exporter, blend indices and weights might be int/float
-	// as opposed to the recommended byte/byte, for example Noesis exports
-	// int/float whereas the official IQM tool exports byte/byte
-	int		blendWeightsType; // IQM_UBYTE or IQM_FLOAT
-
-	char		*jointNames;
-	int		*jointParents;
-	float		*bindJoints; // [num_joints * 12]
-	float		*invBindJoints; // [num_joints * 12]
-	iqmTransform_t	*poses; // [num_frames * num_poses]
-	float		*bounds;
-} iqmData_t;
-
-// inter-quake-model surface
-typedef struct srfIQModel_s {
-	surfaceType_t	surfaceType;
-	char		name[MAX_QPATH];
-	shader_t	*shader;
-	iqmData_t	*data;
-	int		first_vertex, num_vertexes;
-	int		first_triangle, num_triangles;
-	int		first_influence, num_influences;
-} srfIQModel_t;
-
-
 extern	void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])(void *);
 
 /*
@@ -884,9 +823,7 @@ typedef struct {
 typedef enum {
 	MOD_BAD,
 	MOD_BRUSH,
-	MOD_MESH,
-	MOD_MDR,
-	MOD_IQM
+	MOD_MESH
 } modtype_t;
 
 typedef struct model_s {
@@ -897,7 +834,6 @@ typedef struct model_s {
 	int			dataSize;	// just for listing purposes
 	bmodel_t	*bmodel;		// only if type == MOD_BRUSH
 	md3Header_t	*md3[MD3_MAX_LODS];	// only if type == MOD_MESH
-	void	*modelData;			// only if type == (MOD_MDR | MOD_IQM)
 
 	int			 numLods;
 } model_t;
@@ -1736,27 +1672,6 @@ UNCOMPRESSING BONES
 
 void MC_UnCompress(float mat[3][4],const unsigned char * comp);
 
-/*
-=============================================================
-
-ANIMATED MODELS
-
-=============================================================
-*/
-
-void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
-void RB_MDRSurfaceAnim( mdrSurface_t *surface );
-qboolean R_LoadIQM (model_t *mod, void *buffer, int filesize, const char *name );
-void R_AddIQMSurfaces( trRefEntity_t *ent );
-void RB_IQMSurfaceAnim( const surfaceType_t *surface );
-int R_IQMLerpTag( orientation_t *tag, iqmData_t *data,
-                  int startFrame, int endFrame,
-                  float frac, const char *tagName );
-
-/*
-=============================================================
-=============================================================
-*/
 void	R_TransformModelToClip( const vec3_t src, const float *modelMatrix, const float *projectionMatrix,
 							vec4_t eye, vec4_t dst );
 void	R_TransformClipToWindow( const vec4_t clip, const viewParms_t *view, vec4_t normalized, vec4_t window );

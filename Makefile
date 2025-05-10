@@ -758,7 +758,6 @@ endif
 #############################################################################
 
 Q3REND1OBJ = \
-  $(B)/rend1/tr_animation.o \
   $(B)/rend1/tr_arb.o \
   $(B)/rend1/tr_backend.o \
   $(B)/rend1/tr_bsp.o \
@@ -777,7 +776,6 @@ Q3REND1OBJ = \
   $(B)/rend1/tr_marks.o \
   $(B)/rend1/tr_mesh.o \
   $(B)/rend1/tr_model.o \
-  $(B)/rend1/tr_model_iqm.o \
   $(B)/rend1/tr_noise.o \
   $(B)/rend1/tr_scene.o \
   $(B)/rend1/tr_shade.o \
@@ -790,7 +788,6 @@ Q3REND1OBJ = \
   $(B)/rend1/tr_world.o
 
 Q3REND2OBJ = \
-  $(B)/rend2/tr_animation.o \
   $(B)/rend2/tr_backend.o \
   $(B)/rend2/tr_bsp.o \
   $(B)/rend2/tr_cmds.o \
@@ -814,7 +811,6 @@ Q3REND2OBJ = \
   $(B)/rend2/tr_marks.o \
   $(B)/rend2/tr_mesh.o \
   $(B)/rend2/tr_model.o \
-  $(B)/rend2/tr_model_iqm.o \
   $(B)/rend2/tr_noise.o \
   $(B)/rend2/tr_postprocess.o \
   $(B)/rend2/tr_scene.o \
@@ -858,7 +854,6 @@ Q3REND2STROBJ = \
   $(B)/rend2/glsl/tonemap_vp.o
 
 Q3RENDVOBJ = \
-  $(B)/rendv/tr_animation.o \
   $(B)/rendv/tr_backend.o \
   $(B)/rendv/tr_bsp.o \
   $(B)/rendv/tr_cmds.o \
@@ -875,7 +870,6 @@ Q3RENDVOBJ = \
   $(B)/rendv/tr_marks.o \
   $(B)/rendv/tr_mesh.o \
   $(B)/rendv/tr_model.o \
-  $(B)/rendv/tr_model_iqm.o \
   $(B)/rendv/tr_noise.o \
   $(B)/rendv/tr_scene.o \
   $(B)/rendv/tr_shade.o \

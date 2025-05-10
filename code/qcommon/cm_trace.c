@@ -537,10 +537,6 @@ static void CM_TraceThroughTree( traceWork_t *tw, int num, float p1f, float p2f,
 	CM_TraceThroughTree( tw, node->children[side^1], midf, p2f, mid, p2 );
 }
 
-
-//======================================================================
-
-
 /*
 ==================
 CM_Trace
@@ -691,7 +687,6 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 	*results = tw.trace;
 }
 
-
 /*
 ==================
 CM_BoxTrace
@@ -702,7 +697,6 @@ void CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
 						clipHandle_t model, int brushmask ) {
 	CM_Trace( results, start, end, mins, maxs, model, vec3_origin, brushmask );
 }
-
 
 /*
 ==================
