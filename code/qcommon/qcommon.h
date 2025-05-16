@@ -151,6 +151,7 @@ NET
 #define	MAX_PACKET_USERCMDS		32		// max number of usercmd_t in a packet
 
 #define	MAX_SNAPSHOT_ENTITIES	4096
+#define SNAPSHOT_RECOVER_STEP	256
 
 #define	PORT_ANY				-1
 
@@ -216,9 +217,9 @@ void		NET_LeaveMulticast6( void );
 #endif
 qboolean	NET_Sleep( int timeout );
 
-#define	MAX_PACKETLEN	5600	// max size of a network packet
+#define	MAX_PACKETLEN	5600*4	// max size of a network packet
 
-#define	MAX_MSGLEN		65536	// max length of a message, which may
+#define	MAX_MSGLEN		65536*4	// max length of a message, which may
 								// be fragmented into multiple packets
 
 #define	MAX_MSGLEN_BUF	(MAX_MSGLEN+8)	// real buffer size that we need to allocate

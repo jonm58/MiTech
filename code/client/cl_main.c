@@ -3992,25 +3992,16 @@ void CL_Init( void ) {
 	Cvar_Get ("snaps", "60", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("model", "beret/default", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 	Cvar_Get ("headmodel", "beret/default", CVAR_USERINFO | CVAR_ARCHIVE_ND );
+	Cvar_Get ("legsmodel", "beret/default", CVAR_USERINFO | CVAR_ARCHIVE_ND );
  	Cvar_Get ("team_model", "beret/default", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 	Cvar_Get ("team_headmodel", "beret/default", CVAR_USERINFO | CVAR_ARCHIVE_ND );
-//	Cvar_Get ("g_redTeam", "Stroggs", CVAR_ARCHIVE);
-//	Cvar_Get ("g_blueTeam", "Pagans", CVAR_ARCHIVE);
-	Cvar_Get ("color1", "1", CVAR_USERINFO | CVAR_ARCHIVE );
-	Cvar_Get ("color2", "1", CVAR_USERINFO | CVAR_ARCHIVE );
-	Cvar_Get ("handicap", "100", CVAR_USERINFO | CVAR_ARCHIVE_ND );
-//	Cvar_Get ("teamtask", "0", CVAR_USERINFO );
+	Cvar_Get ("team_legsmodel", "beret/default", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 	Cvar_Get ("sex", "male", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 	Cvar_Get ("cl_anonymous", "0", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 
 	Cvar_Get ("password", "", CVAR_USERINFO | CVAR_NORESTART);
-	Cvar_Get ("cg_predictItems", "1", CVAR_USERINFO | CVAR_ARCHIVE );
 
-
-	// cgame might not be initialized before menu is used
-	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE_ND );
-	// Make sure cg_stereoSeparation is zero as that variable is deprecated and should not be used anymore.
-	Cvar_Get ("cg_stereoSeparation", "0", CVAR_ROM);
+	Cvar_Get ("viewdistance", "180", CVAR_USERINFO );
 
 	//
 	// register client commands

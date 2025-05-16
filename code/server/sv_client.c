@@ -1486,7 +1486,6 @@ int SV_SendDownloadMessages( void )
 	return numDLs;
 }
 
-
 /*
 =================
 SV_Disconnect_f
@@ -1558,12 +1557,22 @@ void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilt
 
 	i = 1000 / i; // from FPS to milliseconds
 
-	if ( i != cl->snapshotMsec )
-	{
+	if ( i != cl->snapshotMsec ) {
 		// Reset last sent snapshot so we avoid desync between server frame time and snapshot send time
 		cl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
 		cl->snapshotMsec = i;
 	}
+
+	val = Info_ValueForKey( cl->userinfo, "viewdistance" );
+	i = atoi( val );
+
+	// range check
+	if ( i < 1 )
+		i = 1;
+	else if ( i > 180 )
+		i = 180;
+
+	cl->viewDistance = i;
 
 	if ( !updateUserinfo )
 		return;
@@ -1710,6 +1719,21 @@ void SV_PrintLocations_f( client_t *client ) {
 	}
 }
 
+/*
+=================
+SV_NetError_f
+
+Called when the client detects network issues and requests
+to reset or recover the network state dynamically during gameplay.
+This triggers mechanisms to restore smooth gameplay by adjusting
+network-dependent parameters such as view distance or update rates.
+=================
+*/
+static void SV_NetError_f( client_t *client ) {
+	client->netError = qtrue;
+	client->dynamicViewDistance = 1;
+	Com_Printf( "NetError: correction on! \n");
+}
 
 typedef struct {
 	const char *name;
@@ -1724,7 +1748,7 @@ static const ucmd_t ucmds[] = {
 	{"stopdl", SV_StopDownload_f},
 	{"donedl", SV_DoneDownload_f},
 	{"locations", SV_PrintLocations_f},
-
+	{"neterror", SV_NetError_f},
 	{NULL, NULL}
 };
 

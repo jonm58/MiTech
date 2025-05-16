@@ -136,8 +136,6 @@ static qboolean CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 			cl.parseEntities[ ( clSnap->parseEntitiesNum + i ) & (MAX_PARSE_ENTITIES-1) ];
 	}
 
-	// FIXME: configstring changes and server commands!!!
-
 	return qtrue;
 }
 
@@ -267,8 +265,6 @@ rescan:
 	argc = Cmd_Argc();
 
 	if ( !strcmp( cmd, "disconnect" ) ) {
-		// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=552
-		// allow server to indicate why they were disconnected
 		if ( argc >= 2 )
 			Com_Error( ERR_SERVERDISCONNECT, "Server disconnected - %s", Cmd_Argv( 1 ) );
 		else
@@ -315,25 +311,6 @@ rescan:
 		Cmd_TokenizeString( s );
 		Com_Memset( cl.cmds, 0, sizeof( cl.cmds ) );
 		cls.lastVidRestart = Sys_Milliseconds(); // hack for OSP mod
-		return qtrue;
-	}
-
-	// the clientLevelShot command is used during development
-	// to generate 128*128 screenshots from the intermission
-	// point of levels for the menu system to use
-	// we pass it along to the cgame to make appropriate adjustments,
-	// but we also clear the console and notify lines here
-	if ( !strcmp( cmd, "clientLevelShot" ) ) {
-		// don't do it if we aren't running the server locally,
-		// otherwise malicious remote servers could overwrite
-		// the existing thumbnails
-		if ( !com_sv_running->integer ) {
-			return qfalse;
-		}
-		// close the console
-		Con_Close();
-		// take a special screenshot next frame
-		Cbuf_AddText( "wait ; wait ; wait ; wait ; screenshot levelshot\n" );
 		return qtrue;
 	}
 

@@ -175,7 +175,6 @@ typedef struct client_s {
 
 	gameStateAck_t	gamestateAck;
 	qboolean		downloading;		// set at "download", reset at gamestate retransmission
-	// int				serverId;		// last acknowledged serverId
 
 	// downloading
 	char			downloadName[MAX_QPATH]; // if not empty string, we are downloading
@@ -212,6 +211,10 @@ typedef struct client_s {
 	int				oldServerTime;
 	qboolean		csUpdated[MAX_CONFIGSTRINGS];
 	qboolean		compat;
+
+	qboolean		netError;
+	int				viewDistance;
+	int				dynamicViewDistance;
 
 	// flood protection
 	rateLimit_t		cmd_rate;
@@ -289,7 +292,6 @@ extern	cvar_t	*sv_maxRate;
 extern	cvar_t	*sv_dlRate;
 extern	cvar_t	*sv_gametype;
 extern	cvar_t	*sv_floodProtect;
-extern	cvar_t	*sv_viewdistance;
 extern	cvar_t	*sv_lanForceRate;
 extern	cvar_t	*sv_anticheatengine;
 extern	cvar_t	*sv_ace_wallhack;
