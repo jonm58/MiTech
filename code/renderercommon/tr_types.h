@@ -137,14 +137,6 @@ typedef struct {
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 } refdef_t;
 
-
-typedef enum {
-	STEREO_CENTER,
-	STEREO_LEFT,
-	STEREO_RIGHT
-} stereoFrame_t;
-
-
 /*
 ** glconfig_t
 **
@@ -178,7 +170,6 @@ typedef struct {
 	int						displayFrequency;
 
 	qboolean				isFullscreen;
-	qboolean				stereoEnabled;
 } glconfig_t;
 
 #define	myftol(x) ((int)(x))

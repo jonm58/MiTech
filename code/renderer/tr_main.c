@@ -491,17 +491,16 @@ Set up the culling frustum planes for the current view using the results we got 
 the projection matrix.
 =================
 */
-static void R_SetupFrustum( viewParms_t *dest, float xmin, float xmax, float ymax, float zProj, float stereoSep )
+static void R_SetupFrustum( viewParms_t *dest, float xmin, float xmax, float ymax, float zProj )
 {
 	vec3_t ofsorigin;
 	float oppleg, adjleg, length;
 	int i;
-	
-	if(stereoSep == 0 && xmin == -xmax)
-	{
-		// symmetric case can be simplified
-		VectorCopy(dest->or.origin, ofsorigin);
 
+	// symmetric case can be simplified
+	VectorCopy(dest->or.origin, ofsorigin);
+	
+	if(xmin == -xmax) {
 		length = sqrt(xmax * xmax + zProj * zProj);
 		oppleg = xmax / length;
 		adjleg = zProj / length;
@@ -511,22 +510,6 @@ static void R_SetupFrustum( viewParms_t *dest, float xmin, float xmax, float yma
 
 		VectorScale(dest->or.axis[0], oppleg, dest->frustum[1].normal);
 		VectorMA(dest->frustum[1].normal, -adjleg, dest->or.axis[1], dest->frustum[1].normal);
-	}
-	else
-	{
-		// In stereo rendering, due to the modification of the projection matrix, dest->or.origin is not the
-		// actual origin that we're rendering so offset the tip of the view pyramid.
-		VectorMA(dest->or.origin, stereoSep, dest->or.axis[1], ofsorigin);
-	
-		oppleg = xmax + stereoSep;
-		length = sqrt(oppleg * oppleg + zProj * zProj);
-		VectorScale(dest->or.axis[0], oppleg / length, dest->frustum[0].normal);
-		VectorMA(dest->frustum[0].normal, zProj / length, dest->or.axis[1], dest->frustum[0].normal);
-
-		oppleg = xmin + stereoSep;
-		length = sqrt(oppleg * oppleg + zProj * zProj);
-		VectorScale(dest->or.axis[0], -oppleg / length, dest->frustum[1].normal);
-		VectorMA(dest->frustum[1].normal, -zProj / length, dest->or.axis[1], dest->frustum[1].normal);
 	}
 
 	length = sqrt(ymax * ymax + zProj * zProj);
@@ -561,22 +544,7 @@ R_SetupProjection
 void R_SetupProjection( viewParms_t *dest, float zProj, qboolean computeFrustum )
 {
 	float	xmin, xmax, ymin, ymax;
-	float	width, height, stereoSep = r_stereoSeparation->value;
-
-	/*
-	 * offset the view origin of the viewer for stereo rendering 
-	 * by setting the projection matrix appropriately.
-	 */
-
-	if ( stereoSep != 0 )
-	{
-		if ( dest->stereoFrame == STEREO_LEFT )
-			stereoSep = zProj / stereoSep;
-		else if ( dest->stereoFrame == STEREO_RIGHT )
-			stereoSep = zProj / -stereoSep;
-		else
-			stereoSep = 0;
-	}
+	float	width, height;
 
 	ymax = zProj * tan(dest->fovY * M_PI / 360.0f);
 	ymin = -ymax;
@@ -589,8 +557,8 @@ void R_SetupProjection( viewParms_t *dest, float zProj, qboolean computeFrustum 
 	
 	dest->projectionMatrix[0] = 2 * zProj / width;
 	dest->projectionMatrix[4] = 0;
-	dest->projectionMatrix[8] = (xmax + xmin + 2 * stereoSep) / width;
-	dest->projectionMatrix[12] = 2 * zProj * stereoSep / width;
+	dest->projectionMatrix[8] = (xmax + xmin + 2 * 0) / width;
+	dest->projectionMatrix[12] = 2 * zProj * 0 / width;
 
 	dest->projectionMatrix[1] = 0;
 	dest->projectionMatrix[5] = 2 * zProj / height;
@@ -604,7 +572,7 @@ void R_SetupProjection( viewParms_t *dest, float zProj, qboolean computeFrustum 
 	
 	// Now that we have all the data for the projection matrix we can also setup the view frustum.
 	if ( computeFrustum )
-		R_SetupFrustum( dest, xmin, xmax, ymax, zProj, stereoSep );
+		R_SetupFrustum( dest, xmin, xmax, ymax, zProj );
 }
 
 

@@ -92,7 +92,6 @@ glwstate_t glw_state;
 // GLimp-specific cvars
 #ifdef USE_OPENGL_API
 static cvar_t *r_maskMinidriver;		// allow a different dll name to be treated as if it were opengl32.dll
-static cvar_t *r_stereoEnabled;
 static cvar_t *r_verbose;				// used for verbose debug spew
 #endif
 
@@ -339,7 +338,7 @@ __rescan:
 **
 ** Helper function zeros out then fills in a PFD
 */
-static void GLW_CreatePFD( PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depthbits, int stencilbits, qboolean stereo )
+static void GLW_CreatePFD( PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depthbits, int stencilbits )
 {
 	PIXELFORMATDESCRIPTOR src =
 	{
@@ -367,20 +366,8 @@ static void GLW_CreatePFD( PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depth
 	src.cDepthBits = depthbits;
 	src.cStencilBits = stencilbits;
 
-	if ( !glw_state.cdsFullscreen )
-	{
+	if ( !glw_state.cdsFullscreen ) {
 		src.dwFlags |= PFD_SUPPORT_COMPOSITION;
-	}
-
-	if ( stereo )
-	{
-		Com_Printf( "...attempting to use stereo\n" );
-		src.dwFlags |= PFD_STEREO;
-		glw_state.config->stereoEnabled = qtrue;
-	}
-	else
-	{
-		glw_state.config->stereoEnabled = qfalse;
 	}
 
 	*pPFD = src;
@@ -508,13 +495,10 @@ static qboolean GLW_InitOpenGLDriver( int colorbits )
 	//
 	// first attempt: r_colorbits, depthbits, and r_stencilbits
 	//
-	if ( !glw_state.pixelFormatSet )
-	{
-		GLW_CreatePFD( &pfd, colorbits, depthbits, stencilbits, r_stereoEnabled->integer != 0 );
-		if ( ( tpfd = GLW_MakeContext( &pfd ) ) != TRY_PFD_SUCCESS )
-		{
-			if ( tpfd == TRY_PFD_FAIL_HARD )
-			{
+	if ( !glw_state.pixelFormatSet ) {
+		GLW_CreatePFD( &pfd, colorbits, depthbits, stencilbits );
+		if ( ( tpfd = GLW_MakeContext( &pfd ) ) != TRY_PFD_SUCCESS ) {
+			if ( tpfd == TRY_PFD_FAIL_HARD ) {
 				Com_Printf( S_COLOR_YELLOW "...failed hard\n" );
 				return qfalse;
 			}
@@ -523,8 +507,7 @@ static qboolean GLW_InitOpenGLDriver( int colorbits )
 			// punt if we've already tried the desktop bit depth and no stencil bits
 			//
 			if ( ( r_colorbits->integer == glw_state.desktopBitsPixel ) &&
-				 ( stencilbits == 0 ) )
-			{
+				 ( stencilbits == 0 ) ) {
 				ReleaseDC( g_wv.hWnd, glw_state.hDC );
 				glw_state.hDC = NULL;
 
@@ -536,15 +519,12 @@ static qboolean GLW_InitOpenGLDriver( int colorbits )
 			//
 			// second attempt: desktop's color bits and no stencil
 			//
-			if ( colorbits > glw_state.desktopBitsPixel )
-			{
+			if ( colorbits > glw_state.desktopBitsPixel ) {
 				colorbits = glw_state.desktopBitsPixel;
 			}
-			GLW_CreatePFD( &pfd, colorbits, depthbits, 0, r_stereoEnabled->integer != 0 );
-			if ( GLW_MakeContext( &pfd ) != TRY_PFD_SUCCESS )
-			{
-				if ( glw_state.hDC )
-				{
+			GLW_CreatePFD( &pfd, colorbits, depthbits, 0 );
+			if ( GLW_MakeContext( &pfd ) != TRY_PFD_SUCCESS ) {
+				if ( glw_state.hDC ) {
 					ReleaseDC( g_wv.hWnd, glw_state.hDC );
 					glw_state.hDC = NULL;
 				}
@@ -553,15 +533,6 @@ static qboolean GLW_InitOpenGLDriver( int colorbits )
 
 				return qfalse;
 			}
-		}
-
-		/*
-		** report if stereo is desired but unavailable
-		*/
-		if ( !( pfd.dwFlags & PFD_STEREO ) && ( r_stereoEnabled->integer != 0 ) ) 
-		{
-			Com_Printf( "...failed to select stereo pixel format\n" );
-			glw_state.config->stereoEnabled = qfalse;
 		}
 	}
 
@@ -1279,11 +1250,9 @@ void GLimp_EndFrame( void )
 	if ( r_swapInterval->modified ) {
 		r_swapInterval->modified = qfalse;
 
-		//if ( !glConfig.stereoEnabled ) {	// why?
-			if ( qwglSwapIntervalEXT ) {
-				qwglSwapIntervalEXT( r_swapInterval->integer );
-			}
-		//}
+		if ( qwglSwapIntervalEXT ) {
+			qwglSwapIntervalEXT( r_swapInterval->integer );
+		}
 	}
 
 	// don't flip if drawing to front buffer
@@ -1334,11 +1303,8 @@ void GLimp_Init( glconfig_t *config )
 	Com_Printf( "Initializing OpenGL subsystem\n" );
 
 	// glimp-specific
-
 	r_maskMinidriver = Cvar_Get( "r_maskMinidriver", "0", CVAR_LATCH );
 	Cvar_SetDescription( r_maskMinidriver, "If set to 1, then a mini driver will be treated as a normal ICD." );
-	r_stereoEnabled = Cvar_Get( "r_stereoEnabled", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_SetDescription( r_stereoEnabled, "Enable stereo rendering for techniques like shutter glasses." );
 	r_verbose = Cvar_Get( "r_verbose", "0", 0 );
 	Cvar_SetDescription( r_verbose, "Turns on additional startup information when renderer is starting up." );
 

@@ -676,46 +676,11 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			// change depthrange. Also change projection matrix so first person weapon does not look like coming
 			// out of the screen.
 			//
-			if (oldDepthRange != depthRange || wasCrosshair != isCrosshair)
-			{
-				if (depthRange)
-				{
-					if(backEnd.viewParms.stereoFrame != STEREO_CENTER)
-					{
-						if(isCrosshair)
-						{
-							if(oldDepthRange)
-							{
-								// was not a crosshair but now is, change back proj matrix
-								qglMatrixMode(GL_PROJECTION);
-								qglLoadMatrixf(backEnd.viewParms.projectionMatrix);
-								qglMatrixMode(GL_MODELVIEW);
-							}
-						}
-						else
-						{
-							viewParms_t temp = backEnd.viewParms;
-
-							R_SetupProjection(&temp, r_znear->value, qfalse);
-
-							qglMatrixMode(GL_PROJECTION);
-							qglLoadMatrixf(temp.projectionMatrix);
-							qglMatrixMode(GL_MODELVIEW);
-						}
-					}
-
+			if (oldDepthRange != depthRange || wasCrosshair != isCrosshair) {
+				if (depthRange) {
 					if(!oldDepthRange)
 						qglDepthRange (0, 0.3);
-				}
-				else
-				{
-					if(!wasCrosshair && backEnd.viewParms.stereoFrame != STEREO_CENTER)
-					{
-						qglMatrixMode(GL_PROJECTION);
-						qglLoadMatrixf(backEnd.viewParms.projectionMatrix);
-						qglMatrixMode(GL_MODELVIEW);
-					}
-
+				} else {
 					qglDepthRange (0, 1);
 				}
 				oldDepthRange = depthRange;
@@ -871,46 +836,11 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 			// out of the screen.
 			//
 
-			if (oldDepthRange != depthRange || wasCrosshair != isCrosshair)
-			{
-				if (depthRange)
-				{
-					if(backEnd.viewParms.stereoFrame != STEREO_CENTER)
-					{
-						if(isCrosshair)
-						{
-							if(oldDepthRange)
-							{
-								// was not a crosshair but now is, change back proj matrix
-								qglMatrixMode(GL_PROJECTION);
-								qglLoadMatrixf(backEnd.viewParms.projectionMatrix);
-								qglMatrixMode(GL_MODELVIEW);
-							}
-						}
-						else
-						{
-							viewParms_t temp = backEnd.viewParms;
-
-							R_SetupProjection(&temp, r_znear->value, qfalse);
-
-							qglMatrixMode(GL_PROJECTION);
-							qglLoadMatrixf(temp.projectionMatrix);
-							qglMatrixMode(GL_MODELVIEW);
-						}
-					}
-
+			if (oldDepthRange != depthRange || wasCrosshair != isCrosshair) {
+				if (depthRange) {
 					if(!oldDepthRange)
 						qglDepthRange (0, 0.3);
-				}
-				else
-				{
-					if(!wasCrosshair && backEnd.viewParms.stereoFrame != STEREO_CENTER)
-					{
-						qglMatrixMode(GL_PROJECTION);
-						qglLoadMatrixf(backEnd.viewParms.projectionMatrix);
-						qglMatrixMode(GL_MODELVIEW);
-					}
-
+				} else {
 					qglDepthRange (0, 1);
 				}
 				oldDepthRange = depthRange;
@@ -1481,8 +1411,6 @@ static const void *RB_SwapBuffers( const void *data ) {
 	backEnd.doneBloom = qfalse;
 	backEnd.doneSurfaces = qfalse;
 	backEnd.drawConsole = qfalse;
-
-	r_anaglyphMode->modified = qfalse;
 
 	return (const void *)(cmd + 1);
 }

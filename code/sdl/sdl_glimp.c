@@ -50,7 +50,6 @@ static SDL_GLContext SDL_glContext = NULL;
 static PFN_vkGetInstanceProcAddr qvkGetInstanceProcAddr;
 #endif
 
-cvar_t *r_stereoEnabled;
 cvar_t *in_nograb;
 
 /*
@@ -384,16 +383,7 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qbool
 			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
 			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
 
-			if ( r_stereoEnabled->integer )
-			{
-				config->stereoEnabled = qtrue;
-				SDL_GL_SetAttribute( SDL_GL_STEREO, 1 );
-			}
-			else
-			{
-				config->stereoEnabled = qfalse;
-				SDL_GL_SetAttribute( SDL_GL_STEREO, 0 );
-			}
+			SDL_GL_SetAttribute( SDL_GL_STEREO, 0 );
 		
 			SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
@@ -602,8 +592,6 @@ void GLimp_Init( glconfig_t *config )
 	r_allowSoftwareGL = Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );
 
 	r_swapInterval = Cvar_Get( "r_swapInterval", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	r_stereoEnabled = Cvar_Get( "r_stereoEnabled", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_SetDescription( r_stereoEnabled, "Enable stereo rendering for techniques like shutter glasses." );
 
 	// Create the window and set up the context
 	err = GLimp_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_fullscreen->integer, qfalse );
@@ -689,8 +677,6 @@ void VKimp_Init( glconfig_t *config )
 	Cvar_SetDescription( in_nograb, "Do not capture mouse in game, may be useful during online streaming." );
 
 	r_swapInterval = Cvar_Get( "r_swapInterval", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	r_stereoEnabled = Cvar_Get( "r_stereoEnabled", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_SetDescription( r_stereoEnabled, "Enable stereo rendering for techniques like shutter glasses." );
 
 	// feedback to renderer configuration
 	glw_state.config = config;

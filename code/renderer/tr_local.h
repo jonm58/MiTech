@@ -458,8 +458,6 @@ typedef struct {
 	vec3_t		vieworg;
 	vec3_t		viewaxis[3];		// transformation matrix
 
-	stereoFrame_t	stereoFrame;
-
 	int			time;				// time in milliseconds for shader effects and other time dependent rendering issues
 	int			rdflags;			// RDF_NOWORLDMODEL, etc
 
@@ -573,7 +571,6 @@ typedef struct {
 	cplane_t	frustum[5];
 	vec3_t		visBounds[2];
 	float		zFar;
-	stereoFrame_t	stereoFrame;
 	int 		portalViewDepth;
 	int			lastENum;
 #ifdef USE_PMLIGHT
@@ -1151,7 +1148,6 @@ extern cvar_t	*r_railSegmentLength;
 
 extern cvar_t	*r_znear;				// near Z clip plane
 extern cvar_t	*r_zproj;				// z distance of projection plane
-extern cvar_t	*r_stereoSeparation;			// separation of cameras for stereo rendering
 
 extern cvar_t	*r_lodbias;				// push/pull LOD transitions
 extern cvar_t	*r_lodscale;
@@ -1235,8 +1231,6 @@ extern	cvar_t	*r_portalOnly;
 extern	cvar_t	*r_subdivisions;
 extern	cvar_t	*r_lodCurveError;
 extern	cvar_t	*r_skipBackEnd;
-
-extern	cvar_t	*r_anaglyphMode;
 
 //postFX
 extern	cvar_t	*r_postfx;
@@ -1379,7 +1373,7 @@ void	GL_Cull( cullType_t cullType );
 void		RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, byte *data, int client, qboolean dirty );
 void		RE_UploadCinematic( int w, int h, int cols, int rows, byte *data, int client, qboolean dirty );
 
-void		RE_BeginFrame( stereoFrame_t stereoFrame );
+void		RE_BeginFrame( void );
 void		RE_BeginRegistration( glconfig_t *glconfig );
 void		RE_LoadWorldMap( const char *mapname );
 void		RE_SetWorldVisData( const byte *vis );
@@ -1844,7 +1838,7 @@ void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs );
 void RE_SetColor( const float *rgba );
 void RE_StretchPic ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2, qhandle_t hShader );
-void RE_BeginFrame( stereoFrame_t stereoFrame );
+void RE_BeginFrame( void );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
 void RE_TakeVideoFrame( int width, int height,
 		byte *captureBuffer, byte *encodeBuffer, qboolean motionJpeg );

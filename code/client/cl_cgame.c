@@ -791,8 +791,8 @@ qboolean CL_GameCommand( void ) {
 CL_CGameRendering
 =====================
 */
-void CL_CGameRendering( stereoFrame_t stereo ) {
-	VM_Call( cgvm, 3, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
+void CL_CGameRendering( void ) {
+	VM_Call( cgvm, 2, CG_DRAW_ACTIVE_FRAME, cl.serverTime, clc.demoplaying );
 #ifdef DEBUG
 	VM_Debug( 0 );
 #endif

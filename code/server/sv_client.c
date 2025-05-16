@@ -1732,7 +1732,6 @@ network-dependent parameters such as view distance or update rates.
 static void SV_NetError_f( client_t *client ) {
 	client->netError = qtrue;
 	client->dynamicViewDistance = 1;
-	Com_Printf( "NetError: correction on! \n");
 }
 
 typedef struct {

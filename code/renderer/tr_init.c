@@ -50,11 +50,8 @@ cvar_t	*r_detailTextures;
 
 cvar_t	*r_znear;
 cvar_t	*r_zproj;
-cvar_t	*r_stereoSeparation;
 
 cvar_t	*r_skipBackEnd;
-
-cvar_t	*r_anaglyphMode;
 
 //postFX
 cvar_t	*r_postfx;
@@ -1456,8 +1453,6 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_znear, "Viewport distance from view origin (how close objects can be to the player before they're clipped out of the scene)." );
 	r_zproj = ri.Cvar_Get( "r_zproj", "64", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_zproj, "Projected viewport frustum." );
-	r_stereoSeparation = ri.Cvar_Get( "r_stereoSeparation", "64", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_stereoSeparation, "Control eye separation. Resulting separation is \\r_zproj divided by this value in standard units." );
 	r_ignoreGLErrors = ri.Cvar_Get( "r_ignoreGLErrors", "1", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_ignoreGLErrors, "Ignore OpenGL errors." );
 	r_fastsky = ri.Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE_ND );
@@ -1554,10 +1549,6 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_ambientScale, "Light grid ambient light scaling on entity models." );
 	r_directedScale = ri.Cvar_Get( "r_directedScale", "0.50", CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_directedScale, "Light grid direct light scaling on entity models." );
-
-	r_anaglyphMode = ri.Cvar_Get( "r_anaglyphMode", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_anaglyphMode, "Enable rendering of anaglyph images. Valid options for 3D glasses types:\n 0: Disabled\n 1: Red-cyan\n 2: Red-blue\n 3: Red-green\n 4: Green-magenta" );
-
 
 	//postFX
 	r_postfx = ri.Cvar_Get( "r_postfx", "1", CVAR_ARCHIVE_ND );
@@ -1762,8 +1753,8 @@ void R_Init( void ) {
 	Com_Memset( &tess, 0, sizeof( tess ) );
 	Com_Memset( &glState, 0, sizeof( glState ) );
 
-	if ( sizeof( glconfig_t ) != 11320 )
-		ri.Error( ERR_FATAL, "Mod ABI incompatible: sizeof(glconfig_t) == %u != 11320", (unsigned int) sizeof( glconfig_t ) );
+	if ( sizeof( glconfig_t ) != 11316 )
+		ri.Error( ERR_FATAL, "Mod ABI incompatible: sizeof(glconfig_t) == %u != 11316", (unsigned int) sizeof( glconfig_t ) );
 
 	if ( (intptr_t)tess.xyz & 15 ) {
 		ri.Printf( PRINT_WARNING, "tess.xyz not 16 byte aligned\n" );
