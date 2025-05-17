@@ -88,21 +88,22 @@ typedef struct campspot_s
 	struct campspot_s *next;
 } campspot_t;
 
-//FIXME: these are game specific
 typedef enum {
-	GT_FFA,				// free for all
-	GT_TOURNAMENT,		// one on one tournament
-	GT_SINGLE_PLAYER,	// single player tournament
-
-	//-- team games go after this --
-
-	GT_TEAM,			// team deathmatch
-	GT_CTF,				// capture the flag
-#ifdef MISSIONPACK
+	GT_SANDBOX,
+	GT_MAPEDITOR,
+	GT_SINGLE, //SHOULD BE 3 FOR ENGINE 
+	GT_FFA,
+	GT_TOURNAMENT,
+	GT_TEAM,
+	GT_CTF,
 	GT_1FCTF,
 	GT_OBELISK,
-	GT_HARVESTER,
-#endif
+	GT_HARVESTER,	
+	GT_ELIMINATION,
+	GT_CTF_ELIMINATION,
+	GT_LMS,
+	GT_DOUBLE_D,
+	GT_DOMINATION,
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
@@ -808,14 +809,12 @@ void BotSetAvoidGoalTime(int goalstate, int number, float avoidtime)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-int BotGetLevelItemGoal(int index, const char *name, bot_goal_t *goal)
-{
+int BotGetLevelItemGoal(int index, const char *name, bot_goal_t *goal) {
 	levelitem_t *li;
 
 	if (!itemconfig) return -1;
 	li = levelitems;
-	if (index >= 0)
-	{
+	if (index >= 0) {
 		for (; li; li = li->next)
 		{
 			if (li->number == index)
@@ -825,10 +824,9 @@ int BotGetLevelItemGoal(int index, const char *name, bot_goal_t *goal)
 			} //end if
 		} //end for
 	} //end for
-	for (; li; li = li->next)
-	{
+	for (; li; li = li->next) {
 		//
-		if (g_gametype == GT_SINGLE_PLAYER) {
+		if (g_gametype == GT_SINGLE) {
 			if (li->flags & IFL_NOTSINGLE) continue;
 		}
 		else if (g_gametype >= GT_TEAM) {
@@ -975,7 +973,7 @@ void BotUpdateEntityItems(void)
 			//if this level item is already linked
 			if (li->entitynum) continue;
 			//
-			if (g_gametype == GT_SINGLE_PLAYER) {
+			if (g_gametype == GT_SINGLE) {
 				if (li->flags & IFL_NOTSINGLE) continue;
 			}
 			else if (g_gametype >= GT_TEAM) {
@@ -1199,7 +1197,7 @@ int BotChooseLTGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 	//go through the items in the level
 	for (li = levelitems; li; li = li->next)
 	{
-		if (g_gametype == GT_SINGLE_PLAYER) {
+		if (g_gametype == GT_SINGLE) {
 			if (li->flags & IFL_NOTSINGLE)
 				continue;
 		}
@@ -1370,7 +1368,7 @@ int BotChooseNBGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 	//go through the items in the level
 	for (li = levelitems; li; li = li->next)
 	{
-		if (g_gametype == GT_SINGLE_PLAYER) {
+		if (g_gametype == GT_SINGLE) {
 			if (li->flags & IFL_NOTSINGLE)
 				continue;
 		}

@@ -595,32 +595,6 @@ static void CM_MapList_f(void) {
 }
 #endif
 
-#if 0
-static uint32_t CM_LumpChecksum( const lump_t *lump ) {
-	return LittleLong( Com_BlockChecksum( cmod_base + lump->fileofs, lump->filelen ) );
-}
-
-
-static uint32_t CM_Checksum( const dheader_t *header ) {
-	uint32_t checksums[11];
-
-	checksums[0] = CM_LumpChecksum( &header->lumps[LUMP_SHADERS] );
-	checksums[1] = CM_LumpChecksum( &header->lumps[LUMP_LEAFS] );
-	checksums[2] = CM_LumpChecksum( &header->lumps[LUMP_LEAFBRUSHES] );
-	checksums[3] = CM_LumpChecksum( &header->lumps[LUMP_LEAFSURFACES] );
-	checksums[4] = CM_LumpChecksum( &header->lumps[LUMP_PLANES] );
-	checksums[5] = CM_LumpChecksum( &header->lumps[LUMP_BRUSHSIDES] );
-	checksums[6] = CM_LumpChecksum( &header->lumps[LUMP_BRUSHES] );
-	checksums[7] = CM_LumpChecksum( &header->lumps[LUMP_MODELS] );
-	checksums[8] = CM_LumpChecksum( &header->lumps[LUMP_NODES] );
-	checksums[9] = CM_LumpChecksum( &header->lumps[LUMP_SURFACES] );
-	checksums[10] = CM_LumpChecksum( &header->lumps[LUMP_DRAWVERTS] );
-
-	return LittleLong( Com_BlockChecksum( checksums, ARRAY_LEN( checksums ) * 4 ) );
-}
-#endif
-
-
 /*
 ==================
 CM_LoadMap
@@ -693,16 +667,6 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 #ifdef USE_BSP_COLMODELS
 	for(i = 0; i < MAX_NUM_MAPS && i < empty; i++) {
 		outModel += cmWorlds[i].numSubModels;
-	}
-#endif
-#if 0
-	if ( !name[0] ) {
-		cm.numLeafs = 1;
-		cm.numClusters = 1;
-		cm.numAreas = 1;
-		cm.cmodels = Hunk_Alloc( sizeof( *cm.cmodels ), h_high );
-		*checksum = 0;
-		return;
 	}
 #endif
 

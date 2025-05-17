@@ -946,8 +946,7 @@ static const char *R_LoadImage( const char *name, byte **pic, int *width, int *h
 
 	// Try and find a suitable match using all
 	// the image formats supported
-	for ( i = 0; i < numImageLoaders; i++ )
-	{
+	for ( i = 0; i < numImageLoaders; i++ ) {
 		if ( i == orgLoader )
 			continue;
 
@@ -956,15 +955,7 @@ static const char *R_LoadImage( const char *name, byte **pic, int *width, int *h
 		// Load
 		imageLoaders[ i ].ImageLoader( altName, pic, width, height );
 
-		if ( *pic )
-		{
-#if 0
-			if ( orgNameFailed )
-			{
-				ri.Printf( PRINT_DEVELOPER, S_COLOR_YELLOW "WARNING: %s not present, using %s instead\n",
-						name, altName );
-			}
-#endif
+		if ( *pic ) {
 			Q_strncpyz( localName, altName, sizeof( localName ) );
 			break;
 		}

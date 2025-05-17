@@ -653,7 +653,7 @@ Draws the last few lines of output transparently over the game top
 ================
 */
 static void Con_DrawNotify( void ) {
-	int		v, skip;
+	int		skip;
 
 	if ( Key_GetCatcher() & (KEYCATCH_UI | KEYCATCH_CGAME) ) {
 		return;
@@ -661,19 +661,15 @@ static void Con_DrawNotify( void ) {
 
 	// draw the chat line
 	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) {
-		// rescale to virtual 640x480 space
-		v /= cls.glconfig.vidHeight / 480.0;
-
 		if (chat_team) {
-			SCR_DrawBigString( SMALLCHAR_WIDTH, v, "Team chat:", 1.0f, qfalse );
+			SCR_DrawBigString( SMALLCHAR_WIDTH, 0, "Team chat:", 1.0f, qfalse );
 			skip = 11;
 		} else {
-			SCR_DrawBigString( SMALLCHAR_WIDTH, v, "Chat:", 1.0f, qfalse );
+			SCR_DrawBigString( SMALLCHAR_WIDTH, 0, "Chat:", 1.0f, qfalse );
 			skip = 6;
 		}
 
-		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v,
-			SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qtrue );
+		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, 0, SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qtrue );
 	}
 }
 
@@ -752,8 +748,6 @@ static void Con_DrawSolidConsole( float frac ) {
 	re.SetColor( g_color_table[ ColorIndex( COLOR_CYAN ) ] );
 	re.DrawStretchPic( 0, yf, wf, 2, 0, 0, 1, 1, cls.whiteShader );
 
-	//y = yf;
-
 	// draw the version number
 	SCR_DrawSmallString( cls.glconfig.vidWidth - ( ARRAY_LEN( Q3_VERSION ) ) * smallchar_width,
 		lines - smallchar_height, Q3_VERSION, ARRAY_LEN( Q3_VERSION ) - 1 );
@@ -767,8 +761,7 @@ static void Con_DrawSolidConsole( float frac ) {
 	row = con.display;
 
 	// draw from the bottom up
-	if ( con.display != con.current )
-	{
+	if ( con.display != con.current ) {
 		// draw arrows to show the buffer is backscrolled
 		re.SetColor( g_color_table[ ColorIndex( COLOR_CYAN ) ] );
 		for ( x = 0 ; x < con.linewidth ; x += 4 )
@@ -780,8 +773,7 @@ static void Con_DrawSolidConsole( float frac ) {
 	currentColorIndex = ColorIndex( COLOR_WHITE );
 	re.SetColor( g_color_table[ currentColorIndex ] );
 
-	for ( i = 0 ; i < rows ; i++, y -= smallchar_height, row-- )
-	{
+	for ( i = 0 ; i < rows ; i++, y -= smallchar_height, row-- ) {
 		if ( row < 0 )
 			break;
 

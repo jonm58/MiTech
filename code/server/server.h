@@ -96,11 +96,6 @@ typedef struct {
 	byte			areabits[MAX_MAP_AREA_BYTES];		// portalarea visibility bits
 	playerState_t	ps;
 	int				num_entities;
-#if 0
-	int				first_entity;		// into the circular sv_packet_entities[]
-										// the entities MUST be in increasing state number
-										// order, otherwise the delta compression will fail
-#endif
 	int				messageSent;		// time the message was transmitted
 	int				messageAcked;		// time the message was acked
 	int				messageSize;		// used to rate drop packets
@@ -225,10 +220,6 @@ typedef struct client_s {
 	qboolean		longstr;
 
 	qboolean		justConnected;
-
-	char			tld[3]; // "XX\0"
-	const char		*country;
-
 } client_t;
 
 //=============================================================================
@@ -275,7 +266,6 @@ extern	cvar_t	*sv_rconPassword;
 extern	cvar_t	*sv_privatePassword;
 extern	cvar_t	*sv_allowDownload;
 extern	cvar_t	*sv_maxclientsPerIP;
-extern	cvar_t	*sv_clientTLD;
 
 extern	cvar_t	*sv_privateClients;
 extern	cvar_t	*sv_hostname;
@@ -353,9 +343,6 @@ void SV_ClientThink( client_t *cl, usercmd_t *cmd );
 
 int SV_SendDownloadMessages( void );
 int SV_SendQueuedMessages( void );
-
-void SV_FreeIP4DB( void );
-void SV_PrintLocations_f( client_t *client );
 
 //
 // sv_ccmds.c

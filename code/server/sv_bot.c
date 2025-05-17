@@ -66,10 +66,7 @@ int SV_BotAllocateClient( void ) {
 	cl->snapshotMsec = 1000 / sv_fps->integer;
 	cl->netchan.remoteAddress.type = NA_BOT;
 	cl->rate = 0;
-
-	cl->tld[0] = '\0';
-	cl->country = "BOT";
-
+	
 	return i;
 }
 

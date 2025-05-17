@@ -75,12 +75,6 @@ static int reach_teleport;		//teleport
 static int reach_elevator;		//use an elevator
 static int reach_funcbob;		//use a func bob
 static int reach_grapple;		//grapple hook
-#if 0
-static int reach_doublejump;	//double jump
-static int reach_rampjump;		//ramp jump
-static int reach_strafejump;	//strafe jump (just normal jump but further)
-static int reach_bfgjump;		//bfg jump
-#endif
 static int reach_rocketjump;	//rocket jump
 static int reach_jumppad;		//jump pads
 //if true grapple reachabilities are skipped
@@ -376,26 +370,21 @@ int AAS_BestReachableArea(vec3_t origin, vec3_t mins, vec3_t maxs, vec3_t goalor
 	VectorCopy(origin, start);
 	areanum = AAS_PointAreaNum(start);
 	//while no area found fudge around a little
-	for (i = 0; i < 5 && !areanum; i++)
-	{
-		for (j = 0; j < 5 && !areanum; j++)
-		{
-			for (k = -1; k <= 1 && !areanum; k++)
-			{
-				for (l = -1; l <= 1 && !areanum; l++)
-				{
+	for (i = 0; i < 5 && !areanum; i++) {
+		for (j = 0; j < 5 && !areanum; j++) {
+			for (k = -1; k <= 1 && !areanum; k++) {
+				for (l = -1; l <= 1 && !areanum; l++) {
 					VectorCopy(origin, start);
 					start[0] += (float) j * 4 * k;
 					start[1] += (float) j * 4 * l;
 					start[2] += (float) i * 4;
 					areanum = AAS_PointAreaNum(start);
-				} //end for
-			} //end for
-		} //end for
-	} //end for
+				}
+			}
+		}
+	}
 	//if an area was found
-	if (areanum)
-	{
+	if (areanum) {
 		//drop client bbox down and try again
 		VectorCopy(start, end);
 		start[2] += 0.25;
@@ -410,35 +399,18 @@ int AAS_BestReachableArea(vec3_t origin, vec3_t mins, vec3_t maxs, vec3_t goalor
 			//if the origin is in an area with reachability
 			//if (AAS_AreaReachability(areanum)) return areanum;
 			if (areanum) return areanum;
-		} //end if
-		else
-		{
-			//it can very well happen that the AAS_PointAreaNum function tells that
-			//a point is in an area and that starting an AAS_TraceClientBBox from that
-			//point will return trace.startsolid qtrue
-#if 0
-			if (AAS_PointAreaNum(start))
-			{
-				Log_Write("point %f %f %f in area %d but trace startsolid", start[0], start[1], start[2], areanum);
-				AAS_DrawPermanentCross(start, 4, LINECOLOR_RED);
-			} //end if
-			botimport.Print(PRT_MESSAGE, "AAS_BestReachableArea: start solid\n");
-#endif
+		} else {
 			VectorCopy(start, goalorigin);
 			return areanum;
 		} //end else
 	} //end if
 	//
-	//AAS_PresenceTypeBoundingBox(PRESENCE_CROUCH, bbmins, bbmaxs);
-	//NOTE: the goal origin does not have to be in the goal area
+	// NOTE: the goal origin does not have to be in the goal area
 	// because the bot will have to move towards the item origin anyway
 	VectorCopy(origin, goalorigin);
 	//
 	VectorAdd(origin, mins, absmins);
 	VectorAdd(origin, maxs, absmaxs);
-	//add bounding box size
-	//VectorSubtract(absmins, bbmaxs, absmins);
-	//VectorSubtract(absmaxs, bbmins, absmaxs);
 	//link an invalid (-1) entity
 	areas = AAS_LinkEntityClientBBox(absmins, absmaxs, -1, PRESENCE_CROUCH);
 	//get the reachable link area
@@ -766,19 +738,6 @@ int AAS_AreaDoNotEnter(int areanum)
 {
 	return (aasworld.areasettings[areanum].contents & AREACONTENTS_DONOTENTER);
 } //end of the function AAS_AreaDoNotEnter
-#if 0
-//===========================================================================
-// returns the time it takes perform a barrier jump
-//
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
-//===========================================================================
-static unsigned short int AAS_BarrierJumpTravelTime(void)
-{
-	return aassettings.phys_jumpvel / (aassettings.phys_gravity * 0.1);
-} //end op the function AAS_BarrierJumpTravelTime
-#endif
 //===========================================================================
 // returns true if there already exists a reachability from area1 to area2
 //
@@ -796,41 +755,6 @@ static qboolean AAS_ReachabilityExists(int area1num, int area2num)
 	} //end for
 	return qfalse;
 } //end of the function AAS_ReachabilityExists
-#if 0
-//===========================================================================
-// returns true if there is a solid just after the end point when going
-// from start to end
-//
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
-//===========================================================================
-static int AAS_NearbySolidOrGap(vec3_t start, vec3_t end)
-{
-	vec3_t dir, testpoint;
-	int areanum;
-
-	VectorSubtract(end, start, dir);
-	dir[2] = 0;
-	VectorNormalize(dir);
-	VectorMA(end, 48, dir, testpoint);
-
-	areanum = AAS_PointAreaNum(testpoint);
-	if (!areanum)
-	{
-		testpoint[2] += 16;
-		areanum = AAS_PointAreaNum(testpoint);
-		if (!areanum) return qtrue;
-	} //end if
-	VectorMA(end, 64, dir, testpoint);
-	areanum = AAS_PointAreaNum(testpoint);
-	if (areanum)
-	{
-		if (!AAS_AreaSwim(areanum) && !AAS_AreaGrounded(areanum)) return qtrue;
-	} //end if
-	return qfalse;
-} //end of the function AAS_SolidGapTime
-#endif
 //===========================================================================
 // searches for swim reachabilities between adjacent areas
 //
@@ -3388,15 +3312,6 @@ static void AAS_Reachability_FuncBobbing(void)
 		end_plane.dist = end_edgeverts[0][2];
 		VectorSet(end_plane.normal, 0, 0, 1);
 		//
-#ifndef BSPC
-#if 0
-		for (i = 0; i < 4; i++)
-		{
-			AAS_PermanentLine(start_edgeverts[i], start_edgeverts[(i+1)%4], 1);
-			AAS_PermanentLine(end_edgeverts[i], end_edgeverts[(i+1)%4], 1);
-		} //end for
-#endif
-#endif
 		VectorCopy(move_start, move_start_top);
 		move_start_top[2] += maxs[2] - mid[2] + 24; //+ bbox maxs z
 		VectorCopy(move_end, move_end_top);

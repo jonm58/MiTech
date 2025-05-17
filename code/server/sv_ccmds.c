@@ -31,7 +31,6 @@ These commands can only be entered from stdin or by a remote operator datagram
 ===============================================================================
 */
 
-
 /*
 ==================
 SV_GetPlayerByHandle
@@ -95,7 +94,6 @@ client_t *SV_GetPlayerByHandle( void ) {
 	return NULL;
 }
 
-
 /*
 ==================
 SV_GetPlayerByNum
@@ -141,9 +139,6 @@ static client_t *SV_GetPlayerByNum( void ) {
 	return cl;
 }
 
-//=========================================================
-
-
 /*
 ==================
 SV_Map_f
@@ -183,7 +178,7 @@ static void SV_Map_f( void ) {
 
 	cmd = Cmd_Argv(0);
 	if( Q_stricmpn( cmd, "sp", 2 ) == 0 ) {
-		Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
+		Cvar_SetIntegerValue( "g_gametype", GT_SINGLE );
 		Cvar_Set( "g_doWarmup", "0" );
 		cmd += 2;
 		if (!Q_stricmp( cmd, "devmap" ) ) {
@@ -199,8 +194,8 @@ static void SV_Map_f( void ) {
 		} else {
 			cheat = qfalse;
 		}
-		if( sv_gametype->integer == GT_SINGLE_PLAYER ) {
-			Cvar_SetIntegerValue( "g_gametype", GT_FFA );
+		if( sv_gametype->integer == GT_SINGLE ) {
+			Cvar_SetIntegerValue( "g_gametype", GT_SANDBOX );
 			killBots = qtrue;
 		} else {
 			killBots = qfalse;
@@ -224,7 +219,6 @@ static void SV_Map_f( void ) {
 		Cvar_Set( "sv_cheats", "0" );
 	}
 }
-
 
 /*
 ================
@@ -369,7 +363,6 @@ static void SV_MapRestart_f( void ) {
 	}
 }
 
-
 /*
 ==================
 SV_Kick_f
@@ -459,6 +452,7 @@ static void SV_KickBots_f( void ) {
 		cl->lastPacketTime = svs.time; // in case there is a funny zombie
 	}
 }
+
 /*
 ==================
 SV_KickAll_f
@@ -543,7 +537,6 @@ int SV_Strlen( const char *str ) {
 	return count;
 }
 
-
 /*
 ================
 SV_Status_f
@@ -578,8 +571,7 @@ static void SV_Status_f( void ) {
 	Com_Memset( al, 0, sizeof( al ) );
 
 	// first pass: save and determine max.lengths of name/address fields
-	for ( i = 0, cl = svs.clients; i < sv.maxclients; i++, cl++ )
-	{
+	for ( i = 0, cl = svs.clients; i < sv.maxclients; i++, cl++ ) {
 		if ( cl->state == CS_FREE )
 			continue;
 
@@ -617,8 +609,7 @@ static void SV_Status_f( void ) {
 		Com_Printf( "-" );
 	Com_Printf( " -----\n" );
 
-	for ( i = 0, cl = svs.clients; i < sv.maxclients; i++, cl++ )
-	{
+	for ( i = 0, cl = svs.clients; i < sv.maxclients; i++, cl++ ) {
 		if ( cl->state == CS_FREE )
 			continue;
 
@@ -657,7 +648,6 @@ static void SV_Status_f( void ) {
 	Com_Printf( "\n" );
 }
 
-
 /*
 ==================
 SV_ConSay_f
@@ -695,7 +685,6 @@ static void SV_ConSay_f( void ) {
 
 	SV_SendServerCommand( NULL, "chat \"%s\"", text );
 }
-
 
 /*
 ==================
@@ -743,7 +732,6 @@ static void SV_ConTell_f( void ) {
 	SV_SendServerCommand( cl, "chat \"%s\"", text );
 }
 
-
 /*
 ==================
 SV_Heartbeat_f
@@ -754,7 +742,6 @@ Also called by SV_DropClient, SV_DirectConnect, and SV_SpawnServer
 void SV_Heartbeat_f( void ) {
 	svs.nextHeartbeatTime = svs.time;
 }
-
 
 /*
 ===========
@@ -779,7 +766,6 @@ static void SV_Serverinfo_f( void ) {
 	}
 }
 
-
 /*
 ===========
 SV_Systeminfo_f
@@ -800,7 +786,6 @@ static void SV_Systeminfo_f( void ) {
 		Info_Print( info );
 	}
 }
-
 
 /*
 ===========
@@ -833,7 +818,6 @@ static void SV_DumpUser_f( void ) {
 	Info_Print( cl->userinfo );
 }
 
-
 /*
 =================
 SV_KillServer
@@ -841,28 +825,6 @@ SV_KillServer
 */
 static void SV_KillServer_f( void ) {
 	SV_Shutdown( "killserver" );
-}
-
-
-/*
-=================
-SV_Locations
-=================
-*/
-static void SV_Locations_f( void ) {
-
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
-
-	if ( !sv_clientTLD->integer ) {
-		Com_Printf( "Disabled on this server.\n" );
-		return;
-	}
-
-	SV_PrintLocations_f( NULL );
 }
 
 /*
@@ -912,21 +874,16 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_AddCommand( "filtercmd", SV_AddFilterCmd_f );
 }
 
-void SV_AddDedicatedCommands( void )
-{
+void SV_AddDedicatedCommands( void ) {
 	Cmd_AddCommand( "serverinfo", SV_Serverinfo_f );
 	Cmd_AddCommand( "systeminfo", SV_Systeminfo_f );
 	Cmd_AddCommand( "tell", SV_ConTell_f );
 	Cmd_AddCommand( "say", SV_ConSay_f );
-	Cmd_AddCommand( "locations", SV_Locations_f );
 }
 
-
-void SV_RemoveDedicatedCommands( void )
-{
+void SV_RemoveDedicatedCommands( void ) {
 	Cmd_RemoveCommand( "serverinfo" );
 	Cmd_RemoveCommand( "systeminfo" );
 	Cmd_RemoveCommand( "tell" );
 	Cmd_RemoveCommand( "say" );
-	Cmd_RemoveCommand( "locations" );
 }

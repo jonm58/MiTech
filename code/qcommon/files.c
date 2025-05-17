@@ -427,33 +427,6 @@ void FS_ForceFlush( fileHandle_t f ) {
 	setvbuf( file, NULL, _IONBF, 0 );
 }
 
-
-/*
-================
-FS_FileLengthByHandle
-
-If this is called on a non-unique FILE (from a pak file),
-it will return the size of the pak file, not the expected
-size of the file.
-================
-*/
-#if 0
-static int FS_FileLengthByHandle( fileHandle_t f ) {
-	int		pos;
-	int		end;
-	FILE*	h;
-
-	h = FS_FileForHandle( f );
-	pos = ftell( h );
-	fseek( h, 0, SEEK_END );
-	end = ftell( h );
-	fseek( h, pos, SEEK_SET );
-
-	return end;
-}
-#endif
-
-
 /*
 ================
 FS_FileLength
@@ -2464,15 +2437,6 @@ static qboolean FS_SavePackToFile( const pack_t *pak, FILE *f )
 
 	// file content length
 	contentLen = 0;
-#if 0
-	for ( i = 0; i < pak->numfiles; i++ )
-	{
-		if ( pak->buildBuffer[ i ].data && pak->buildBuffer[ i ].size ) 
-		{
-			contentLen += sizeof( int ) + PAD( pak->buildBuffer[ i ].size, sizeof( int ) );
-		}
-	}
-#endif
 
 	// pak filename length
 	pk.pakNameLen = pakNameLen;

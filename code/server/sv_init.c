@@ -501,9 +501,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// to load during actual gameplay
 	sv.state = SS_LOADING;
 
-	// make sure that level time is not zero
-	//sv.time = sv.time ? sv.time : 8;
-
 	// load and spawn all other entities
 	SV_InitGameProgs();
 
@@ -626,12 +623,10 @@ void SV_Init( void )
 		SV_AddDedicatedCommands();
 
 	// serverinfo vars
-	Cvar_Get ("dmflags", "0", 0);
-	Cvar_Get ("fraglimit", "20", CVAR_SERVERINFO);
+	Cvar_Get ("fraglimit", "0", CVAR_SERVERINFO);
 	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
 	sv_gametype = Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_LATCH );
 	Cvar_SetDescription( sv_gametype, "Set the gametype to mod." );
-	//Cvar_Get ("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_ROM);
 	sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
 	Cvar_SetDescription( sv_mapname, "Display the name of the current map being used on a server." );
 	sv_privateClients = Cvar_Get( "sv_privateClients", "0", 0 );
@@ -643,10 +638,6 @@ void SV_Init( void )
 	sv_maxclientsPerIP = Cvar_Get( "sv_maxclientsPerIP", "3", CVAR_ARCHIVE );
 	Cvar_CheckRange( sv_maxclientsPerIP, "1", NULL, CV_INTEGER );
 	Cvar_SetDescription( sv_maxclientsPerIP, "Limits number of simultaneous connections from the same IP address." );
-
-	sv_clientTLD = Cvar_Get( "sv_clientTLD", "0", CVAR_ARCHIVE_ND );
-	Cvar_CheckRange( sv_clientTLD, NULL, NULL, CV_INTEGER );
-	Cvar_SetDescription( sv_clientTLD, "Client country detection code." );
 
 	sv_minRate = Cvar_Get( "sv_minRate", "0", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( sv_minRate, "Minimum server bandwidth (in bit per second) a client can use." );
@@ -702,6 +693,7 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_mapChecksum, "Allows check for client server map to match." );
 	sv_lanForceRate = Cvar_Get( "sv_lanForceRate", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( sv_lanForceRate, "Forces LAN clients to the maximum rate instead of accepting client setting." );
+
 	sv_anticheatengine = Cvar_Get( "sv_anticheatengine", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	Cvar_SetDescription( sv_anticheatengine, "Enables or disables the SourceTech server-side anti-cheat engine." );
 	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "2", CVAR_ARCHIVE );
@@ -796,8 +788,6 @@ void SV_Shutdown( const char *finalmsg ) {
 
 	// free current level
 	SV_ClearServer();
-
-	SV_FreeIP4DB();
 
 	// free server static data
 	if ( svs.clients ) {

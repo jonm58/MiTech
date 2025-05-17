@@ -605,10 +605,6 @@ static void CL_KeyDownEvent( int key, unsigned time )
 				VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
 			}
 			else if ( cls.state != CA_DISCONNECTED ) {
-#if 0
-				CL_Disconnect_f();
-				S_StopAllSounds();
-#else
 				Cmd_Clear();
 				Cvar_Set( "com_errorMessage", "" );
 				if ( cls.state == CA_CINEMATIC ) {
@@ -616,7 +612,6 @@ static void CL_KeyDownEvent( int key, unsigned time )
 				} else if ( !CL_Disconnect( qfalse ) ) { // restart client if not done already
 					CL_FlushMemory();
 				}
-#endif
 				VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
 			}
 			return;

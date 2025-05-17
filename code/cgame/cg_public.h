@@ -22,12 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define	CMD_BACKUP			64	
 #define	CMD_MASK			(CMD_BACKUP - 1)
-
 #define	MAX_ENTITIES_IN_SNAPSHOT	4096
 
-// Snapshots are generated at regular time intervals by the server,
-// but they may not be sent if a client's rate level is exceeded, or
-// they may be dropped by the network.
 typedef struct {
 	int				snapFlags;			// SNAPFLAG_RATE_DELAYED, etc
 	int				ping;

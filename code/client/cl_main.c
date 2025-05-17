@@ -1996,12 +1996,6 @@ static void CL_CheckForResend( void ) {
 		infoTruncated = qfalse;
 		Q_strncpyz( info, Cvar_InfoString( CVAR_USERINFO, &infoTruncated ), sizeof( info ) );
 
-		// remove some non-important keys that may cause overflow during connection
-		if ( strlen( info ) > MAX_USERINFO_LENGTH - 64 ) {
-			infoTruncated |= Info_RemoveKey( info, "xp_name" ) ? qtrue : qfalse;
-			infoTruncated |= Info_RemoveKey( info, "xp_country" ) ? qtrue : qfalse;
-		}
-
 		len = strlen( info );
 		if ( len > MAX_USERINFO_LENGTH ) {
 			notOverflowed = qfalse;

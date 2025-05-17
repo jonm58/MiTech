@@ -353,37 +353,6 @@ int VM_SymbolToValue( vm_t *vm, const char *symbol ) {
 	return 0;
 }
 
-
-/*
-=====================
-VM_SymbolForCompiledPointer
-=====================
-*/
-#if 0 // 64bit!
-const char *VM_SymbolForCompiledPointer( vm_t *vm, void *code ) {
-	int			i;
-
-	if ( code < (void *)vm->codeBase.ptr ) {
-		return "Before code block";
-	}
-	if ( code >= (void *)(vm->codeBase.ptr + vm->codeLength) ) {
-		return "After code block";
-	}
-
-	// find which original instruction it is after
-	for ( i = 0 ; i < vm->codeLength ; i++ ) {
-		if ( (void *)vm->instructionPointers[i] > code ) {
-			break;
-		}
-	}
-	i--;
-
-	// now look up the bytecode instruction pointer
-	return VM_ValueToSymbol( vm, i );
-}
-#endif
-
-
 /*
 ===============
 ParseHex
@@ -538,28 +507,6 @@ Dlls will call this directly
 
 ============
 */
-#if 0 // - disabled because now is different for each module
-intptr_t QDECL VM_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__
-  // rcg010206 - see commentary above
-  intptr_t	args[16];
-  va_list	ap;
-  int i;
-
-  args[0] = arg;
-
-  va_start( ap, arg );
-  for (i = 1; i < ARRAY_LEN( args ); i++ )
-    args[ i ] = va_arg( ap, intptr_t );
-  va_end( ap );
-
-  return currentVM->systemCall( args );
-#else // original id code
-	return currentVM->systemCall( &arg );
-#endif
-}
-#endif
-
 
 static void VM_SwapLongs( void *data, int length )
 {
@@ -1807,17 +1754,6 @@ void VM_Free( vm_t *vm ) {
 	if ( vm->dllHandle )
 		Sys_UnloadLibrary( vm->dllHandle );
 
-#if 0	// now automatically freed by hunk
-	if ( vm->codeBase.ptr ) {
-		Z_Free( vm->codeBase.ptr );
-	}
-	if ( vm->dataBase ) {
-		Z_Free( vm->dataBase );
-	}
-	if ( vm->instructionPointers ) {
-		Z_Free( vm->instructionPointers );
-	}
-#endif
 	Com_Memset( vm, 0, sizeof( *vm ) );
 }
 
@@ -2059,29 +1995,4 @@ static void VM_VmInfo_f( void ) {
 		Com_Printf( "    table length: %7i\n", vm->instructionCount*4 );
 		Com_Printf( "    data length : %7i\n", vm->dataMask + 1 );
 	}
-}
-
-
-/*
-===============
-VM_LogSyscalls
-
-Insert calls to this while debugging the vm compiler
-===============
-*/
-void VM_LogSyscalls( int *args ) {
-#if 0
-	static	int		callnum;
-	static	FILE	*f;
-
-	if ( !f ) {
-		f = Sys_FOpen( "syscalls.log", "w" );
-		if ( !f ) {
-			return;
-		}
-	}
-	callnum++;
-	fprintf( f, "%i: %p (%i) = %i %i %i %i\n", callnum, (void*)(args - (int *)currentVM->dataBase),
-		args[0], args[1], args[2], args[3], args[4] );
-#endif
 }

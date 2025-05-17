@@ -128,36 +128,9 @@ qboolean QGL_Init( const char *dllname )
 
 		glw_state.OpenGLLib = dlopen( dllname, RTLD_NOW | RTLD_GLOBAL );
 
-		if ( glw_state.OpenGLLib == NULL )
-		{
-#if 0
-			char fn[1024];
-
-			Com_Printf( "\n...loading '%s' : ", dllname );
-			// if we are not setuid, try current directory
-			if ( dllname != NULL )
-			{
-				if ( getcwd( fn, sizeof( fn ) ) )
-				{
-					Q_strcat( fn, sizeof( fn ), "/" );
-					Q_strcat( fn, sizeof( fn ), dllname );
-					glw_state.OpenGLLib = dlopen( fn, RTLD_NOW );
-				}
-
-				if ( glw_state.OpenGLLib == NULL )
-				{
-					Com_Printf( "failed\n" );
-					Com_Printf( "QGL_Init: Can't load %s from /etc/ld.so.conf or current dir: %s\n", dllname, do_dlerror() );
-					return qfalse;
-				}
-			}
-			else
-#endif
-			{
-				Com_Printf( "failed\n" );
-				//Com_Printf( "QGL_Init: Can't load %s from /etc/ld.so.conf: %s\n", dllname, do_dlerror() );
-				return qfalse;
-			}
+		if ( glw_state.OpenGLLib == NULL ){
+			Com_Printf( "failed\n" );
+			return qfalse;
 		}
 
 		Com_Printf( "succeeded\n" );
