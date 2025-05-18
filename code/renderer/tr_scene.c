@@ -369,7 +369,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved
 	tr.refdef.areamaskModified = qfalse;
-	if ( ! (tr.refdef.rdflags & RDF_NOWORLDMODEL) ) {
+	if ( !(tr.refdef.rdflags & RDF_NOWORLDMODEL) ) {
 		int		areaDiff;
 		int		i;
 
@@ -405,6 +405,12 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	tr.refdef.numPolys = r_numpolys - r_firstScenePoly;
 	tr.refdef.polys = &backEndData->polys[r_firstScenePoly];
+
+	// turn off dynamic lighting globally by clearing all the
+	// dlights if it needs to be disabled
+	if ( r_dlightMode->integer == 0 ) {
+		tr.refdef.num_dlights = 0;
+	}
 
 	// a single frame may have multiple scenes draw inside it --
 	// a 3D game view, 3D status bar renderings, 3D menus, etc.
