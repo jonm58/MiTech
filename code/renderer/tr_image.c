@@ -523,42 +523,15 @@ static GLint RawImage_GetInternalFormat( const byte *scan, int numPixels, qboole
 	if ( lightMap )
 		return GL_RGB;
 
-	if ( RawImage_HasAlpha( scan, numPixels ) )
-	{
-		if ( r_texturebits->integer == 16 )
-		{
-			internalFormat = GL_RGBA4;
-		}
-		else if ( r_texturebits->integer == 32 )
-		{
-			internalFormat = GL_RGBA8;
-		}
-		else
-		{
-			internalFormat = GL_RGBA;
-		}
-	}
-	else
-	{
-		if ( allowCompression && glConfig.textureCompression == TC_S3TC_ARB )
-		{
+	if ( RawImage_HasAlpha( scan, numPixels ) ) {
+		internalFormat = GL_RGBA8;
+	} else {
+		if ( allowCompression && glConfig.textureCompression == TC_S3TC_ARB ) {
 			internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-		}
-		else if ( allowCompression && glConfig.textureCompression == TC_S3TC )
-		{
+		} else if ( allowCompression && glConfig.textureCompression == TC_S3TC ) {
 			internalFormat = GL_RGB4_S3TC;
-		}
-		else if ( r_texturebits->integer == 16 )
-		{
-			internalFormat = GL_RGB5;
-		}
-		else if ( r_texturebits->integer == 32 )
-		{
+		} else {
 			internalFormat = GL_RGB8;
-		}
-		else
-		{
-			internalFormat = GL_RGB;
 		}
 	}
 
@@ -1342,10 +1315,10 @@ void R_SetColorMappings( void ) {
 
 	// setup the overbright lighting
 	// negative value will force gamma in windowed mode
-	tr.overbrightBits = abs( r_overBrightBits->integer );
+	tr.overbrightBits = 1;
 
 	// never overbright in windowed mode
-	if ( !glConfig.isFullscreen && r_overBrightBits->integer >= 0 && !fboEnabled ) {
+	if ( !glConfig.isFullscreen && !fboEnabled ) {
 		tr.overbrightBits = 0;
 		applyGamma = qfalse;
 	} else {
@@ -1355,20 +1328,6 @@ void R_SetColorMappings( void ) {
 		} else {
 			applyGamma = qtrue;
 		}
-	}
-
-	// allow 2 overbright bits in 24 bit, but only 1 in 16 bit
-	if ( glConfig.colorBits > 16 ) {
-		if ( tr.overbrightBits > 2 ) {
-			tr.overbrightBits = 2;
-		}
-	} else {
-		if ( tr.overbrightBits > 1 ) {
-			tr.overbrightBits = 1;
-		}
-	}
-	if ( tr.overbrightBits < 0 ) {
-		tr.overbrightBits = 0;
 	}
 
 	tr.identityLight = 1.0f / ( 1 << tr.overbrightBits );

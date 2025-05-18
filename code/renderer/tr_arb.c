@@ -2209,15 +2209,6 @@ void QGL_SetRenderScale( qboolean verbose )
 	if ( !qglGenProgramsARB || !qglGenFramebuffers )
 		return;
 
-	if ( !r_fbo->integer )
-	{
-		if ( verbose && r_renderScale->integer )
-		{
-			ri.Printf( PRINT_ALL, "...ignoring \r_renderScale due to disabled FBO\n" );
-		}
-		return;
-	}
-
 	if ( r_ext_supersample->integer )
 	{
 		superSampled = qtrue;
@@ -2294,11 +2285,10 @@ void QGL_InitFBO( void )
 	fboEnabled = qfalse;
 	frameBufferMultiSampling = qfalse;
 
-	if ( r_fbo->integer && ( !qglGenProgramsARB || !qglGenFramebuffers ) )
-		ri.Printf( PRINT_WARNING, "...FBO is not available\n" );
-
-	if ( !r_fbo->integer || !qglGenProgramsARB || !qglGenFramebuffers )
-		return;
+	if ( !qglGenProgramsARB || !qglGenFramebuffers ) {
+	    ri.Printf( PRINT_WARNING, "...FBO is not available\n" );
+	    return;
+	}
 
 	qglGetError(); // reset error code
 

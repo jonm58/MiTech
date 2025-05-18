@@ -100,7 +100,7 @@ void R_ColorShiftLightingBytes( const byte in[4], byte out[4], qboolean hasAlpha
 	int		shift, r, g, b;
 
 	// shift the color data based on overbright range
-	shift = r_mapOverBrightBits->integer - tr.overbrightBits;
+	shift = 2 - tr.overbrightBits;
 
 	// shift the data based on overbright range
 	if ( shift >= 0 ) {

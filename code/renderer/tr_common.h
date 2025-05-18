@@ -70,12 +70,6 @@ extern int       gl_version;
 //
 // cvars
 //
-//extern cvar_t *r_stencilbits;			// number of desired stencil bits
-extern cvar_t *r_texturebits;			// number of desired texture bits
-										// 0 = use framebuffer depth
-										// 16 = use 16-bit textures
-										// 32 = use 32-bit textures
-										// all else = error
 extern cvar_t *r_ext_multisample;
 extern cvar_t *r_ext_supersample;
 
@@ -89,8 +83,6 @@ extern cvar_t *r_ext_texture_env_add;
 
 extern cvar_t *r_ext_texture_filter_anisotropic;
 extern cvar_t *r_ext_max_anisotropy;
-
-extern	cvar_t	*r_saveFontData;
 
 float R_NoiseGet4f( float x, float y, float z, double t );
 void  R_NoiseInit( void );

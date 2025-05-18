@@ -87,9 +87,6 @@ cvar_t	*r_dlightIntensity;
 
 cvar_t	*r_dlightSaturation;
 
-cvar_t	*r_vbo;
-
-cvar_t	*r_fbo;
 cvar_t	*r_hdr;
 cvar_t	*r_bloom_threshold;
 cvar_t	*r_bloom_threshold_mode;
@@ -131,9 +128,6 @@ cvar_t	*r_ext_max_anisotropy;
 
 cvar_t	*r_ignoreGLErrors;
 
-//cvar_t	*r_stencilbits;
-cvar_t	*r_texturebits;
-
 cvar_t	*r_ext_multisample;
 cvar_t	*r_ext_supersample;
 
@@ -163,8 +157,6 @@ cvar_t	*r_portalOnly;
 cvar_t	*r_subdivisions;
 cvar_t	*r_lodCurveError;
 
-cvar_t	*r_overBrightBits;
-cvar_t	*r_mapOverBrightBits;
 cvar_t	*r_mapGreyScale;
 
 cvar_t	*r_debugSurface;
@@ -178,15 +170,12 @@ cvar_t	*r_directedScale;
 cvar_t	*r_debugLight;
 cvar_t	*r_debugSort;
 cvar_t	*r_printShaders;
-cvar_t	*r_saveFontData;
 
 cvar_t	*r_marksOnTriangleMeshes;
 
 cvar_t	*r_aviMotionJpegQuality;
 cvar_t	*r_screenshotJpegQuality;
 
-static cvar_t *r_maxpolys;
-static cvar_t* r_maxpolyverts;
 int		max_polys;
 int		max_polyverts;
 
@@ -576,10 +565,8 @@ static void InitOpenGL( void )
 
 		ri.CL_SetScaling( 1.0, gls.captureWidth, gls.captureHeight );
 
-		if ( r_fbo->integer && qglGenProgramsARB && qglGenFramebuffers )
-		{
-			if ( r_renderScale->integer )
-			{
+		if ( qglGenProgramsARB && qglGenFramebuffers ) {
+			if ( r_renderScale->integer ) {
 				glConfig.vidWidth = r_renderWidth->integer;
 				glConfig.vidHeight = r_renderHeight->integer;
 			}
@@ -589,8 +576,7 @@ static void InitOpenGL( void )
 
 			ri.CL_SetScaling( 1.0, gls.captureWidth, gls.captureHeight );
 
-			if ( r_ext_supersample->integer )
-			{
+			if ( r_ext_supersample->integer ) {
 				glConfig.vidWidth *= 2;
 				glConfig.vidHeight *= 2;
 				ri.CL_SetScaling( 2.0, gls.captureWidth, gls.captureHeight );
@@ -1312,14 +1298,7 @@ Prints info that may change every R_Init() call
 */
 static void VarInfo( void )
 {
-	if ( glConfig.deviceSupportsGamma ) {
-		ri.Printf( PRINT_ALL, "GAMMA: hardware w/ %d overbright bits\n", tr.overbrightBits );
-	} else {
-		ri.Printf( PRINT_ALL, "GAMMA: software w/ %d overbright bits\n", tr.overbrightBits );
-	}
-
 	ri.Printf( PRINT_ALL, "texturemode: %s\n", r_textureMode->string );
-	ri.Printf( PRINT_ALL, "texture bits: %d\n", r_texturebits->integer ? r_texturebits->integer : 32 );
 	ri.Printf( PRINT_ALL, "picmip: %d%s\n", r_picmip->integer, r_nomip->integer ? ", worldspawn only" : "" );
 
 	if ( r_finish->integer ) {
@@ -1362,10 +1341,6 @@ static void R_Register( void )
 	//
 	r_fullbright = ri.Cvar_Get( "r_fullbright", "0", CVAR_LATCH );
 	ri.Cvar_SetDescription( r_fullbright, "Debugging tool to render the entire level without lighting." );
-	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_overBrightBits, "Sets the intensity of overall brightness of texture pixels." );
-	r_mapOverBrightBits = ri.Cvar_Get( "r_mapOverBrightBits", "2", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_mapOverBrightBits, "Sets the number of overbright bits baked into all lightmaps and map data." );
 	r_intensity = ri.Cvar_Get( "r_intensity", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_intensity, "1", "255", CV_FLOAT );
 	ri.Cvar_SetDescription( r_intensity, "Global texture lighting scale." );
@@ -1391,26 +1366,16 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_colorMipLevels, "Debugging tool to artificially color different mipmap levels so that they are more apparent." );
 	r_detailTextures = ri.Cvar_Get( "r_detailtextures", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_detailTextures, "Enables usage of shader stages flagged as detail." );
-	r_texturebits = ri.Cvar_Get( "r_texturebits", "32", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_texturebits, "Number of texture bits per texture." );
 
 	r_mergeLightmaps = ri.Cvar_Get( "r_mergeLightmaps", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_mergeLightmaps, "Merge built-in small lightmaps into bigger lightmaps (atlases)." );
-
-	r_vbo = ri.Cvar_Get( "r_vbo", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_vbo, "Use Vertex Buffer Objects to cache static map geometry, may improve FPS on modern GPUs, increases hunk memory usage by 15-30MB (map-dependent)." );
 
 	r_mapGreyScale = ri.Cvar_Get( "r_mapGreyScale", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_mapGreyScale, "-1", "1", CV_FLOAT );
 	ri.Cvar_SetDescription(r_mapGreyScale, "Desaturate world map textures only, works independently from \\r_fx_greyscale, negative values only desaturate lightmaps.");
 
-	r_subdivisions = ri.Cvar_Get( "r_subdivisions", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	r_subdivisions = ri.Cvar_Get( "r_subdivisions", "2", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription(r_subdivisions, "Distance to subdivide bezier curved surfaces. Higher values mean less subdivision and less geometric complexity.");
-
-	r_maxpolys = ri.Cvar_Get( "r_maxpolys", XSTRING( MAX_POLYS ), CVAR_LATCH );
-	ri.Cvar_SetDescription( r_maxpolys, "Maximum number of polygons to draw in a scene." );
-	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", XSTRING( MAX_POLYVERTS ), CVAR_LATCH );
-	ri.Cvar_SetDescription( r_maxpolyverts, "Maximum number of polygon vertices to draw in a scene." );
 
 	//
 	// archived variables that can change at any time
@@ -1451,10 +1416,10 @@ static void R_Register( void )
 
 	r_ext_multisample = ri.Cvar_Get( "r_ext_multisample", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_ext_multisample, "0", "8", CV_INTEGER );
-	ri.Cvar_SetDescription( r_ext_multisample, "For anti-aliasing geometry edges, valid values: 0|2|4|6|8. Requires \\r_fbo 1." );
+	ri.Cvar_SetDescription( r_ext_multisample, "For anti-aliasing geometry edges, valid values: 0|2|4|6|8." );
 	ri.Cvar_SetGroup( r_ext_multisample, CVG_RENDERER );
 	r_hdr = ri.Cvar_Get( "r_hdr", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription(r_hdr, "Enables high dynamic range frame buffer texture format. Requires \\r_fbo 1.\n -1: 4-bit, for testing purposes, heavy color banding, might not work on all systems\n  0: 8 bit, default, moderate color banding with multi-stage shaders\n  1: 16 bit, enhanced blending precision, no color banding, might decrease performance on AMD / Intel GPUs\n" );
+	ri.Cvar_SetDescription(r_hdr, "Enables high dynamic range frame buffer texture format.\n -1: 4-bit, for testing purposes, heavy color banding, might not work on all systems\n  0: 8 bit, default, moderate color banding with multi-stage shaders\n  1: 16 bit, enhanced blending precision, no color banding, might decrease performance on AMD / Intel GPUs\n" );
 	ri.Cvar_SetGroup( r_hdr, CVG_RENDERER );
 	// bloom
 	r_bloom_threshold = ri.Cvar_Get( "r_bloom_threshold", "0.00", CVAR_ARCHIVE_ND );
@@ -1566,7 +1531,6 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_debugSort, "Debugging tool to filter out shaders with depth sorting order values higher than the set value." );
 	r_printShaders = ri.Cvar_Get( "r_printShaders", "0", 0 );
 	ri.Cvar_SetDescription( r_printShaders, "Debugging tool to print on console of the number of shaders used." );
-	r_saveFontData = ri.Cvar_Get( "r_saveFontData", "0", 0 );
 
 	r_nocurves = ri.Cvar_Get ("r_nocurves", "0", CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_nocurves, "Set to 1 to disable drawing world bezier curves. Set to 0 to enable." );
@@ -1651,17 +1615,13 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_ext_max_anisotropy, "1", NULL, CV_INTEGER );
 	ri.Cvar_SetDescription( r_ext_max_anisotropy, "Sets maximum anisotropic level for your graphics driver. Requires \\r_ext_texture_filter_anisotropic." );
 
-	//r_stencilbits = ri.Cvar_Get( "r_stencilbits", "8", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_ignorehwgamma, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_ignorehwgamma, "Overrides hardware gamma capabilities." );
 
-	r_fbo = ri.Cvar_Get( "r_fbo", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_fbo, "Use framebuffer objects, enables gamma correction in windowed mode and allows arbitrary video size and screenshot/video capture.\n Required for bloom, HDR rendering, anti-aliasing and greyscale effects.\n OpenGL 3.0+ required." );
-
 	r_ext_supersample = ri.Cvar_Get( "r_ext_supersample", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_ext_supersample, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( r_ext_supersample, "Super-sample anti-aliasing, requires \\r_fbo 1." );
+	ri.Cvar_SetDescription( r_ext_supersample, "Super-sample anti-aliasing." );
 
 	r_renderWidth = ri.Cvar_Get( "r_renderWidth", "800", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_renderWidth, "96", NULL, CV_INTEGER );
@@ -1747,8 +1707,8 @@ void R_Init( void ) {
 
 	R_Register();
 
-	max_polys = r_maxpolys->integer;
-	max_polyverts = r_maxpolyverts->integer;
+	max_polys = MAX_POLYS;
+	max_polyverts = MAX_POLYVERTS;
 
 	ptr = ri.Hunk_Alloc( sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys + sizeof(polyVert_t) * max_polyverts, h_low);
 	backEndData = (backEndData_t *) ptr;

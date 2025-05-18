@@ -1025,7 +1025,7 @@ typedef struct {
 
 	float					identityLight;		// 1.0 / ( 1 << overbrightBits )
 	int						identityLightByte;	// identityLight * 255
-	int						overbrightBits;		// r_overbrightBits->integer, but set to 0 if no hw gamma
+	int						overbrightBits;
 
 	orientationr_t			or;					// for current entity
 
@@ -1107,8 +1107,6 @@ extern cvar_t	*r_dlightSpecColor;		// -1.0 - 1.0
 extern cvar_t	*r_dlightScale;			// 0.1 - 1.0
 extern cvar_t	*r_dlightIntensity;		// 0.1 - 1.0
 extern cvar_t	*r_dlightSaturation;	// 0.0 - 1.0
-extern cvar_t	*r_vbo;
-extern cvar_t	*r_fbo;
 extern cvar_t	*r_hdr;
 extern cvar_t	*r_bloom_threshold;
 extern cvar_t	*r_bloom_threshold_mode;
@@ -1197,8 +1195,6 @@ extern	cvar_t	*r_recurseLimit;
 
 extern	cvar_t	*r_ignoreGLErrors;
 
-extern	cvar_t	*r_overBrightBits;
-extern	cvar_t	*r_mapOverBrightBits;
 extern	cvar_t	*r_mapGreyScale;
 
 extern	cvar_t	*r_debugSurface;

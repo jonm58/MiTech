@@ -805,7 +805,7 @@ void R_BuildWorldVBO( msurface_t *surf, int surfCount )
 	int numStaticIndexes = 0;
 	int numStaticVertexes = 0;
 
-	if ( !qglBindBufferARB || !r_vbo->integer )
+	if ( !qglBindBufferARB )
 		return;
 
 	if ( glConfig.numTextureUnits < 3 ) {
