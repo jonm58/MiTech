@@ -801,7 +801,6 @@ ParseFlare
 */
 static void ParseFlare( const dsurface_t *ds, const drawVert_t *verts, msurface_t *surf, int *indexes ) {
 	srfFlare_t		*flare;
-	int				i;
 
 	// get fog volume
 	surf->fogIndex = LittleLong( ds->fogNum ) + 1;
@@ -813,12 +812,6 @@ static void ParseFlare( const dsurface_t *ds, const drawVert_t *verts, msurface_
 	flare->surfaceType = SF_FLARE;
 
 	surf->data = (surfaceType_t *)flare;
-
-	for ( i = 0 ; i < 3 ; i++ ) {
-		flare->origin[i] = LittleFloat( ds->lightmapOrigin[i] );
-		flare->color[i] = LittleFloat( ds->lightmapVecs[0][i] );
-		flare->normal[i] = LittleFloat( ds->lightmapVecs[2][i] );
-	}
 }
 
 /*

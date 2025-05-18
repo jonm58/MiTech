@@ -614,9 +614,6 @@ typedef struct srfPoly_s {
 
 typedef struct srfFlare_s {
 	surfaceType_t	surfaceType;
-	vec3_t			origin;
-	vec3_t			normal;
-	vec3_t			color;
 } srfFlare_t;
 
 typedef struct srfGridMesh_s {
