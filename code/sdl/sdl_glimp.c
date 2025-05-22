@@ -140,6 +140,49 @@ static SDL_HitTestResult SDL_HitTestFunc( SDL_Window *win, const SDL_Point *area
 	return SDL_HITTEST_NORMAL;
 }
 
+#define MAX_RESOLUTIONS 25
+
+void GLW_DetectDisplayModes( int display ) {
+    int numModes = SDL_GetNumDisplayModes(display);
+    if (numModes < 1) {
+        Com_Printf("SDL_GetNumDisplayModes failed: %s\n", SDL_GetError());
+        return;
+    }
+
+    char modesStr[1024] = {0};
+    char resList[MAX_RESOLUTIONS][16];
+    int resCount = 0;
+
+    for (int i = 0; i < numModes && resCount < MAX_RESOLUTIONS; ++i) {
+        SDL_DisplayMode mode;
+        if (SDL_GetDisplayMode(display, i, &mode) != 0)
+            continue;
+
+        char resStr[16];
+        Com_sprintf(resStr, sizeof(resStr), "%dx%d", mode.w, mode.h);
+
+        qboolean duplicate = qfalse;
+        for (int j = 0; j < resCount; ++j) {
+            if (Q_stricmp(resList[j], resStr) == 0) {
+                duplicate = qtrue;
+                break;
+            }
+        }
+
+        if (!duplicate) {
+            Q_strncpyz(resList[resCount++], resStr, sizeof(resList[0]));
+        }
+    }
+
+    for (int i = 0; i < resCount; ++i) {
+        Q_strcat(modesStr, sizeof(modesStr), resList[i]);
+        if (i < resCount - 1)
+            Q_strcat(modesStr, sizeof(modesStr), " ");
+    }
+
+    Cvar_Set("r_availableModes", modesStr);
+}
+
 /*
 ===============
 GLimp_SetMode
@@ -148,8 +191,7 @@ GLimp_SetMode
 static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 	glconfig_t *config = glw_state.config;
 	int perChannelColorBits;
-	int colorBits, depthBits, stencilBits;
-	int i;
+	int colorBits[3], depthBits, stencilBits;
 	SDL_DisplayMode desktopMode;
 	int display;
 	int x;
@@ -174,9 +216,6 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 	} else {
 		x = vid_xpos->integer;
 		y = vid_ypos->integer;
-
-		// find out to which display our window belongs to
-		// according to previously stored \vid_xpos and \vid_ypos coordinates
 		display = FindNearestDisplay( &x, &y, 640, 480 );
 	}
 
@@ -187,6 +226,8 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 		glw_state.desktop_width = 640;
 		glw_state.desktop_height = 480;
 	}
+
+	GLW_DetectDisplayModes(display);
 
 	config->isFullscreen = fullscreen;
 	glw_state.isFullscreen = fullscreen;
@@ -222,164 +263,74 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 #else
 		flags |= SDL_WINDOW_FULLSCREEN;
 #endif
-	}
-	else if ( r_noborder->integer ) {
+	} else if ( r_noborder->integer ) {
 		flags |= SDL_WINDOW_BORDERLESS;
 	}
 
-	colorBits = r_colorbits->value;
-
-	if ( colorBits == 0 || colorBits > 24 )
-		colorBits = 24;
-
-	if ( cl_depthbits->integer == 0 ) {
-		// implicitly assume Z-buffer depth == desktop color depth
-		if ( colorBits > 16 )
-			depthBits = 24;
-		else
-			depthBits = 16;
-	} else {
-		depthBits = cl_depthbits->integer;
-	}
-
-	stencilBits = cl_stencilbits->integer;
-
-	// do not allow stencil if Z-buffer depth likely won't contain it
-	if ( depthBits < 24 )
-		stencilBits = 0;
-
-	for ( i = 0; i < 16; i++ ) {
-		int testColorBits, testDepthBits, testStencilBits;
-		int realColorBits[3];
-
-		// 0 - default
-		// 1 - minus colorBits
-		// 2 - minus depthBits
-		// 3 - minus stencil
-		if ((i % 4) == 0 && i) {
-			// one pass, reduce
-			switch (i / 4) {
-				case 2 :
-					if (colorBits == 24)
-						colorBits = 16;
-					break;
-				case 1 :
-					if (depthBits == 24)
-						depthBits = 16;
-					else if (depthBits == 16)
-						depthBits = 8;
-				case 3 :
-					if (stencilBits == 24)
-						stencilBits = 16;
-					else if (stencilBits == 16)
-						stencilBits = 8;
-			}
-		}
-
-		testColorBits = colorBits;
-		testDepthBits = depthBits;
-		testStencilBits = stencilBits;
-
-		if ((i % 4) == 3) { // reduce colorBits
-			if (testColorBits == 24)
-				testColorBits = 16;
-		}
-
-		if ((i % 4) == 2) { // reduce depthBits
-			if (testDepthBits == 24)
-				testDepthBits = 16;
-		}
-
-		if ((i % 4) == 1) { // reduce stencilBits
-			if (testStencilBits == 8)
-				testStencilBits = 0;
-		}
-
-		if ( testColorBits == 24 )
-			perChannelColorBits = 8;
-		else
-			perChannelColorBits = 4;
+	depthBits = 24;
+	stencilBits = 8;
+	perChannelColorBits = 8;
 
 #ifndef USE_VULKAN_API
-		SDL_GL_SetAttribute( SDL_GL_RED_SIZE, perChannelColorBits );
-		SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, perChannelColorBits );
-		SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, perChannelColorBits );
-		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, testDepthBits );
-		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, testStencilBits );
-
-		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
-		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
-
-		SDL_GL_SetAttribute( SDL_GL_STEREO, 0 );
-		
-		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-
-		if ( !r_allowSoftwareGL->integer )
-			SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
+	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, perChannelColorBits );
+	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, perChannelColorBits );
+	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, perChannelColorBits );
+	SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, depthBits );
+	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, stencilBits );
+	SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
+	SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
+	SDL_GL_SetAttribute( SDL_GL_STEREO, 0 );
+	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 #endif
 
-		if ( ( SDL_window = SDL_CreateWindow( cl_title, x, y, config->vidWidth, config->vidHeight, flags ) ) == NULL ) {
-			Com_DPrintf( "SDL_CreateWindow failed: %s\n", SDL_GetError() );
-			continue;
-		}
-
-		if ( fullscreen ) {
-			SDL_DisplayMode mode;
-
-			switch ( testColorBits ) {
-				case 16: mode.format = SDL_PIXELFORMAT_RGB565; break;
-				case 24: mode.format = SDL_PIXELFORMAT_RGB24;  break;
-				default: Com_DPrintf( "testColorBits is %d, can't fullscreen\n", testColorBits ); continue;
-			}
-
-			mode.w = config->vidWidth;
-			mode.h = config->vidHeight;
-			mode.refresh_rate = /* config->displayFrequency = */ Cvar_VariableIntegerValue( "r_displayRefresh" );
-			mode.driverdata = NULL;
-
-			if ( SDL_SetWindowDisplayMode( SDL_window, &mode ) < 0 ) {
-				Com_DPrintf( "SDL_SetWindowDisplayMode failed: %s\n", SDL_GetError( ) );
-				continue;
-			}
-
-			if ( SDL_GetWindowDisplayMode( SDL_window, &mode ) >= 0 ) {
-				config->displayFrequency = mode.refresh_rate;
-				config->vidWidth = mode.w;
-				config->vidHeight = mode.h;
-			}
-		}
-
-#ifdef USE_VULKAN_API
-		config->colorBits = testColorBits;
-		config->depthBits = testDepthBits;
-		config->stencilBits = testStencilBits;
-#endif
-#ifdef USE_OPENGL_API
-		if ( !SDL_glContext ) {
-			if ( ( SDL_glContext = SDL_GL_CreateContext( SDL_window ) ) == NULL ) {
-				Com_DPrintf( "SDL_GL_CreateContext failed: %s\n", SDL_GetError( ) );
-				SDL_DestroyWindow( SDL_window );
-				SDL_window = NULL;
-				continue;
-			}
-		}
-
-		if ( SDL_GL_SetSwapInterval( r_swapInterval->integer ) == -1 ) {
-			Com_DPrintf( "SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError( ) );
-		}
-
-		SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &realColorBits[0] );
-		SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &realColorBits[1] );
-		SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &realColorBits[2] );
-		SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE, &config->depthBits );
-		SDL_GL_GetAttribute( SDL_GL_STENCIL_SIZE, &config->stencilBits );
-
-		config->colorBits = realColorBits[0] + realColorBits[1] + realColorBits[2];
-#endif
-
-		Com_Printf( "Using %d color bits, %d depth, %d stencil display.\n",	config->colorBits, config->depthBits, config->stencilBits );
-		break;
+	if ( ( SDL_window = SDL_CreateWindow( cl_title, x, y, config->vidWidth, config->vidHeight, flags ) ) == NULL ) {
+		Com_DPrintf( "SDL_CreateWindow failed: %s\n", SDL_GetError() );
+		return RSERR_FATAL_ERROR;
 	}
+
+	if ( fullscreen ) {
+		SDL_DisplayMode mode;
+
+		mode.w = config->vidWidth;
+		mode.h = config->vidHeight;
+		mode.driverdata = NULL;
+
+		if ( SDL_SetWindowDisplayMode( SDL_window, &mode ) < 0 ) {
+			Com_DPrintf( "SDL_SetWindowDisplayMode failed: %s\n", SDL_GetError( ) );
+			return RSERR_FATAL_ERROR;
+		}
+
+		if ( SDL_GetWindowDisplayMode( SDL_window, &mode ) >= 0 ) {
+			config->displayFrequency = mode.refresh_rate;
+			config->vidWidth = mode.w;
+			config->vidHeight = mode.h;
+		}
+	}
+
+#ifdef USE_OPENGL_API
+	if ( !SDL_glContext ) {
+		if ( ( SDL_glContext = SDL_GL_CreateContext( SDL_window ) ) == NULL ) {
+			Com_DPrintf( "SDL_GL_CreateContext failed: %s\n", SDL_GetError( ) );
+			SDL_DestroyWindow( SDL_window );
+			SDL_window = NULL;
+			return RSERR_FATAL_ERROR;
+		}
+	}
+
+	if ( SDL_GL_SetSwapInterval( r_swapInterval->integer ) == -1 ) {
+		Com_DPrintf( "SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError( ) );
+	}
+
+	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &colorBits[0] );
+	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &colorBits[1] );
+	SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &colorBits[2] );
+	SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE, &config->depthBits );
+	SDL_GL_GetAttribute( SDL_GL_STENCIL_SIZE, &config->stencilBits );
+
+	config->colorBits = colorBits[0] + colorBits[1] + colorBits[2];
+#endif
+
+	Com_Printf( "Using %d color bits, %d depth, %d stencil display.\n",	config->colorBits, config->depthBits, config->stencilBits );
 
 	if ( !SDL_window ) {
 		Com_Printf( "Couldn't get a visual\n" );
@@ -404,7 +355,6 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 
 	return RSERR_OK;
 }
-
 
 /*
 ===============
@@ -472,8 +422,6 @@ void GLimp_Init( glconfig_t *config ) {
 	in_nograb = Cvar_Get( "in_nograb", "0", 0 );
 	Cvar_SetDescription( in_nograb, "Do not capture mouse in game, may be useful during online streaming." );
 
-	r_allowSoftwareGL = Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );
-
 	r_swapInterval = Cvar_Get( "r_swapInterval", "0", CVAR_ARCHIVE | CVAR_LATCH );
 
 	// Create the window and set up the context
@@ -510,10 +458,7 @@ Responsible for doing a swapbuffers
 ===============
 */
 void GLimp_EndFrame( void ) {
-	// don't flip if drawing to front buffer
-	if ( Q_stricmp( cl_drawBuffer->string, "GL_FRONT" ) != 0 ) {
-		SDL_GL_SwapWindow( SDL_window );
-	}
+	SDL_GL_SwapWindow( SDL_window );
 }
 
 /*

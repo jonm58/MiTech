@@ -231,22 +231,20 @@ SV_LocateGameData
 */
 static void SV_LocateGameData( sharedEntity_t *gEnts, int numGEntities, int sizeofGEntity_t, playerState_t *clients, int sizeofGameClient ) {
 
-	if ( !gvm->entryPoint ) {
-		if ( numGEntities > MAX_GENTITIES ) {
-			Com_Error( ERR_DROP, "%s: bad entity count %i", __func__, numGEntities );
-		} else {
-			if ( sizeofGEntity_t > gvm->exactDataLength / numGEntities ) {
-				Com_Error( ERR_DROP, "%s: bad entity size %i", __func__, sizeofGEntity_t );	
-			} else if ( (byte*)gEnts + (numGEntities * sizeofGEntity_t) > (gvm->dataBase + gvm->exactDataLength) ) {
-				Com_Error( ERR_DROP, "%s: entities located out of data segment", __func__ );
-			}
+	if ( numGEntities > MAX_GENTITIES ) {
+		Com_Error( ERR_DROP, "%s: bad entity count %i", __func__, numGEntities );
+	} else {
+		if ( sizeofGEntity_t > gvm->exactDataLength / numGEntities ) {
+			Com_Error( ERR_DROP, "%s: bad entity size %i", __func__, sizeofGEntity_t );	
+		} else if ( (byte*)gEnts + (numGEntities * sizeofGEntity_t) > (gvm->dataBase + gvm->exactDataLength) ) {
+			Com_Error( ERR_DROP, "%s: entities located out of data segment", __func__ );
 		}
+	}
 
-		if ( sizeofGameClient > gvm->exactDataLength / MAX_CLIENTS ) {
-			Com_Error( ERR_DROP, "%s: bad game client size %i", __func__, sizeofGameClient );	
-		} else if ( (byte*)clients + (sizeofGameClient * MAX_CLIENTS) > gvm->dataBase + gvm->exactDataLength ) {
-			Com_Error( ERR_DROP, "%s: clients located out of data segment", __func__ );
-		}
+	if ( sizeofGameClient > gvm->exactDataLength / MAX_CLIENTS ) {
+		Com_Error( ERR_DROP, "%s: bad game client size %i", __func__, sizeofGameClient );	
+	} else if ( (byte*)clients + (sizeofGameClient * MAX_CLIENTS) > gvm->dataBase + gvm->exactDataLength ) {
+		Com_Error( ERR_DROP, "%s: clients located out of data segment", __func__ );
 	}
 
 	sv.gentities = gEnts;
@@ -286,10 +284,7 @@ static void *VM_ArgPtr( intptr_t intValue ) {
 	if ( !intValue || gvm == NULL )
 		return NULL;
 
-	if ( gvm->entryPoint )
-		return (void *)(intValue);
-	else
-		return (void *)(gvm->dataBase + (intValue & gvm->dataMask));
+	return (void *)(gvm->dataBase + (intValue & gvm->dataMask));
 }
 
 /*
@@ -753,29 +748,6 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 }
 
 /*
-====================
-SV_DllSyscall
-====================
-*/
-static intptr_t QDECL SV_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__
-	intptr_t	args[14]; // max.count for qagame
-	va_list	ap;
-	int i;
-
-	args[0] = arg;
-	va_start( ap, arg );
-	for (i = 1; i < ARRAY_LEN( args ); i++ )
-		args[ i ] = va_arg( ap, intptr_t );
-	va_end( ap );
-
-	return SV_GameSystemCalls( args );
-#else
-	return SV_GameSystemCalls( &arg );
-#endif
-}
-
-/*
 ===============
 SV_ShutdownGameProgs
 
@@ -864,7 +836,7 @@ void SV_InitGameProgs( void ) {
 	}
 
 	// load the dll or bytecode
-	gvm = VM_Create( VM_GAME, SV_GameSystemCalls, SV_DllSyscall, Cvar_VariableIntegerValue( "vm_game" ) );
+	gvm = VM_Create( VM_GAME, SV_GameSystemCalls );
 	if ( !gvm ) {
 		Com_Error( ERR_DROP, "VM_Create on game failed" );
 	}

@@ -159,8 +159,6 @@ typedef struct vmSymbol_s {
 	char	symName[1];		// variable sized
 } vmSymbol_t;
 
-//typedef void(*vmfunc_t)(void);
-
 typedef union vmFunc_u {
 	byte		*ptr;
 	void (*func)(void);
@@ -176,20 +174,12 @@ struct vm_s {
 	int32_t		programStack;		// the vm may be recursively entered
 	int32_t		stackBottom;		// if programStack < stackBottom, error
 
-	//------------------------------------
-
 	const char	*name;				// module should be bare: "cgame", not "cgame.dll" or "qvm/cgame.qvm"
 	vmIndex_t	index;
 
-	// for dynamic linked modules
-	void		*dllHandle;
-	vmMainFunc_t entryPoint;
-	dllSyscall_t dllSyscall;
 	void (*destroy)(vm_t* self);
 
 	// for interpreted modules
-	//qboolean	currentlyInterpreting;
-
 	qboolean	compiled;
 
 	vmFunc_t	codeBase;
@@ -225,8 +215,8 @@ struct vm_s {
 qboolean VM_Compile( vm_t *vm, vmHeader_t *header );
 int32_t VM_CallCompiled( vm_t *vm, int nargs, int32_t *args );
 
-qboolean VM_PrepareInterpreter2( vm_t *vm, vmHeader_t *header );
-int32_t VM_CallInterpreted2( vm_t *vm, int nargs, int32_t *args );
+qboolean VM_PrepareInterpreter( vm_t *vm, vmHeader_t *header );
+int32_t VM_CallInterpreted( vm_t *vm, int nargs, int32_t *args );
 
 vmSymbol_t *VM_ValueToFunctionSymbol( vm_t *vm, int value );
 int VM_SymbolToValue( vm_t *vm, const char *symbol );

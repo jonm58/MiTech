@@ -13,29 +13,27 @@ ifeq ($(COMPILE_PLATFORM),mingw32)
   endif
 endif
 
-BUILD_CLIENT      = 1
-BUILD_SERVER      = 1
+BUILD_CLIENT        = 1
+BUILD_SERVER        = 1
 
 # Build
-MOUNT_DIR         = code
+MOUNT_DIR           = code
 
 # General
-USE_LOCAL_HEADERS = 1
+USE_LOCAL_HEADERS   = 1
+QVM_RUNTIME_COMPILE = 1
 
 # Audio
-USE_OGG_VORBIS    = 1
-USE_CODEC_MP3     = 1
-USE_INTERNAL_MP3  = 1
-
-# Misc
-USE_CCACHE        = 0
+USE_OGG_VORBIS      = 1
+USE_CODEC_MP3       = 1
+USE_INTERNAL_MP3    = 1
 
 # Render
-USE_VULKAN        = 1
-USE_OPENGL        = 1
-USE_OPENGL2       = 0
-USE_OPENGL_API    = 1
-USE_VULKAN_API    = 1
+USE_VULKAN          = 1
+USE_OPENGL          = 1
+USE_OPENGL2         = 0
+USE_OPENGL_API      = 1
+USE_VULKAN_API      = 1
 
 # valid options: opengl, vulkan, opengl2
 RENDERER_DEFAULT = opengl
@@ -44,11 +42,11 @@ CNAME            = sandbox
 DNAME            = sandbox.ded
 
 ifeq ($(V),1)
-echo_cmd=@:
-Q=
+  echo_cmd=@:
+  Q=
 else
-echo_cmd=@echo
-Q=@
+  echo_cmd=@echo
+  Q=@
 endif
 
 ifeq ($(COMPILE_PLATFORM),cygwin)
@@ -56,7 +54,7 @@ ifeq ($(COMPILE_PLATFORM),cygwin)
 endif
 
 ifndef PLATFORM
-PLATFORM=$(COMPILE_PLATFORM)
+  PLATFORM=$(COMPILE_PLATFORM)
 endif
 export PLATFORM
 
@@ -79,7 +77,7 @@ ifeq ($(COMPILE_ARCH),x64)
 endif
 
 ifndef ARCH
-ARCH=$(COMPILE_ARCH)
+  ARCH=$(COMPILE_ARCH)
 endif
 export ARCH
 
@@ -95,11 +93,11 @@ endif
 export CROSS_COMPILING
 
 ifndef DESTDIR
-DESTDIR=bin
+  DESTDIR=bin
 endif
 
 ifndef BUILD_DIR
-BUILD_DIR=build
+  BUILD_DIR=build
 endif
 
 ifeq ($(RENDERER_DEFAULT),opengl)
@@ -181,36 +179,18 @@ ifeq ($(VORBIS_FLAGS),)
   VORBIS_FLAGS = -I$(VORBISDIR)/include -I$(VORBISDIR)/lib
 endif
 
-# common qvm definition
-ifeq ($(ARCH),x86_64)
-  HAVE_VM_COMPILED = true
-else
-ifeq ($(ARCH),x86)
-  HAVE_VM_COMPILED = true
-else
-  HAVE_VM_COMPILED = false
-endif
-endif
-
-ifeq ($(ARCH),arm)
-  HAVE_VM_COMPILED = true
-endif
-ifeq ($(ARCH),aarch64)
-  HAVE_VM_COMPILED = true
-endif
-
 BASE_CFLAGS =
 
 ifeq ($(USE_CODEC_MP3),1)
   BASE_CFLAGS += -DFPM_DEFAULT
 endif
 
-ifneq ($(HAVE_VM_COMPILED),true)
-  BASE_CFLAGS += -DNO_VM_COMPILED
-endif
-
 ifeq ($(USE_LOCAL_HEADERS),1)
   BASE_CFLAGS += -DUSE_LOCAL_HEADERS=1
+endif
+
+ifeq ($(QVM_RUNTIME_COMPILE),1)
+  BASE_CFLAGS += -DQVM_RUNTIME_COMPILE=1
 endif
 
 ifeq ($(USE_VULKAN_API),1)
@@ -300,6 +280,10 @@ ifdef MINGW
   endif
 
   BASE_CFLAGS += -Wall -Wimplicit -Wstrict-prototypes -DMINGW=1 -DWIN32_LEAN_AND_MEAN
+
+  ifneq ($(BUILD_SERVER),0)
+    BASE_CFLAGS += -mconsole
+  endif
 
   BASE_CFLAGS += -Wno-unused-result -fvisibility=hidden
   BASE_CFLAGS += -ffunction-sections -flto
@@ -479,10 +463,6 @@ endif
 
 ifneq ($(BUILD_CLIENT),0)
   TARGETS += $(B)/$(TARGET_CLIENT)
-endif
-
-ifeq ($(USE_CCACHE),1)
-  CC := ccache $(CC)
 endif
 
 RENDCFLAGS=$(NOTSHLIBCFLAGS)
@@ -871,7 +851,7 @@ ifeq ($(ARCH),x86_64)
     $(B)/client/snd_mix_x86_64.o
 endif
 
-ifeq ($(HAVE_VM_COMPILED),true)
+ifeq ($(QVM_RUNTIME_COMPILE),1)
   ifeq ($(ARCH),x86)
     Q3OBJ += $(B)/client/vm_x86.o
   endif
@@ -891,7 +871,6 @@ ifdef MINGW
   Q3OBJ += \
     $(B)/client/win_main.o \
     $(B)/client/win_shared.o \
-    $(B)/client/win_syscon.o \
     $(B)/client/win_resource.o
 
   Q3OBJ += \
@@ -1005,7 +984,7 @@ else
   $(B)/ded/unix_shared.o
 endif
 
-ifeq ($(HAVE_VM_COMPILED),true)
+ifeq ($(QVM_RUNTIME_COMPILE),1)
   ifeq ($(ARCH),x86)
     Q3DOBJ += $(B)/ded/vm_x86.o
   endif

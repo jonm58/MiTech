@@ -104,11 +104,7 @@ qboolean IN_MouseActive( void );
 void	IN_Win32MouseEvent( int x, int y, int mstate );
 void	IN_RawMouseEvent( LPARAM lParam );
 
-void	Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean usePos );
-void	Sys_DestroyConsole( void );
-
 // Input subsystem
-
 void	IN_Init (void);
 void	IN_Shutdown (void);
 void	IN_JoystickCommands (void);
@@ -121,7 +117,6 @@ void	UpdateMonitorInfo( const RECT *target );
 
 // window procedure
 LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM  lParam );
-void HandleConsoleEvents( void );
 
 void Conbuf_AppendText( const char *msg );
 void Conbuf_BeginPrint( void );

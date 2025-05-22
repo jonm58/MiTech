@@ -367,10 +367,7 @@ static void *VM_ArgPtr( intptr_t intValue ) {
 	if ( !intValue || cgvm == NULL )
 	  return NULL;
 
-	if ( cgvm->entryPoint )
-		return (void *)(intValue);
-	else
-		return (void *)(cgvm->dataBase + (intValue & cgvm->dataMask));
+	return (void *)(cgvm->dataBase + (intValue & cgvm->dataMask));
 }
 
 /*
@@ -678,29 +675,6 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 
 /*
 ====================
-CL_DllSyscall
-====================
-*/
-static intptr_t QDECL CL_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__
-	intptr_t	args[10]; // max.count for cgame
-	va_list	ap;
-	int i;
-
-	args[0] = arg;
-	va_start( ap, arg );
-	for (i = 1; i < ARRAY_LEN( args ); i++ )
-		args[ i ] = va_arg( ap, intptr_t );
-	va_end( ap );
-
-	return CL_CgameSystemCalls( args );
-#else
-	return CL_CgameSystemCalls( &arg );
-#endif
-}
-
-/*
-====================
 CL_InitCGame
 
 Should only be called by CL_StartHunkUsers
@@ -710,7 +684,6 @@ void CL_InitCGame( void ) {
 	const char			*info;
 	const char			*mapname;
 	int					t1, t2;
-	vmInterpret_t		interpret;
 
 	Cbuf_NestedReset();
 
@@ -727,10 +700,7 @@ void CL_InitCGame( void ) {
 	// allow vertex lighting for in-game elements
 	re.VertexLighting( qtrue );
 
-	// load the dll or bytecode
-	interpret = Cvar_VariableIntegerValue( "vm_cgame" );
-
-	cgvm = VM_Create( VM_CGAME, CL_CgameSystemCalls, CL_DllSyscall, interpret );
+	cgvm = VM_Create( VM_CGAME, CL_CgameSystemCalls );
 	if ( !cgvm ) {
 		Com_Error( ERR_DROP, "VM_Create on cgame failed" );
 	}
@@ -793,9 +763,6 @@ CL_CGameRendering
 */
 void CL_CGameRendering( void ) {
 	VM_Call( cgvm, 2, CG_DRAW_ACTIVE_FRAME, cl.serverTime, clc.demoplaying );
-#ifdef DEBUG
-	VM_Debug( 0 );
-#endif
 }
 
 /*
@@ -899,8 +866,6 @@ static void CL_FirstSnapshot( void ) {
 		Cbuf_AddText( "\n" );
 		Cvar_Set( "activeAction", "" );
 	}
-
-	Sys_BeginProfiling();
 }
 
 /*

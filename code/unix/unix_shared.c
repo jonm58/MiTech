@@ -437,17 +437,6 @@ const char *Sys_DefaultHomePath( void )
 }
 
 /*
-=================
-Sys_ShowConsole
-=================
-*/
-void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
-{
-	// not implemented
-}
-
-
-/*
 ========================================================================
 
 LOAD/UNLOAD DLL

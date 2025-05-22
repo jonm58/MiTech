@@ -104,10 +104,10 @@ static void VM_FindMOps( instruction_t *buf, int instructionCount )
 
 /*
 ====================
-VM_PrepareInterpreter2
+VM_PrepareInterpreter
 ====================
 */
-qboolean VM_PrepareInterpreter2( vm_t *vm, vmHeader_t *header )
+qboolean VM_PrepareInterpreter( vm_t *vm, vmHeader_t *header )
 {
 	const char *errMsg;
 	instruction_t *buf;
@@ -118,7 +118,7 @@ qboolean VM_PrepareInterpreter2( vm_t *vm, vmHeader_t *header )
 		errMsg = VM_CheckInstructions( buf, vm->instructionCount, vm->jumpTableTargets, vm->numJumpTableTargets, vm->exactDataLength );
 	}
 	if ( errMsg ) {
-		Com_Printf( "VM_PrepareInterpreter2 error: %s\n", errMsg );
+		Com_Printf( "VM_PrepareInterpreter error: %s\n", errMsg );
 		return qfalse;
 	}
 
@@ -131,7 +131,7 @@ qboolean VM_PrepareInterpreter2( vm_t *vm, vmHeader_t *header )
 
 /*
 ==============
-VM_CallInterpreted2
+VM_CallInterpreted
 
 
 Upon a system call, the stack will look like:
@@ -152,7 +152,7 @@ an OP_ENTER instruction, which will subtract space for
 locals from sp
 ==============
 */
-int VM_CallInterpreted2( vm_t *vm, int nargs, int32_t *args ) {
+int VM_CallInterpreted( vm_t *vm, int nargs, int32_t *args ) {
 	int32_t	stack[MAX_OPSTACK_SIZE];
 	int32_t	*opStack, *opStackTop;
 	int32_t	programStack;
@@ -165,9 +165,6 @@ int VM_CallInterpreted2( vm_t *vm, int nargs, int32_t *args ) {
 	int		opcode;
 	int32_t	*img;
 	int		i;
-
-	// interpret the code
-	//vm->currentlyInterpreting = qtrue;
 
 	// we might be called recursively, so this might not be the very top
 	programStack = stackOnEntry = vm->programStack;

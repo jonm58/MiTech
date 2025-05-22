@@ -50,17 +50,6 @@ qboolean Sys_LowPhysicalMemory( void ) {
 	return (stat.dwTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
 
-
-/*
-==================
-Sys_BeginProfiling
-==================
-*/
-void Sys_BeginProfiling( void ) {
-	// this is just used on the mac build
-}
-
-
 /*
 =============
 Sys_Error
@@ -81,12 +70,6 @@ void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *error, ... ) {
 	CL_Shutdown( text, qtrue );
 #endif
 
-	Conbuf_AppendText( text );
-	Conbuf_AppendText( "\n" );
-
-	Sys_SetErrorText( text );
-	Sys_ShowConsole( 1, qtrue );
-
 	timeEndPeriod( 1 );
 
 	// wait for the user to quit
@@ -99,11 +82,8 @@ void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *error, ... ) {
 		DispatchMessage( &msg );
 	}
 
-	Sys_DestroyConsole();
-
 	exit( 1 );
 }
-
 
 /*
 ==============
@@ -114,29 +94,33 @@ void NORETURN Sys_Quit( void ) {
 
 	timeEndPeriod( 1 );
 
-	Sys_DestroyConsole();
 	exit( 0 );
 }
-
 
 /*
 ==============
 Sys_Print
 ==============
 */
-void Sys_Print( const char *msg )
-{
-	Conbuf_AppendText( msg );
+void Sys_Print( const char *msg ) {
+	return;
 }
 
+/*
+==============
+Sys_ConsoleInput
+==============
+*/
+char *Sys_ConsoleInput( void ) {
+	return NULL;
+}
 
 /*
 ==============
 Sys_Mkdir
 ==============
 */
-qboolean Sys_Mkdir( const char *path )
-{
+qboolean Sys_Mkdir( const char *path ) {
 	if ( _mkdir( path ) == 0 ) {
 		return qtrue;
 	} else {
@@ -148,14 +132,12 @@ qboolean Sys_Mkdir( const char *path )
 	}
 }
 
-
 /*
 ==============
 Sys_FOpen
 ==============
 */
-FILE *Sys_FOpen( const char *ospath, const char *mode )
-{
+FILE *Sys_FOpen( const char *ospath, const char *mode ) {
 	size_t length;
 
 	// Windows API ignores all trailing spaces and periods which can get around Quake 3 file system restrictions.
@@ -166,7 +148,6 @@ FILE *Sys_FOpen( const char *ospath, const char *mode )
 
 	return fopen( ospath, mode );
 }
-
 
 /*
 ==============
@@ -189,14 +170,12 @@ qboolean Sys_ResetReadOnlyAttribute( const char *ospath ) {
 	}
 }
 
-
 /*
 ==============
 Sys_Pwd
 ==============
 */
-const char *Sys_Pwd( void )
-{
+const char *Sys_Pwd( void ) {
 	static char pwd[ MAX_OSPATH ];
 	TCHAR	buffer[ MAX_OSPATH ];
 	char *s;
@@ -210,17 +189,15 @@ const char *Sys_Pwd( void )
 	Q_strncpyz( pwd, WtoA( buffer ), sizeof( pwd ) );
 
 	s = strrchr( pwd, PATH_SEP );
-	if ( s ) 
+	if ( s ) {
 		*s = '\0';
-	else // bogus case?
-	{
+	} else {
 		_getcwd( pwd, sizeof( pwd ) - 1 );
 		pwd[ sizeof( pwd ) - 1 ] = '\0';
 	}
 
 	return pwd;
 }
-
 
 /*
 ==============
@@ -232,7 +209,6 @@ const char *Sys_DefaultBasePath( void )
 	return Sys_Pwd();
 }
 
-
 /*
 ==============================================================
 
@@ -240,7 +216,6 @@ DIRECTORY SCANNING
 
 ==============================================================
 */
-
 void Sys_ListFilteredFiles( const char *basedir, const char *subdirs, const char *filter, char **list, int *numfiles ) {
 	char		search[MAX_OSPATH*2+1];
 	char		newsubdirs[MAX_OSPATH*2];
@@ -288,7 +263,6 @@ void Sys_ListFilteredFiles( const char *basedir, const char *subdirs, const char
 	_findclose (findhandle);
 }
 
-
 /*
 =============
 Sys_Sleep
@@ -303,17 +277,11 @@ void Sys_Sleep( int msec ) {
 		do {
 			dwResult = MsgWaitForMultipleObjects( 0, NULL, FALSE, msec, QS_ALLEVENTS );
 		} while ( dwResult == WAIT_TIMEOUT && NET_Sleep( 10 * 1000 ) );
-		//WaitMessage();
 		return;
 	}
 
-	// busy wait there because Sleep(0) will relinquish CPU - which is not what we want
-	//if ( msec == 0 )
-	//	return;
-
 	Sleep ( msec );
 }
-
 
 /*
 =============
@@ -335,7 +303,6 @@ char **Sys_ListFiles( const char *directory, const char *extension, const char *
 	qboolean	hasPatterns;
 
 	if ( filter ) {
-
 		nfiles = 0;
 		Sys_ListFilteredFiles( directory, "", filter, list, &nfiles );
 
@@ -428,7 +395,6 @@ char **Sys_ListFiles( const char *directory, const char *extension, const char *
 	return listCopy;
 }
 
-
 /*
 =============
 Sys_FreeFileList
@@ -447,7 +413,6 @@ void Sys_FreeFileList( char **list ) {
 
 	Z_Free( list );
 }
-
 
 /*
 =============
@@ -468,7 +433,6 @@ qboolean Sys_GetFileStats( const char *filename, fileOffset_t *size, fileTime_t 
 		return qfalse;
 	}
 }
-
 
 //========================================================
 
@@ -558,14 +522,11 @@ Sys_SendKeyEvents
 Platform-dependent event handling
 =================
 */
-void Sys_SendKeyEvents( void )
-{
+void Sys_SendKeyEvents( void ) {
 #ifndef DEDICATED
 	if ( !com_dedicated->integer )
 		HandleEvents();
-	else
 #endif
-	HandleConsoleEvents();
 }
 
 
@@ -759,21 +720,12 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	useXYpos = Com_EarlyParseCmdLine( sys_cmdline, con_title, sizeof( con_title ), &xpos, &ypos );
 
-	// done before Com/Sys_Init since we need this for error output
-	Sys_CreateConsole( con_title, xpos, ypos, useXYpos );
-
 	// no abort/retry/fail errors
 	SetErrorMode( SEM_FAILCRITICALERRORS );
 
 	SetUnhandledExceptionFilter( ExceptionFilter );
 
 	Com_Init( sys_cmdline );
-
-	// hide the early console since we've reached the point where we
-	// have a working graphics subsystems
-	if ( !com_dedicated->integer && !com_viewlog->integer ) {
-		Sys_ShowConsole( 0, qfalse );
-	}
 
 	// main game loop
 	while ( 1 ) {

@@ -386,22 +386,16 @@ extern	cvar_t	*vid_xpos;
 extern	cvar_t	*vid_ypos;
 extern	cvar_t	*r_noborder;
 
-extern	cvar_t	*r_allowSoftwareGL;
 extern	cvar_t	*r_swapInterval;
-extern	cvar_t	*r_glDriver;
 
-extern	cvar_t	*r_displayRefresh;
 extern	cvar_t	*r_fullscreen;
 extern	cvar_t	*r_mode;
 extern	cvar_t	*r_modeFullscreen;
 extern	cvar_t	*r_customwidth;
 extern	cvar_t	*r_customheight;
 extern	cvar_t	*r_customPixelAspect;
-extern	cvar_t	*r_colorbits;
-extern	cvar_t	*cl_stencilbits;
-extern	cvar_t	*cl_depthbits;
-extern	cvar_t	*cl_drawBuffer;
 
+extern	cvar_t	*r_availableModes;
 //=================================================
 
 //

@@ -342,12 +342,6 @@ VIRTUAL MACHINE
 typedef struct vm_s vm_t;
 
 typedef enum {
-	VMI_NATIVE,
-	VMI_BYTECODE,
-	VMI_COMPILED
-} vmInterpret_t;
-
-typedef enum {
 	TRAP_MEMSET = 1000,
 	TRAP_MEMCPY,
 	TRAP_STRNCPY,
@@ -373,11 +367,9 @@ typedef enum {
 typedef intptr_t (QDECL *vmMainFunc_t)( int command, int arg0, int arg1, int arg2 );
 
 typedef intptr_t (*syscall_t)( intptr_t *parms );
-typedef intptr_t (QDECL *dllSyscall_t)( intptr_t callNum, ... );
-typedef void (QDECL *dllEntry_t)( dllSyscall_t syscallptr );
 
 void	VM_Init( void );
-vm_t	*VM_Create( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllSyscalls, vmInterpret_t interpret );
+vm_t	*VM_Create( vmIndex_t index, syscall_t systemCalls );
 
 void	VM_Free( vm_t *vm );
 void	VM_Clear(void);
@@ -387,7 +379,6 @@ vm_t	*VM_Restart( vm_t *vm );
 
 intptr_t	QDECL VM_Call( vm_t *vm, int nargs, int callNum, ... );
 
-void	VM_Debug( int level );
 void	VM_CheckBounds( const vm_t *vm, unsigned int address, unsigned int length );
 void	VM_CheckBounds2( const vm_t *vm, unsigned int addr1, unsigned int addr2, unsigned int length );
 
@@ -1226,9 +1217,6 @@ void	Sys_SetClipboardBitmap( const byte *bitmap, int length );
 
 void	Sys_Print( const char *msg );
 
-// dedicated console status, win32-only at the moment
-void	QDECL Sys_SetStatus( const char *format, ...) __attribute__ ((format (printf, 1, 2)));
-
 #ifdef USE_AFFINITY_MASK
 uint64_t Sys_GetAffinityMask( void );
 qboolean Sys_SetAffinityMask( const uint64_t mask );
@@ -1244,9 +1232,6 @@ qboolean Sys_RandomBytes( byte *string, int len );
 
 // the system console is shown when a dedicated server is running
 void	Sys_DisplaySystemConsole( qboolean show );
-
-void	Sys_ShowConsole( int level, qboolean quitOnClose );
-void	Sys_SetErrorText( const char *text );
 
 void	Sys_SendPacket( int length, const void *data, const netadr_t *to );
 
@@ -1272,9 +1257,6 @@ char **Sys_ListFiles( const char *directory, const char *extension, const char *
 void Sys_FreeFileList( char **list );
 
 qboolean Sys_GetFileStats( const char *filename, fileOffset_t *size, fileTime_t *mtime, fileTime_t *ctime );
-
-void Sys_BeginProfiling( void );
-void Sys_EndProfiling( void );
 
 qboolean Sys_LowPhysicalMemory( void );
 

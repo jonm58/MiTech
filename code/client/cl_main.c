@@ -70,10 +70,7 @@ cvar_t	*vid_xpos;			// X coordinate of window position
 cvar_t	*vid_ypos;			// Y coordinate of window position
 cvar_t	*r_noborder;
 
-cvar_t *r_allowSoftwareGL;	// don't abort out if the pixelformat claims software
 cvar_t *r_swapInterval;
-cvar_t *r_glDriver;
-cvar_t *r_displayRefresh;
 cvar_t *r_fullscreen;
 cvar_t *r_mode;
 cvar_t *r_modeFullscreen;
@@ -81,11 +78,7 @@ cvar_t *r_customwidth;
 cvar_t *r_customheight;
 cvar_t *r_customPixelAspect;
 
-cvar_t *r_colorbits;
-// these also shared with renderers:
-cvar_t *cl_stencilbits;
-cvar_t *cl_depthbits;
-cvar_t *cl_drawBuffer;
+cvar_t *r_availableModes;
 
 clientActive_t		cl;
 clientConnection_t	clc;
@@ -3600,16 +3593,8 @@ static void CL_ModeList_f( void )
 static void CL_InitGLimp_Cvars( void )
 {
 	// shared with GLimp
-	r_allowSoftwareGL = Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );
-	Cvar_SetDescription( r_allowSoftwareGL, "Toggle the use of the default software OpenGL driver supplied by the Operating System." );
 	r_swapInterval = Cvar_Get( "r_swapInterval", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( r_swapInterval, "V-blanks to wait before swapping buffers.\n 0: No V-Sync\n 1: Synced to the monitor's refresh rate." );
-	r_glDriver = Cvar_Get( "r_glDriver", OPENGL_DRIVER_NAME, CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_SetDescription( r_glDriver, "Specifies the OpenGL driver to use, will revert back to default if driver name set is invalid." );
-
-	r_displayRefresh = Cvar_Get( "r_displayRefresh", "0", CVAR_LATCH );
-	Cvar_CheckRange( r_displayRefresh, "0", "500", CV_INTEGER );
-	Cvar_SetDescription( r_displayRefresh, "Override monitor refresh rate in fullscreen mode:\n   0 - use current monitor refresh rate\n > 0 - use custom refresh rate" );
 
 	vid_xpos = Cvar_Get( "vid_xpos", "3", CVAR_ARCHIVE );
 	Cvar_CheckRange( vid_xpos, NULL, NULL, CV_INTEGER );
@@ -3639,20 +3624,7 @@ static void CL_InitGLimp_Cvars( void )
 	Cvar_CheckRange( r_customheight, "4", NULL, CV_INTEGER );
 	Cvar_SetDescription( r_customheight, "Custom height to use with \\r_mode -1." );
 
-	r_colorbits = Cvar_Get( "r_colorbits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_CheckRange( r_colorbits, "0", "32", CV_INTEGER );
-	Cvar_SetDescription( r_colorbits, "Sets color bit depth, set to 0 to use desktop settings." );
-
-	// shared with renderer:
-	cl_stencilbits = Cvar_Get( "r_stencilbits", "8", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_CheckRange( cl_stencilbits, "0", "8", CV_INTEGER );
-	Cvar_SetDescription( cl_stencilbits, "Stencil buffer size, required to be 8 for stencil shadows." );
-	cl_depthbits = Cvar_Get( "r_depthbits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_CheckRange( cl_depthbits, "0", "32", CV_INTEGER );
-	Cvar_SetDescription( cl_depthbits, "Sets precision of Z-buffer." );
-
-	cl_drawBuffer = Cvar_Get( "r_drawBuffer", "GL_BACK", CVAR_CHEAT );
-	Cvar_SetDescription( cl_drawBuffer, "Specifies buffer to draw from: GL_FRONT or GL_BACK." );
+	r_availableModes = Cvar_Get( "r_availableModes", "0", CVAR_ROM );
 }
 
 

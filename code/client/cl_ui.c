@@ -230,10 +230,7 @@ static void *VM_ArgPtr( intptr_t intValue ) {
 	if ( !intValue || uivm == NULL )
 	  return NULL;
 
-	if ( uivm->entryPoint )
-		return (void *)(intValue);
-	else
-		return (void *)(uivm->dataBase + (intValue & uivm->dataMask));
+	return (void *)(uivm->dataBase + (intValue & uivm->dataMask));
 }
 
 /*
@@ -514,29 +511,6 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 
 /*
 ====================
-UI_DllSyscall
-====================
-*/
-static intptr_t QDECL UI_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__
-	intptr_t	args[10]; // max.count for UI
-	va_list	ap;
-	int i;
-
-	args[0] = arg;
-	va_start( ap, arg );
-	for (i = 1; i < ARRAY_LEN( args ); i++ )
-		args[ i ] = va_arg( ap, intptr_t );
-	va_end( ap );
-
-	return CL_UISystemCalls( args );
-#else
-	return CL_UISystemCalls( &arg );
-#endif
-}
-
-/*
-====================
 CL_ShutdownUI
 ====================
 */
@@ -558,15 +532,11 @@ CL_InitUI
 ====================
 */
 void CL_InitUI( void ) {
-	vmInterpret_t		interpret;
 
 	// disallow vl.collapse for UI elements
 	re.VertexLighting( qfalse );
 
-	// load the dll or bytecode
-	interpret = Cvar_VariableIntegerValue( "vm_ui" );
-
-	uivm = VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall, interpret );
+	uivm = VM_Create( VM_UI, CL_UISystemCalls );
 	if ( !uivm ) {
 		Com_Error( ERR_DROP, "VM_Create on UI failed" );
 	}

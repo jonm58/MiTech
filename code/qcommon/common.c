@@ -2592,8 +2592,7 @@ static sysEvent_t Com_GetSystemEvent( void )
 
 	// check for console commands
 	s = Sys_ConsoleInput();
-	if ( s )
-	{
+	if ( s ) {
 		char  *b;
 		int   len;
 
@@ -3416,7 +3415,7 @@ void Com_Init( char *commandLine ) {
 	Cvar_CheckRange( com_developer, NULL, NULL, CV_INTEGER );
 
 	Com_StartupVariable( "vm_rtChecks" );
-	vm_rtChecks = Cvar_Get( "vm_rtChecks", "15", CVAR_INIT | CVAR_PROTECTED );
+	vm_rtChecks = Cvar_Get( "vm_rtChecks", "7", CVAR_INIT | CVAR_PROTECTED );
 	Cvar_CheckRange( vm_rtChecks, "0", "15", CV_INTEGER );
 	Cvar_SetDescription( vm_rtChecks,
 		"Runtime checks in compiled vm code, bitmask:\n 1 - program stack overflow\n" \
@@ -3630,9 +3629,6 @@ void Com_Init( char *commandLine ) {
 	// lastTime = com_frameTime = Com_Milliseconds();
 	Com_FrameInit();
 
-	if ( !com_errorEntered )
-		Sys_ShowConsole( com_viewlog->integer, qfalse );
-
 #ifndef DEDICATED
 	// make sure single player is off by default
 	Cvar_Set( "ui_singlePlayerActive", "0" );
@@ -3845,9 +3841,6 @@ void Com_Frame( qboolean noDelay ) {
 
 	// if "viewlog" has been modified, show or hide the log console
 	if ( com_viewlog->modified ) {
-		if ( !com_dedicated->integer ) {
-			Sys_ShowConsole( com_viewlog->integer, qfalse );
-		}
 		com_viewlog->modified = qfalse;
 	}
 
@@ -3951,7 +3944,6 @@ void Com_Frame( qboolean noDelay ) {
 #ifndef DEDICATED
 			CL_Init();
 #endif
-			Sys_ShowConsole( com_viewlog->integer, qfalse );
 #ifndef DEDICATED
 			gw_minimized = qfalse;
 			CL_StartHunkUsers();
@@ -3961,7 +3953,6 @@ void Com_Frame( qboolean noDelay ) {
 			CL_Shutdown( "", qfalse );
 			CL_ClearMemory();
 #endif
-			Sys_ShowConsole( 1, qtrue );
 			SV_AddDedicatedCommands();
 			gw_minimized = qtrue;
 		}

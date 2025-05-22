@@ -397,8 +397,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Com_Printf( "------ Server Initialization ------\n" );
 	Com_Printf( "Server: %s\n", mapname );
 
-	Sys_SetStatus( "Initializing server..." );
-
 #ifndef DEDICATED
 	// if not running a dedicated server CL_MapLoading will connect the client to the server
 	// also print some status stuff
@@ -480,7 +478,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Com_RandomBytes( (byte*)&sv.checksumFeed, sizeof( sv.checksumFeed ) );
 	FS_Restart( sv.checksumFeed );
 
-	Sys_SetStatus( "Loading map %s", mapname );
 	CM_LoadMap( va( "maps/%s.bsp", mapname ), qfalse, &checksum );
 
 	// set serverinfo visible name
@@ -590,8 +587,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Hunk_SetMark();
 
 	Com_Printf ("-----------------------------------\n");
-
-	Sys_SetStatus( "Running map %s", mapname );
 
 	// suppress hitch warning
 	Com_FrameInit();
@@ -808,6 +803,4 @@ void SV_Shutdown( const char *finalmsg ) {
 	// clean some server cvars
 	Cvar_Set( "sv_referencedPakNames", "" );
 	Cvar_Set( "sv_serverid", "0" );
-
-	Sys_SetStatus( "Server is not running" );
 }
