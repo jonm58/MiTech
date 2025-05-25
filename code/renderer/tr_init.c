@@ -1301,8 +1301,8 @@ static void R_Register( void )
 	r_fastsky = ri.Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_fastsky, "Draw flat colored skies." );
 	r_dlightMode = ri.Cvar_Get( "r_dlightMode", "1", CVAR_ARCHIVE );
-	ri.Cvar_CheckRange( r_dlightMode, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( r_dlightMode, "Dynamic light mode:\n 0: Off\n 1: High-quality per-pixel dynamic lights\n 2: Same as 1 but applies to all MD3 models too" );
+	ri.Cvar_CheckRange( r_dlightMode, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_dlightMode, "Dynamic light mode:\n 0: Off\n 1: High-quality per-pixel dynamic lights" );
 
 	r_ext_multisample = ri.Cvar_Get( "r_ext_multisample", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_ext_multisample, "0", "8", CV_INTEGER );

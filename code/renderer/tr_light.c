@@ -228,21 +228,19 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	//
 	d = VectorLength( ent->directedLight );
 	VectorScale( ent->lightDir, d, lightDir );
-	if ( r_dlightMode->integer != 2 ) {
-		for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
-			dl = &refdef->dlights[i];
-			VectorSubtract( dl->origin, lightOrigin, dir );
-			d = VectorNormalize( dir );
+	for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
+		dl = &refdef->dlights[i];
+		VectorSubtract( dl->origin, lightOrigin, dir );
+		d = VectorNormalize( dir );
 
-			power = DLIGHT_AT_RADIUS * ( dl->radius * dl->radius );
-			if ( d < DLIGHT_MINIMUM_RADIUS ) {
-				d = DLIGHT_MINIMUM_RADIUS;
-			}
-			d = power / ( d * d );
-
-			VectorMA( ent->directedLight, d, dl->color, ent->directedLight );
-			VectorMA( lightDir, d, dir, lightDir );
+		power = DLIGHT_AT_RADIUS * ( dl->radius * dl->radius );
+		if ( d < DLIGHT_MINIMUM_RADIUS ) {
+			d = DLIGHT_MINIMUM_RADIUS;
 		}
+		d = power / ( d * d );
+
+		VectorMA( ent->directedLight, d, dl->color, ent->directedLight );
+		VectorMA( lightDir, d, dir, lightDir );
 	}
 
 	// clamp ambient
