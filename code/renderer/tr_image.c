@@ -340,70 +340,6 @@ static void R_LightScaleTexture( byte *in, int inwidth, int inheight, qboolean o
 	}
 }
 
-
-/*
-================
-R_MipMap2
-
-Operates in place, quartering the size of the texture
-Proper linear filter
-================
-*/
-static void R_MipMap2( unsigned * const out, unsigned * const in, int inWidth, int inHeight ) {
-	int			i, j, k;
-	byte		*outpix;
-	int			inWidthMask, inHeightMask;
-	int			total;
-	int			outWidth, outHeight;
-	unsigned	*temp;
-
-	outWidth = inWidth >> 1;
-	outHeight = inHeight >> 1;
-
-	if ( out == in )
-		temp = ri.Hunk_AllocateTempMemory( outWidth * outHeight * 4 );
-	else
-		temp = out;
-
-	inWidthMask = inWidth - 1;
-	inHeightMask = inHeight - 1;
-
-	for ( i = 0 ; i < outHeight ; i++ ) {
-		for ( j = 0 ; j < outWidth ; j++ ) {
-			outpix = (byte *) ( temp + i * outWidth + j );
-			for ( k = 0 ; k < 4 ; k++ ) {
-				total = 
-					1 * ((byte *)&in[ ((i*2-1)&inHeightMask)*inWidth + ((j*2-1)&inWidthMask) ])[k] +
-					2 * ((byte *)&in[ ((i*2-1)&inHeightMask)*inWidth + ((j*2)&inWidthMask) ])[k] +
-					2 * ((byte *)&in[ ((i*2-1)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask) ])[k] +
-					1 * ((byte *)&in[ ((i*2-1)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask) ])[k] +
-
-					2 * ((byte *)&in[ ((i*2)&inHeightMask)*inWidth + ((j*2-1)&inWidthMask) ])[k] +
-					4 * ((byte *)&in[ ((i*2)&inHeightMask)*inWidth + ((j*2)&inWidthMask) ])[k] +
-					4 * ((byte *)&in[ ((i*2)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask) ])[k] +
-					2 * ((byte *)&in[ ((i*2)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask) ])[k] +
-
-					2 * ((byte *)&in[ ((i*2+1)&inHeightMask)*inWidth + ((j*2-1)&inWidthMask) ])[k] +
-					4 * ((byte *)&in[ ((i*2+1)&inHeightMask)*inWidth + ((j*2)&inWidthMask) ])[k] +
-					4 * ((byte *)&in[ ((i*2+1)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask) ])[k] +
-					2 * ((byte *)&in[ ((i*2+1)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask) ])[k] +
-
-					1 * ((byte *)&in[ ((i*2+2)&inHeightMask)*inWidth + ((j*2-1)&inWidthMask) ])[k] +
-					2 * ((byte *)&in[ ((i*2+2)&inHeightMask)*inWidth + ((j*2)&inWidthMask) ])[k] +
-					2 * ((byte *)&in[ ((i*2+2)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask) ])[k] +
-					1 * ((byte *)&in[ ((i*2+2)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask) ])[k];
-				outpix[k] = total / 36;
-			}
-		}
-	}
-
-	if ( out == in ) {
-		Com_Memcpy( out, temp, outWidth * outHeight * 4 );
-		ri.Hunk_FreeTempMemory( temp );
-	}
-}
-
-
 /*
 ================
 R_MipMap
@@ -417,11 +353,6 @@ static void R_MipMap( byte *out, byte *in, int width, int height ) {
 
 	if ( in == NULL )
 		return;
-
-	if ( !r_simpleMipMaps->integer ) {
-		R_MipMap2( (unsigned *)out, (unsigned *)in, width, height );
-		return;
-	}
 
 	if ( width == 1 && height == 1 ) {
 		return;
@@ -572,15 +503,8 @@ static void Upload32( byte *data, int x, int y, int width, int height, image_t *
 		//
 		// convert to exact power of 2 sizes
 		//
-		for (scaled_width = 1 ; scaled_width < width ; scaled_width<<=1)
-			;
-		for (scaled_height = 1 ; scaled_height < height ; scaled_height<<=1)
-			;
-
-		if ( r_roundImagesDown->integer && scaled_width > width )
-			scaled_width >>= 1;
-		if ( r_roundImagesDown->integer && scaled_height > height )
-			scaled_height >>= 1;
+		for (scaled_width = 1 ; scaled_width < width ; scaled_width<<=1);
+		for (scaled_height = 1 ; scaled_height < height ; scaled_height<<=1);
 	}
 
 	//
@@ -989,24 +913,6 @@ image_t	*R_FindImageFile( const char *name, imgFlags_t flags )
 		return NULL;
 	}
 
-	if ( tr.mapLoading && r_mapGreyScale->value > 0 ) {
-		byte *img;
-		int i;
-		for ( i = 0, img = pic; i < width * height; i++, img += 4 ) {
-			if ( r_mapGreyScale->integer ) {
-				byte luma = LUMA( img[0], img[1], img[2] );
-				img[0] = luma;
-				img[1] = luma;
-				img[2] = luma;
-			} else {
-				float luma = LUMA( img[0], img[1], img[2] );
-				img[0] = LERP( img[0], luma, r_mapGreyScale->value );
-				img[1] = LERP( img[1], luma, r_mapGreyScale->value );
-				img[2] = LERP( img[2], luma, r_mapGreyScale->value );
-			}
-		}
-	}
-
 	image = R_CreateImage( name, localName, pic, width, height, flags );
 	ri.Free( pic );
 	return image;
@@ -1132,23 +1038,6 @@ static void R_CreateFogImage( void ) {
 	ri.Hunk_FreeTempMemory( data );
 }
 
-
-static int Hex( char c )
-{
-	if ( c >= '0' && c <= '9' ) {
-		return c - '0';
-	}
-	if ( c >= 'A' && c <= 'F' ) {
-		return 10 + c - 'A';
-	}
-	if ( c >= 'a' && c <= 'f' ) {
-		return 10 + c - 'a';
-	}
-
-	return -1;
-}
-
-
 /*
 ==================
 R_BuildDefaultImage
@@ -1159,60 +1048,6 @@ Create solid color texture from following input formats (hex):
 ==================
 */
 #define	DEFAULT_SIZE 16
-static qboolean R_BuildDefaultImage( const char *format ) {
-	byte data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-	byte color[4];
-	int i, len, hex[6];
-	int x, y;
-
-	if ( *format++ != '#' ) {
-		return qfalse;
-	}
-
-	len = (int)strlen( format );
-	if ( len <= 0 || len > 6 ) {
-		return qfalse;
-	}
-
-	for ( i = 0; i < len; i++ ) {
-		hex[i] = Hex( format[i] );
-		if ( hex[i] == -1 ) {
-			return qfalse;
-		}
-	}
-
-	switch ( len ) {
-		case 3: // #rgb
-			color[0] = hex[0] << 4 | hex[0];
-			color[1] = hex[1] << 4 | hex[1];
-			color[2] = hex[2] << 4 | hex[2];
-			color[3] = 255;
-			break;
-		case 6: // #rrggbb
-			color[0] = hex[0] << 4 | hex[1];
-			color[1] = hex[2] << 4 | hex[3];
-			color[2] = hex[4] << 4 | hex[5];
-			color[3] = 255;
-			break;
-		default: // unsupported format
-			return qfalse;
-	}
-
-	for ( y = 0; y < DEFAULT_SIZE; y++ ) {
-		for ( x = 0; x < DEFAULT_SIZE; x++ ) {
-			data[x][y][0] = color[0];
-			data[x][y][1] = color[1];
-			data[x][y][2] = color[2];
-			data[x][y][3] = color[3];
-		}
-	}
-
-	tr.defaultImage = R_CreateImage( "*default", NULL, (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGFLAG_MIPMAP );
-
-	return qtrue;
-}
-
-
 /*
 ==================
 R_CreateDefaultImage
@@ -1221,17 +1056,6 @@ R_CreateDefaultImage
 static void R_CreateDefaultImage( void ) {
     int     x, y;
     byte    data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-
-    if ( r_defaultImage->string[0] )
-    {
-        // build from format
-        if ( R_BuildDefaultImage( r_defaultImage->string ) )
-            return;
-        // load from external file
-        tr.defaultImage = R_FindImageFile( r_defaultImage->string, IMGFLAG_MIPMAP | IMGFLAG_PICMIP );
-        if ( tr.defaultImage )
-            return;
-    }
 
     // Source Engine Hello
     for ( y = 0; y < DEFAULT_SIZE; y++ ) {
@@ -1354,7 +1178,7 @@ void R_SetColorMappings( void ) {
 	}
 
 	for ( i = 0; i < ARRAY_LEN( s_intensitytable ); i++ ) {
-		j = i * r_intensity->value;
+		j = i;
 		if ( j > 255 ) {
 			j = 255;
 		}

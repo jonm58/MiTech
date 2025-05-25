@@ -54,10 +54,6 @@ static qboolean	R_CullGrid( srfGridMesh_t *cv ) {
 	int 	boxCull;
 	int 	sphereCull;
 
-	if ( r_nocurves->integer ) {
-		return qtrue;
-	}
-
 	if ( tr.currentEntityNum != REFENTITYNUM_WORLD ) {
 		sphereCull = R_CullLocalPointAndRadius( cv->localOrigin, cv->meshRadius );
 	} else {
@@ -131,11 +127,6 @@ static qboolean	R_CullSurface( const surfaceType_t *surface, shader_t *shader ) 
 	}
 
 	if ( shader->cullType == CT_TWO_SIDED ) {
-		return qfalse;
-	}
-
-	// face culling
-	if ( !r_facePlaneCull->integer ) {
 		return qfalse;
 	}
 
@@ -634,24 +625,14 @@ static void R_MarkLeaves (void) {
 
 	// if the cluster is the same and the area visibility matrix
 	// hasn't changed, we don't need to mark everything again
-
-	// if r_showcluster was just turned on, remark everything 
-	if ( tr.viewCluster == cluster && !tr.refdef.areamaskModified 
-		&& !r_showcluster->modified ) {
+	if ( tr.viewCluster == cluster && !tr.refdef.areamaskModified ) {
 		return;
-	}
-
-	if ( r_showcluster->modified || r_showcluster->integer ) {
-		r_showcluster->modified = qfalse;
-		if ( r_showcluster->integer ) {
-			ri.Printf( PRINT_ALL, "cluster:%i  area:%i\n", cluster, leaf->area );
-		}
 	}
 
 	tr.visCount++;
 	tr.viewCluster = cluster;
 
-	if ( r_novis->integer || tr.viewCluster == -1 ) {
+	if ( tr.viewCluster == -1 ) {
 		for (i=0 ; i<tr.world->numnodes ; i++) {
 			if (tr.world->nodes[i].contents != CONTENTS_SOLID) {
 				tr.world->nodes[i].visframe = tr.visCount;

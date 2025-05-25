@@ -232,19 +232,6 @@ static void RE_AddDynamicLightToScene( const vec3_t org, float intensity, float 
 	if ( intensity <= 0 ) {
 		return;
 	}
-	
-	r *= r_dlightIntensity->value;
-	g *= r_dlightIntensity->value;
-	b *= r_dlightIntensity->value;
-	intensity *= r_dlightScale->value;
-
-	if ( r_dlightSaturation->value != 1.0 )
-	{
-		float luminance = LUMA( r, g, b );
-		r = LERP( luminance, r, r_dlightSaturation->value );
-		g = LERP( luminance, g, r_dlightSaturation->value );
-		b = LERP( luminance, b, r_dlightSaturation->value );
-	}
 
 	dl = &backEndData->dlights[r_numdlights++];
 	VectorCopy( org, dl->origin );
@@ -276,19 +263,6 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	}
 	if ( intensity <= 0 ) {
 		return;
-	}
-
-	r *= r_dlightIntensity->value;
-	g *= r_dlightIntensity->value;
-	b *= r_dlightIntensity->value;
-	intensity *= r_dlightScale->value;
-
-	if ( r_dlightSaturation->value != 1.0 )
-	{
-		float luminance = LUMA( r, g, b );
-		r = LERP( luminance, r, r_dlightSaturation->value );
-		g = LERP( luminance, g, r_dlightSaturation->value );
-		b = LERP( luminance, b, r_dlightSaturation->value );
 	}
 
 	dl = &backEndData->dlights[ r_numdlights++ ];
@@ -330,10 +304,6 @@ void RE_RenderScene( const refdef_t *fd ) {
 	int				startTime;
 
 	if ( !tr.registered ) {
-		return;
-	}
-
-	if ( r_norefresh->integer ) {
 		return;
 	}
 

@@ -65,10 +65,6 @@ LIGHT SAMPLING
 =============================================================================
 */
 
-extern	cvar_t	*r_ambientScale;
-extern	cvar_t	*r_directedScale;
-extern	cvar_t	*r_debugLight;
-
 /*
 =================
 R_SetupEntityLightingGrid
@@ -174,42 +170,11 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 		VectorMA( direction, factor, normal, direction );
 	}
 
-	VectorScale( ent->ambientLight, r_ambientScale->value, ent->ambientLight );
-	VectorScale( ent->directedLight, r_directedScale->value, ent->directedLight );
+	VectorScale( ent->ambientLight, 3.50, ent->ambientLight );
+	VectorScale( ent->directedLight, 0.50, ent->directedLight );
 
 	VectorNormalize2( direction, ent->lightDir );
 }
-
-
-/*
-===============
-LogLight
-===============
-*/
-static void LogLight( const trRefEntity_t *ent ) {
-	int	max1, max2;
-
-	if ( !(ent->e.renderfx & RF_FIRST_PERSON ) ) {
-		return;
-	}
-
-	max1 = ent->ambientLight[0];
-	if ( ent->ambientLight[1] > max1 ) {
-		max1 = ent->ambientLight[1];
-	} else if ( ent->ambientLight[2] > max1 ) {
-		max1 = ent->ambientLight[2];
-	}
-
-	max2 = ent->directedLight[0];
-	if ( ent->directedLight[1] > max2 ) {
-		max2 = ent->directedLight[1];
-	} else if ( ent->directedLight[2] > max2 ) {
-		max2 = ent->directedLight[2];
-	}
-
-	ri.Printf( PRINT_ALL, "amb:%i  dir:%i\n", max1, max2 );
-}
-
 
 /*
 =================
@@ -227,7 +192,6 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	float			d;
 	vec3_t			lightDir;
 	vec3_t			lightOrigin;
-	vec3_t			shadowLightDir;
 
 	// lighting calculations
 	if ( ent->lightingCalculated ) {
@@ -259,53 +223,26 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 		VectorCopy( tr.sunDirection, ent->lightDir );
 	}
 
-	// bonus items and view weapons have a fixed minimum add
-	if ( ent->e.renderfx & RF_MINLIGHT ) {
-		// give everything a minimum light add
-		ent->ambientLight[0] += tr.identityLight * 32;
-		ent->ambientLight[1] += tr.identityLight * 32;
-		ent->ambientLight[2] += tr.identityLight * 32;
-	}
-
 	//
 	// modify the light by dynamic lights
 	//
 	d = VectorLength( ent->directedLight );
 	VectorScale( ent->lightDir, d, lightDir );
-	if ( r_dlightMode->integer == 2 ) {
-		// only direct lights
-		// but we need to deal with shadow light direction
-		VectorCopy( lightDir, shadowLightDir );
-		if ( r_shadows->integer == 2 ) {
-			for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
-				dl = &refdef->dlights[i];
-				if ( dl->linear ) // no support for linear lights atm
-					continue;
-				VectorSubtract( dl->origin, lightOrigin, dir );
-				d = VectorNormalize( dir );
-				power = DLIGHT_AT_RADIUS * ( dl->radius * dl->radius );
-				if ( d < DLIGHT_MINIMUM_RADIUS ) {
-					d = DLIGHT_MINIMUM_RADIUS;
-				}
-				d = power / ( d * d );
-				VectorMA( shadowLightDir, d, dir, shadowLightDir );
+	if ( r_dlightMode->integer != 2 ) {
+		for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
+			dl = &refdef->dlights[i];
+			VectorSubtract( dl->origin, lightOrigin, dir );
+			d = VectorNormalize( dir );
+
+			power = DLIGHT_AT_RADIUS * ( dl->radius * dl->radius );
+			if ( d < DLIGHT_MINIMUM_RADIUS ) {
+				d = DLIGHT_MINIMUM_RADIUS;
 			}
-		} // if ( r_shadows->integer == 2 )
-	}  // if ( r_dlightMode->integer == 2 )
-	else
-	for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
-		dl = &refdef->dlights[i];
-		VectorSubtract( dl->origin, lightOrigin, dir );
-		d = VectorNormalize( dir );
+			d = power / ( d * d );
 
-		power = DLIGHT_AT_RADIUS * ( dl->radius * dl->radius );
-		if ( d < DLIGHT_MINIMUM_RADIUS ) {
-			d = DLIGHT_MINIMUM_RADIUS;
+			VectorMA( ent->directedLight, d, dl->color, ent->directedLight );
+			VectorMA( lightDir, d, dir, lightDir );
 		}
-		d = power / ( d * d );
-
-		VectorMA( ent->directedLight, d, dl->color, ent->directedLight );
-		VectorMA( lightDir, d, dir, lightDir );
 	}
 
 	// clamp ambient
@@ -313,10 +250,6 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 		if ( ent->ambientLight[i] > tr.identityLightByte ) {
 			ent->ambientLight[i] = tr.identityLightByte;
 		}
-	}
-
-	if ( r_debugLight->integer ) {
-		LogLight( ent );
 	}
 
 	// save out the byte packet version
@@ -330,11 +263,4 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	ent->lightDir[0] = DotProduct( lightDir, ent->e.axis[0] );
 	ent->lightDir[1] = DotProduct( lightDir, ent->e.axis[1] );
 	ent->lightDir[2] = DotProduct( lightDir, ent->e.axis[2] );
-
-	if ( r_shadows->integer == 3 && r_dlightMode->integer == 2 ) {
-		VectorNormalize( shadowLightDir );
-		ent->shadowLightDir[0] = DotProduct( shadowLightDir, ent->e.axis[0] );
-		ent->shadowLightDir[1] = DotProduct( shadowLightDir, ent->e.axis[1] );
-		ent->shadowLightDir[2] = DotProduct( shadowLightDir, ent->e.axis[2] );
-	}
 }

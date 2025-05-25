@@ -1198,11 +1198,6 @@ static void ParseDeform( const char **text ) {
 	ds = &shader.deforms[ shader.numDeforms ];
 	shader.numDeforms++;
 
-	if ( !Q_stricmp( token, "projectionShadow" ) ) {
-		ds->deformation = DEFORM_PROJECTION_SHADOW;
-		return;
-	}
-
 	if ( !Q_stricmp( token, "autosprite" ) ) {
 		ds->deformation = DEFORM_AUTOSPRITE;
 		return;
@@ -1440,7 +1435,7 @@ static const infoParm_t infoParms[] = {
 	{"playerclip",	1,	0,	CONTENTS_PLAYERCLIP },
 	{"monsterclip",	1,	0,	CONTENTS_MONSTERCLIP },
 	{"nodrop",		1,	0,	CONTENTS_NODROP },		// don't drop items or leave bodies (death fog, lava, etc)
-	{"nonsolid",	1,	SURF_NONSOLID,	0},						// clears the solid flag
+	{"nonsolid",	1,	SURF_NONSOLID,	0},			// clears the solid flag
 
 	// utility relevant attributes
 	{"origin",		1,	0,	CONTENTS_ORIGIN },		// center of rotating brushes
@@ -1588,7 +1583,7 @@ static qboolean ParseCondition( const char **text, resultType *res )
 			rval_type = com_tokentype;
 
 			// read next token, expect '||', '&&' or ')', allow newlines
-			/*token =*/ COM_ParseComplex( text, qtrue );
+			COM_ParseComplex( text, qtrue );
 		}
 		else if ( com_tokentype == TK_SCOPE_CLOSE || com_tokentype == TK_OR || com_tokentype == TK_AND )
 		{
@@ -2620,32 +2615,6 @@ static shader_t *FinishShader( void ) {
 		}
 
 		//
-		// ditch this stage if it's detail and detail textures are disabled
-		//
-		if ( pStage->isDetail && !r_detailTextures->integer )
-		{
-			int index;
-
-			for(index = stage + 1; index < MAX_SHADER_STAGES; index++)
-			{
-				if(!stages[index].active)
-					break;
-			}
-
-			if(index < MAX_SHADER_STAGES)
-				memmove(pStage, pStage + 1, sizeof(*pStage) * (index - stage));
-			else
-			{
-				if(stage + 1 < MAX_SHADER_STAGES)
-					memmove(pStage, pStage + 1, sizeof(*pStage) * (index - stage - 1));
-
-				Com_Memset(&stages[index - 1], 0, sizeof(*stages));
-			}
-
-			continue;
-		}
-
-		//
 		// default texture coordinate generation
 		//
 		if ( pStage->bundle[0].lightmap != LIGHTMAP_INDEX_NONE ) {
@@ -3015,12 +2984,6 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 
 	InitShader( strippedName, lightmapIndex );
 
-	// FIXME: set these "need" values appropriately
-	//shader.needsNormal = qtrue;
-	//shader.needsST1 = qtrue;
-	//shader.needsST2 = qtrue;
-	//shader.needsColor = qtrue;
-
 	//
 	// attempt to define shader from an explicit parameter file
 	//
@@ -3028,10 +2991,6 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 	if ( shaderText ) {
 		// enable this when building a pak file to get a global list
 		// of all explicit shaders
-		if ( r_printShaders->integer ) {
-			ri.Printf( PRINT_ALL, "*SHADER* %s\n", name );
-		}
-
 		if ( !ParseShader( &shaderText ) ) {
 			// had errors, so use default shader
 			shader.defaultShader = qtrue;
@@ -3100,12 +3059,6 @@ qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_
 	}
 
 	InitShader( name, lightmapIndex );
-
-	// FIXME: set these "need" values appropriately
-	//shader.needsNormal = qtrue;
-	//shader.needsST1 = qtrue;
-	//shader.needsST2 = qtrue;
-	//shader.needsColor = qtrue;
 
 	//
 	// create the default shading commands
@@ -3563,15 +3516,6 @@ static void CreateInternalShaders( void ) {
 	stages[0].stateBits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
 	tr.whiteShader = FinishShader();
 
-	// shadow shader is just a marker
-	InitShader( "<stencil shadow>", LIGHTMAP_NONE );
-	stages[0].bundle[0].image[0] = tr.defaultImage;
-	stages[0].bundle[0].tcGen = TCGEN_TEXTURE;
-	stages[0].active = qtrue;
-	stages[0].stateBits = GLS_DEFAULT;
-	shader.sort = SS_STENCIL_SHADOW;
-	tr.shadowShader = FinishShader();
-
 	InitShader( "<cinematic>", LIGHTMAP_NONE );
 	stages[0].bundle[0].image[0] = tr.defaultImage; // will be updated by specific cinematic images
 	stages[0].bundle[0].tcGen = TCGEN_TEXTURE;
@@ -3588,7 +3532,6 @@ CreateExternalShaders
 ====================
 */
 static void CreateExternalShaders( void ) {
-	tr.projectionShadowShader = R_FindShader( "projectionShadow", LIGHTMAP_NONE, qtrue );
 	tr.sunShader = R_FindShader( "sun", LIGHTMAP_NONE, qtrue );
 }
 

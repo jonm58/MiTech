@@ -135,23 +135,18 @@ int R_CullPointAndRadius( const vec3_t pt, float radius )
 	}
 
 	// check against frustum planes
-	for (i = 0 ; i < 4 ; i++) 
-	{
+	for (i = 0 ; i < 4 ; i++) {
 		frust = &tr.viewParms.frustum[i];
 
 		dist = DotProduct( pt, frust->normal) - frust->dist;
-		if ( dist < -radius )
-		{
+		if ( dist < -radius ) {
 			return CULL_OUT;
-		}
-		else if ( dist <= radius ) 
-		{
+		} else if ( dist <= radius ) {
 			mightBeClipped = qtrue;
 		}
 	}
 
-	if ( mightBeClipped )
-	{
+	if ( mightBeClipped ) {
 		return CULL_CLIP;
 	}
 
@@ -1078,7 +1073,7 @@ Returns qtrue if another view has been rendered
 ========================
 */
 
-#define MAX_PORTAL_RECURSION_DEPTH r_recurseLimit->integer
+#define MAX_PORTAL_RECURSION_DEPTH 8
 extern int r_numdlights;
 static qboolean R_MirrorViewBySurface( const drawSurf_t *drawSurf, int entityNum ) {
 	viewParms_t		newParms;
@@ -1471,10 +1466,6 @@ static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 		// if the mirror was completely clipped away, we may need to check another surface
 		if ( R_MirrorViewBySurface( (drawSurfs+i), entityNum) ) {
-			// this is a debug option to see exactly what is being mirrored
-			if ( r_portalOnly->integer ) {
-				return;
-			}
 			if ( r_fastsky->integer == 0 ) {
 				break;	// only one mirror view at a time
 			}

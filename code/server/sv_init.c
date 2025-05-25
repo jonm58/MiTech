@@ -366,13 +366,9 @@ static void SV_ClearServer( void ) {
 		}
 	}
 
-	if ( !sv_levelTimeReset->integer ) {
-		i = sv.time;
-		Com_Memset( &sv, 0, sizeof( sv ) );
-		sv.time = i;
-	} else {
-		Com_Memset( &sv, 0, sizeof( sv ) );
-	}
+	i = sv.time;
+	Com_Memset( &sv, 0, sizeof( sv ) );
+	sv.time = i;
 }
 
 
@@ -439,7 +435,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	svs.snapFlagServerBit ^= SNAPFLAG_SERVERCOUNT;
 
 	// try to reset level time if server is empty
-	if ( !sv_levelTimeReset->integer && !sv.restartTime ) {
+	if ( !sv.restartTime ) {
 		for ( i = 0; i < sv.maxclients; i++ ) {
 			if ( svs.clients[i].state >= CS_CONNECTED ) {
 				break;
@@ -452,7 +448,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	for ( i = 0; i < sv.maxclients; i++ ) {
 		// save when the server started for each client already connected
-		if ( svs.clients[i].state >= CS_CONNECTED && sv_levelTimeReset->integer ) {
+		if ( svs.clients[i].state >= CS_CONNECTED) {
 			svs.clients[i].oldServerTime = sv.time;
 		} else {
 			svs.clients[i].oldServerTime = 0;
@@ -680,9 +676,6 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_anticheatengine, "Enables or disables the SourceTech server-side anti-cheat engine." );
 	sv_ace_wallhack = Cvar_Get( "sv_ace_wallhack", "2", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_ace_wallhack, "Enables or disables wallhack protection. 0-Off 1-Players(Fast) 2-Players 3-Players+Items." );
-
-	sv_levelTimeReset = Cvar_Get( "sv_levelTimeReset", "0", CVAR_ARCHIVE_ND );
-	Cvar_SetDescription( sv_levelTimeReset, "Whether or not to reset leveltime after new map loads." );
 
 	sv_filter = Cvar_Get( "sv_filter", "filter.txt", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_filter, "Cvar that point on filter file, if it is "" then filtering will be disabled." );

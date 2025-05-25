@@ -692,12 +692,9 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 WinMain
 ==================
 */
-int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow ) 
-{
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow ) {
 	static char	sys_cmdline[ MAX_STRING_CHARS ];
-	char con_title[ MAX_CVAR_VALUE_STRING ];
 	int xpos, ypos;
-	qboolean useXYpos;
 	HANDLE hProcess;
 	DWORD dwPriority;
 
@@ -713,12 +710,8 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		SetPriorityClass( hProcess, HIGH_PRIORITY_CLASS );
 	}
 
-	//SetDPIAwareness();
-
 	g_wv.hInstance = hInstance;
 	Q_strncpyz( sys_cmdline, lpCmdLine, sizeof( sys_cmdline ) );
-
-	useXYpos = Com_EarlyParseCmdLine( sys_cmdline, con_title, sizeof( con_title ), &xpos, &ypos );
 
 	// no abort/retry/fail errors
 	SetErrorMode( SEM_FAILCRITICALERRORS );
@@ -729,11 +722,6 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	// main game loop
 	while ( 1 ) {
-		// set low precision every frame, because some system calls
-		// reset it arbitrarily
-		// _controlfp( _PC_24, _MCW_PC );
-		// _controlfp( -1, _MCW_EM  ); // no exceptions, even if some crappy syscall turns them back on!
-
 #ifdef DEDICATED
 		// run the game
 		Com_Frame( qfalse );

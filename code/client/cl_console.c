@@ -749,8 +749,8 @@ static void Con_DrawSolidConsole( float frac ) {
 	re.DrawStretchPic( 0, yf, wf, 2, 0, 0, 1, 1, cls.whiteShader );
 
 	// draw the version number
-	SCR_DrawSmallString( cls.glconfig.vidWidth - ( ARRAY_LEN( Q3_VERSION ) ) * smallchar_width,
-		lines - smallchar_height, Q3_VERSION, ARRAY_LEN( Q3_VERSION ) - 1 );
+	SCR_DrawSmallString( cls.glconfig.vidWidth - ( ARRAY_LEN( ENGINE_VERSION ) ) * smallchar_width,
+		lines - smallchar_height, ENGINE_VERSION, ARRAY_LEN( ENGINE_VERSION ) - 1 );
 
 	// draw the text
 	con.vislines = lines;

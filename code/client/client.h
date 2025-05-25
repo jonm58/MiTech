@@ -208,7 +208,6 @@ typedef struct {
 	char		recordName[MAX_OSPATH]; // without extension
 	qboolean	explicitRecordName;
 	char		recordNameShort[TRUNCATE_LENGTH]; // for recording message
-	qboolean	spDemoRecording;
 	qboolean	demorecording;
 	qboolean	demoplaying;
 	qboolean	demowaiting;	// don't record until a non-delta message is received
@@ -315,8 +314,7 @@ typedef struct {
 
 	// rendering info
 	glconfig_t	glconfig;
-	qhandle_t	charSetShader;
-	qhandle_t	defaultFont[3];
+	qhandle_t	defaultFont[5];
 	qhandle_t	whiteShader;
 	qhandle_t	consoleShader;
 
@@ -352,7 +350,6 @@ extern	vm_t			*cgvm;	// interface to cgame dll or vm
 extern	vm_t			*uivm;	// interface to ui dll or vm
 extern	refexport_t		re;		// interface to refresh .dll
 
-
 //
 // cvars
 //
@@ -360,9 +357,6 @@ extern	cvar_t	*cl_noprint;
 extern	cvar_t	*cl_debugMove;
 extern	cvar_t	*cl_timegraph;
 extern	cvar_t	*cl_shownet;
-extern	cvar_t	*cl_autoNudge;
-extern	cvar_t	*cl_timeNudge;
-extern	cvar_t	*cl_showTimeDelta;
 
 extern	cvar_t	*com_timedemo;
 extern	cvar_t	*cl_aviFrameRate;
@@ -377,23 +371,13 @@ extern	cvar_t	*cl_conColor;
 extern	cvar_t	*cl_inGameVideo;
 
 extern	cvar_t	*cl_lanForcePackets;
-extern	cvar_t	*cl_autoRecordDemo;
-extern	cvar_t	*cl_drawRecording;
 
 extern	cvar_t	*com_maxfps;
-
-extern	cvar_t	*vid_xpos;
-extern	cvar_t	*vid_ypos;
-extern	cvar_t	*r_noborder;
 
 extern	cvar_t	*r_swapInterval;
 
 extern	cvar_t	*r_fullscreen;
-extern	cvar_t	*r_mode;
-extern	cvar_t	*r_modeFullscreen;
-extern	cvar_t	*r_customwidth;
-extern	cvar_t	*r_customheight;
-extern	cvar_t	*r_customPixelAspect;
+extern	cvar_t	*r_resolution;
 
 extern	cvar_t	*r_availableModes;
 //=================================================
@@ -424,7 +408,7 @@ int CL_ServerStatus( const char *serverAddress, char *serverStatusString, int ma
 qboolean CL_CheckPaused( void );
 qboolean CL_NoDelay( void );
 
-qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, int mode, const char *modeFS, int dw, int dh, qboolean fullscreen );
+qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, const char *resolution, int dw, int dh, int fullscreen );
 
 
 //

@@ -39,7 +39,6 @@ const float *GL_Ortho( const float left, const float right, const float bottom, 
 	return m;
 }
 
-
 /*
 ** GL_Bind
 */
@@ -53,10 +52,6 @@ void GL_Bind( image_t *image ) {
 		texnum = image->texnum;
 	}
 
-	if ( r_nobind->integer && tr.dlightImage ) {		// performance evaluation option
-		texnum = tr.dlightImage->texnum;
-	}
-
 	if ( glState.currenttextures[glState.currenttmu] != texnum ) {
 		if ( image ) {
 			image->frameUsed = tr.frameCount;
@@ -66,22 +61,16 @@ void GL_Bind( image_t *image ) {
 	}
 }
 
-
 /*
 ** GL_BindTexNum
 */
 void GL_BindTexNum( GLuint texnum ) {
-
-	if ( r_nobind->integer && tr.dlightImage ) {	// performance evaluation option
-		texnum = tr.dlightImage->texnum;
-	}
 
 	if ( glState.currenttextures[ glState.currenttmu ] != texnum ) {
 		glState.currenttextures[ glState.currenttmu ] = texnum;
 		qglBindTexture( GL_TEXTURE_2D, texnum );
 	}
 }
-
 
 /*
 ** GL_SelectTexture
@@ -103,7 +92,6 @@ void GL_SelectTexture( int unit )
 	glState.currenttmu = unit;
 }
 
-
 /*
 ** GL_SelectClientTexture
 */
@@ -124,7 +112,6 @@ static void GL_SelectClientTexture( int unit )
 	glState.currentArray = unit;
 }
 
-
 /*
 ** GL_BindTexture
 */
@@ -137,7 +124,6 @@ void GL_BindTexture( int unit, GLuint texnum )
 		qglBindTexture( GL_TEXTURE_2D, texnum );
 	}
 }
-
 
 /*
 ** GL_Cull
@@ -168,7 +154,6 @@ void GL_Cull( cullType_t cullType ) {
 	}
 }
 
-
 /*
 ** GL_TexEnv
 */
@@ -192,7 +177,6 @@ void GL_TexEnv( GLint env )
 		break;
 	}
 }
-
 
 /*
 ** GL_State
@@ -383,7 +367,6 @@ void GL_State( unsigned stateBits )
 	glState.glStateBits = stateBits;
 }
 
-
 void GL_ClientState( int unit, unsigned stateBits )
 {
 	unsigned diff = stateBits ^ glState.glClientStateBits[ unit ];
@@ -425,7 +408,6 @@ void GL_ClientState( int unit, unsigned stateBits )
 
 	glState.glClientStateBits[ unit ] = stateBits;
 }
-
 
 void RB_SetGL2D( void );
 
@@ -479,7 +461,6 @@ static void SetViewportAndScissor( void ) {
 		backEnd.viewParms.scissorWidth, backEnd.viewParms.scissorHeight );
 }
 
-
 /*
 =================
 RB_BeginDrawingView
@@ -492,12 +473,7 @@ static void RB_BeginDrawingView( void ) {
 	int clearBits = 0;
 
 	// sync with gl if needed
-	if ( r_finish->integer == 1 && !glState.finishCalled ) {
-		qglFinish();
-		glState.finishCalled = qtrue;
-	} else if ( r_finish->integer == 0 ) {
-		glState.finishCalled = qtrue;
-	}
+	glState.finishCalled = qtrue;
 
 	// we will need to change the projection matrix before drawing
 	// 2D images again
@@ -514,10 +490,6 @@ static void RB_BeginDrawingView( void ) {
 	// clear relevant buffers
 	clearBits = GL_DEPTH_BUFFER_BIT;
 
-	if ( r_shadows->integer == 2 )
-	{
-		clearBits |= GL_STENCIL_BUFFER_BIT;
-	}
 	if ( 0 && r_fastsky->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
 		clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
@@ -689,8 +661,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 RB_BeginDrawingLitView
 =================
 */
-static void RB_BeginDrawingLitSurfs( void )
-{
+static void RB_BeginDrawingLitSurfs( void ) {
 	// we will need to change the projection matrix before drawing
 	// 2D images again
 	backEnd.projection2D = qfalse;
@@ -705,7 +676,6 @@ static void RB_BeginDrawingLitSurfs( void )
 
 	glState.faceCulling = -1;		// force face culling to set next time
 }
-
 
 /*
 ==================
@@ -842,7 +812,6 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 	}
 }
 
-
 /*
 ============================================================================
 
@@ -850,7 +819,6 @@ RENDER BACK END FUNCTIONS
 
 ============================================================================
 */
-
 
 /*
 ================
@@ -879,7 +847,6 @@ void RB_SetGL2D( void ) {
 	backEnd.refdef.time = ri.Milliseconds();
 	backEnd.refdef.floatTime = (double)backEnd.refdef.time * 0.001; // -EC-: cast to double
 }
-
 
 /*
 =============
@@ -923,7 +890,6 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, byte *data, 
 	RE_StretchPic( x, y, w, h, 0.5f / cols, 0.5f / rows, 1.0f - 0.5f / cols, 1.0f - 0.5 / rows, tr.cinematicShader->index );
 }
 
-
 void RE_UploadCinematic( int w, int h, int cols, int rows, byte *data, int client, qboolean dirty ) {
 
 	image_t *image;
@@ -952,7 +918,6 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, byte *data, int clien
 	}
 }
 
-
 /*
 =============
 RB_SetColor
@@ -970,7 +935,6 @@ static const void *RB_SetColor( const void *data ) {
 
 	return (const void *)(cmd + 1);
 }
-
 
 /*
 =============
@@ -1006,8 +970,7 @@ static const void *RB_StretchPic( const void *data ) {
 	return (const void *)(cmd + 1);
 }
 
-static void RB_LightingPass( void )
-{
+static void RB_LightingPass( void ) {
 	dlight_t	*dl;
 	int	i;
 
@@ -1059,9 +1022,6 @@ static const void *RB_DrawSurfs( const void *data ) {
 
 	RB_DrawSun( 0.1f, tr.sunShader );
 
-	// darken down any stencil shadows
-	RB_ShadowFinish();
-
 	if ( backEnd.refdef.numLitSurfs ) {
 		RB_BeginDrawingLitSurfs();
 		RB_LightingPass();
@@ -1078,7 +1038,6 @@ static const void *RB_DrawSurfs( const void *data ) {
 
 	return (const void *)(cmd + 1);
 }
-
 
 /*
 =============
@@ -1097,75 +1056,12 @@ static const void *RB_DrawBuffer( const void *data ) {
 		qglDrawBuffer( cmd->buffer );
 	}
 
-	// clear screen for debugging
-	if ( r_clear->integer ) {
-		qglClearColor( 1, 0, 0.5, 1 );
-		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	}
+	// clear screen
+	qglClearColor( 0, 0, 0, 1 );
+	qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	return (const void *)(cmd + 1);
 }
-
-
-/*
-===============
-RB_ShowImages
-
-Draw all the images to the screen, on top of whatever
-was there.  This is used to test for texture thrashing.
-===============
-*/
-void RB_ShowImages( void ) {
-	int		i;
-	image_t	*image;
-	float	x, y, w, h;
-	int		start, end;
-	const vec2_t t[4] = { {0,0}, {1,0}, {0,1}, {1,1} };
-	vec3_t v[4];
-
-	if ( !backEnd.projection2D ) {
-		RB_SetGL2D();
-	}
-
-	qglClear( GL_COLOR_BUFFER_BIT );
-
-	qglFinish();
-
-	GL_ClientState( 0, CLS_TEXCOORD_ARRAY );
-	qglTexCoordPointer( 2, GL_FLOAT, 0, t );
-
-	start = ri.Milliseconds();
-
-	for ( i = 0; i < tr.numImages; i++ ) {
-		image = tr.images[ i ];
-		w = glConfig.vidWidth / 20;
-		h = glConfig.vidHeight / 15;
-		x = i % 20 * w;
-		y = i / 20 * h;
-
-		// show in proportional size in mode 2
-		if ( r_showImages->integer == 2 ) {
-			w *= image->uploadWidth / 512.0f;
-			h *= image->uploadHeight / 512.0f;
-		}
-
-		GL_Bind( image );
-
-		VectorSet(v[0],x,y,0);
-		VectorSet(v[1],x+w,y,0);
-		VectorSet(v[2],x,y+h,0);
-		VectorSet(v[3],x+w,y+h,0);
-
-		qglVertexPointer( 3, GL_FLOAT, 0, v );
-		qglDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-	}
-
-	qglFinish();
-
-	end = ri.Milliseconds();
-	ri.Printf( PRINT_ALL, "%i msec to draw all images\n", end - start );
-}
-
 
 /*
 =============
@@ -1180,7 +1076,6 @@ static const void *RB_ColorMask( const void *data )
 
 	return (const void *)(cmd + 1);
 }
-
 
 /*
 =============
@@ -1197,7 +1092,6 @@ static const void *RB_ClearDepth( const void *data )
 
 	return (const void *)(cmd + 1);
 }
-
 
 /*
 =============
@@ -1233,7 +1127,6 @@ static const void *RB_ClearColor( const void *data )
 	return (const void *)(cmd + 1);
 }
 
-
 /*
 =============
 RB_FinishBloom
@@ -1267,16 +1160,10 @@ static const void *RB_FinishBloom( const void *data )
 		}
 	}
 
-	// texture swapping test
-	if ( r_showImages->integer ) {
-		RB_ShowImages();
-	}
-
 	backEnd.drawConsole = qtrue;
 
 	return (const void *)(cmd + 1);
 }
-
 
 static const void *RB_SwapBuffers( const void *data ) {
 
@@ -1286,12 +1173,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 	RB_EndSurface();
 
 	VBO_UnBind();
-
-	// texture swapping test
-	if ( r_showImages->integer && !backEnd.drawConsole ) {
-		RB_ShowImages();
-	}
-
+	
 	cmd = (const swapBuffersCommand_t *)data;
 
 	if ( backEnd.doneSurfaces && !glState.finishCalled ) {
@@ -1350,7 +1232,6 @@ static const void *RB_SwapBuffers( const void *data ) {
 
 	return (const void *)(cmd + 1);
 }
-
 
 /*
 ====================

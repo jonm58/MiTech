@@ -252,7 +252,7 @@ void ARB_SetupLightParams( void )
 	dl = tess.light;
 
 	if ( !glConfig.deviceSupportsGamma && !fboEnabled )
-		VectorScale( dl->color, 2 * powf( r_intensity->value, r_gamma->value ), lightRGB );
+		VectorScale( dl->color, 2 * powf( 1, r_gamma->value ), lightRGB );
 	else
 		VectorCopy( dl->color, lightRGB );
 
@@ -327,7 +327,7 @@ void ARB_LightingPass( void )
 	if ( tess.shader->polygonOffset )
 	{
 		qglEnable( GL_POLYGON_OFFSET_FILL );
-		qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value );
+		qglPolygonOffset( -1, -2 );
 	}
 
 	pStage = tess.xstages[ tess.shader->lightingStage ];
@@ -515,10 +515,7 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 
 	"MUL light, lightRGB, tmp.x; \n" ); // light.rgb
 
-	if ( r_dlightSpecColor->value > 0 )
-		strcat( program, va( "PARAM specRGB = %1.2f; \n", r_dlightSpecColor->value ) );
-
-	strcat( program, va( "PARAM specEXP = %1.2f; \n", r_dlightSpecPower->value ) );
+	strcat( program, "PARAM specEXP = 2; \n" );
 
 	strcat( program,
 	// normalize eye vector
@@ -547,14 +544,9 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 	"POW tmp.w, tmp.w, specEXP.w; \n"
 	"TEMP spec; \n" );
 
-	if ( r_dlightSpecColor->value > 0 ) {
-		// by constant
-		strcat( program, "MUL spec, specRGB, tmp.w; \n" );
-	} else {
-		// by texture
-		strcat( program, va( "MUL tmp.w, tmp.w, %1.2f; \n", -r_dlightSpecColor->value ) );
-		strcat( program, "MUL spec, base, tmp.w; \n" );
-	}
+	// by texture
+	strcat( program, "MUL tmp.w, tmp.w, 1; \n" );
+	strcat( program, "MUL spec, base, tmp.w; \n" );
 
 	// diffuse
 	if ( abslight ) {
@@ -589,9 +581,6 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 	strcat( program,
 	"MUL_SAT result.color, base, light; \n"
 	"END \n" );
-	
-	r_dlightSpecColor->modified = qfalse;
-	r_dlightSpecPower->modified = qfalse;
 
 	return program;
 }
@@ -2193,65 +2182,6 @@ void FBO_PostProcess( void )
 	}
 }
 
-
-void QGL_SetRenderScale( qboolean verbose )
-{
-	windowAdjusted = qfalse;
-
-	blitX0 = blitY0 = 0;
-	blitX1 = gls.windowWidth;
-	blitY1 = gls.windowHeight;
-
-	blitFilter = GL_NEAREST;
-
-	superSampled = qfalse;
-
-	if ( !qglGenProgramsARB || !qglGenFramebuffers )
-		return;
-
-	if ( r_ext_supersample->integer )
-	{
-		superSampled = qtrue;
-		blitFilter = GL_LINEAR; // default value for (r_renderScale==0) case
-	}
-
-	if ( gls.windowWidth != glConfig.vidWidth || gls.windowHeight != glConfig.vidHeight )
-	{
-		if ( r_renderScale->integer > 0 )
-		{
-			int scaleMode = r_renderScale->integer - 1;
-			if ( scaleMode & 1 )
-			{
-				// preserve aspect ratio (black bars on sides)
-				float windowAspect = (float) gls.windowWidth / (float) gls.windowHeight;
-				float renderAspect = (float) glConfig.vidWidth / (float) glConfig.vidHeight;
-				if ( windowAspect >= renderAspect ) 
-				{
-					float scale = (float) gls.windowHeight / ( float ) glConfig.vidHeight;
-					int bias = ( gls.windowWidth - scale * (float) glConfig.vidWidth ) / 2;
-					blitX0 += bias;
-					blitX1 -= bias;
-				}
-				else
-				{
-					float scale = (float) gls.windowWidth / ( float ) glConfig.vidWidth;
-					int bias = ( gls.windowHeight - scale * (float) glConfig.vidHeight ) / 2;
-					blitY0 += bias;
-					blitY1 -= bias;
-				}
-			}
-			// linear filtering
-			if ( scaleMode & 2 )
-				blitFilter = GL_LINEAR;
-			else
-				blitFilter = GL_NEAREST;
-		}
-
-		windowAdjusted = qtrue;
-	}
-}
-
-
 void QGL_DoneFBO( void )
 {
 	if ( qglGenFramebuffers )
@@ -2344,7 +2274,6 @@ void QGL_InitFBO( void )
 void QGL_InitARB( void )
 {
 	ARB_UpdatePrograms();
-	QGL_SetRenderScale( qtrue );
 	QGL_InitFBO();
 	ri.Cvar_ResetGroup( CVG_RENDERER, qtrue );
 }

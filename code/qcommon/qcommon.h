@@ -866,9 +866,6 @@ MISC
 ==============================================================
 */
 
-// customizable client window title
-extern char cl_title[ MAX_CVAR_VALUE_STRING ];
-
 extern	int	CPU_Flags;
 
 // x86 flags
@@ -914,7 +911,6 @@ char		*Com_MD5Buf( const char *data, int length, const char *data2, int length2 
 void		Com_MD5Init( void );
 int			Com_MD5Addr( const netadr_t *addr, int timestamp );
 
-qboolean	Com_EarlyParseCmdLine( char *commandLine, char *con_title, int title_size, int *vid_xpos, int *vid_ypos );
 int			Com_Split( char *in, char **out, int outsz, int delim );
 
 int			Com_Filter( const char *filter, const char *name );
@@ -998,8 +994,6 @@ extern	qboolean	gw_active;
 extern	qboolean	com_errorEntered;
 
 extern	fileHandle_t	com_journalDataFile;
-
-extern	char	rconPassword2[ MAX_CVAR_VALUE_STRING ];
 
 typedef enum {
 	TAG_FREE,

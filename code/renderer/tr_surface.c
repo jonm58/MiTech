@@ -475,7 +475,7 @@ static void DoRailDiscs( int numSegs, const vec3_t start, const vec3_t dir, cons
 	int i;
 	vec3_t	pos[4];
 	vec3_t	v;
-	int		spanWidth = r_railWidth->integer;
+	int		spanWidth = 16;
 	float c, s;
 	float		scale;
 
@@ -551,12 +551,12 @@ static void RB_SurfaceRailRings( void ) {
 	VectorSubtract( end, start, vec );
 	len = VectorNormalize( vec );
 	MakeNormalVectors( vec, right, up );
-	numSegs = ( len ) / r_railSegmentLength->value;
+	numSegs = ( len ) / 32;
 	if ( numSegs <= 0 ) {
 		numSegs = 1;
 	}
 
-	VectorScale( vec, r_railSegmentLength->value, vec );
+	VectorScale( vec, 32, vec );
 
 	DoRailDiscs( numSegs, start, vec, right, up );
 }
@@ -589,7 +589,7 @@ static void RB_SurfaceRailCore( void ) {
 	CrossProduct( v1, v2, right );
 	VectorNormalize( right );
 
-	DoRailCore( start, end, right, len, r_railCoreWidth->integer );
+	DoRailCore( start, end, right, len, 6 );
 }
 
 

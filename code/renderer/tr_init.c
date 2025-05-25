@@ -38,16 +38,8 @@ static void GfxInfo( void );
 static void VarInfo( void );
 static void GL_SetDefaultState( void );
 
-cvar_t	*r_railWidth;
-cvar_t	*r_railCoreWidth;
-cvar_t	*r_railSegmentLength;
-
-cvar_t	*r_detailTextures;
-
 cvar_t	*r_znear;
 cvar_t	*r_zproj;
-
-cvar_t	*r_skipBackEnd;
 
 //postFX
 cvar_t	*r_postfx;
@@ -73,19 +65,11 @@ cvar_t	*r_fx_chameleon;
 cvar_t	*r_fx_ambientlight;
 cvar_t	*r_fx_blur;
 
-cvar_t	*r_recurseLimit;
-
-static cvar_t *r_ignorehwgamma;
+cvar_t *r_ignorehwgamma;
 
 cvar_t	*r_fastsky;
 cvar_t  *r_mergeLightmaps;
 cvar_t	*r_dlightMode;
-cvar_t	*r_dlightSpecPower;
-cvar_t	*r_dlightSpecColor;
-cvar_t	*r_dlightScale;
-cvar_t	*r_dlightIntensity;
-
-cvar_t	*r_dlightSaturation;
 
 cvar_t	*r_hdr;
 cvar_t	*r_bloom_threshold;
@@ -97,25 +81,12 @@ cvar_t	*r_bloom_intensity;
 cvar_t	*r_bloom_filter_size;
 cvar_t	*r_bloom_reflection;
 
-cvar_t	*r_renderWidth;
-cvar_t	*r_renderHeight;
-cvar_t	*r_renderScale;
-
-cvar_t	*r_dlightBacks;
-
 cvar_t	*r_lodbias;
-cvar_t	*r_lodscale;
 
-cvar_t	*r_norefresh;
 cvar_t	*r_drawentities;
 cvar_t	*r_drawworld;
 cvar_t	*r_speeds;
-cvar_t	*r_fullbright;
-cvar_t	*r_novis;
 cvar_t	*r_nocull;
-cvar_t	*r_facePlaneCull;
-cvar_t	*r_showcluster;
-cvar_t	*r_nocurves;
 
 cvar_t	*r_allowExtensions;
 
@@ -131,47 +102,18 @@ cvar_t	*r_ignoreGLErrors;
 cvar_t	*r_ext_multisample;
 cvar_t	*r_ext_supersample;
 
-cvar_t	*r_drawBuffer;
-cvar_t	*r_lightmap;
-cvar_t	*r_shadows;
-cvar_t	*r_nobind;
-cvar_t	*r_singleShader;
-cvar_t	*r_roundImagesDown;
 cvar_t	*r_colorMipLevels;
 cvar_t	*r_picmip;
 cvar_t	*r_nomip;
 cvar_t	*r_showtris;
 cvar_t	*r_showsky;
-cvar_t	*r_shownormals;
-cvar_t	*r_finish;
-cvar_t	*r_clear;
 cvar_t	*r_textureMode;
-cvar_t	*r_offsetFactor;
-cvar_t	*r_offsetUnits;
 cvar_t	*r_gamma;
-cvar_t	*r_intensity;
 cvar_t	*r_lockpvs;
 cvar_t	*r_noportals;
-cvar_t	*r_portalOnly;
 
 cvar_t	*r_subdivisions;
 cvar_t	*r_lodCurveError;
-
-cvar_t	*r_mapGreyScale;
-
-cvar_t	*r_debugSurface;
-cvar_t	*r_simpleMipMaps;
-
-cvar_t	*r_showImages;
-cvar_t	*r_defaultImage;
-
-cvar_t	*r_ambientScale;
-cvar_t	*r_directedScale;
-cvar_t	*r_debugLight;
-cvar_t	*r_debugSort;
-cvar_t	*r_printShaders;
-
-cvar_t	*r_marksOnTriangleMeshes;
 
 cvar_t	*r_aviMotionJpegQuality;
 cvar_t	*r_screenshotJpegQuality;
@@ -538,8 +480,7 @@ static void InitOpenGL( void )
 	//		- r_gamma
 	//
 
-	if ( glConfig.vidWidth == 0 )
-	{
+	if ( glConfig.vidWidth == 0 ) {
 		const char *err;
 
 		if ( !ri.GLimp_Init )
@@ -566,11 +507,6 @@ static void InitOpenGL( void )
 		ri.CL_SetScaling( 1.0, gls.captureWidth, gls.captureHeight );
 
 		if ( qglGenProgramsARB && qglGenFramebuffers ) {
-			if ( r_renderScale->integer ) {
-				glConfig.vidWidth = r_renderWidth->integer;
-				glConfig.vidHeight = r_renderHeight->integer;
-			}
-
 			gls.captureWidth = glConfig.vidWidth;
 			gls.captureHeight = glConfig.vidHeight;
 
@@ -599,13 +535,8 @@ static void InitOpenGL( void )
 
 		gls.initTime = ri.Milliseconds();
 	}
-	else
-	{
-		QGL_SetRenderScale( qfalse );
-	}
 
-	if ( !qglViewport ) // might happen after REF_KEEP_WINDOW
-	{
+	if ( !qglViewport ) { // might happen after REF_KEEP_WINDOW
 		const char *err = R_ResolveSymbols( core_procs, ARRAY_LEN( core_procs ) );
 		if ( err )
 			ri.Error( ERR_FATAL, "Error resolving core OpenGL function '%s'", err );
@@ -1300,10 +1231,6 @@ static void VarInfo( void )
 {
 	ri.Printf( PRINT_ALL, "texturemode: %s\n", r_textureMode->string );
 	ri.Printf( PRINT_ALL, "picmip: %d%s\n", r_picmip->integer, r_nomip->integer ? ", worldspawn only" : "" );
-
-	if ( r_finish->integer ) {
-		ri.Printf( PRINT_ALL, "Forcing glFinish\n" );
-	}
 }
 
 
@@ -1339,19 +1266,6 @@ static void R_Register( void )
 	//
 	// temporary latched variables that can only change over a restart
 	//
-	r_fullbright = ri.Cvar_Get( "r_fullbright", "0", CVAR_LATCH );
-	ri.Cvar_SetDescription( r_fullbright, "Debugging tool to render the entire level without lighting." );
-	r_intensity = ri.Cvar_Get( "r_intensity", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_CheckRange( r_intensity, "1", "255", CV_FLOAT );
-	ri.Cvar_SetDescription( r_intensity, "Global texture lighting scale." );
-	r_singleShader = ri.Cvar_Get( "r_singleShader", "0", CVAR_CHEAT | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_singleShader, "Debugging tool that only uses the default shader for all rendering." );
-	r_defaultImage = ri.Cvar_Get( "r_defaultImage", "", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_defaultImage, "Replace default (missing) image texture by either exact file or solid #rgb|#rrggbb background color." );
-
-	r_simpleMipMaps = ri.Cvar_Get( "r_simpleMipMaps", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_simpleMipMaps, "Whether or not to use a simple mipmapping algorithm or a more correct one:\n 0: off (proper linear filter)\n 1: on (for slower machines)" );
-
 	r_picmip = ri.Cvar_Get( "r_picmip", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_picmip, "0", "16", CV_INTEGER );
 	ri.Cvar_SetDescription( r_picmip, "Set texture quality, lower is better." );
@@ -1360,19 +1274,11 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_nomip, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_nomip, "Apply picmip only on worldspawn textures." );
 
-	r_roundImagesDown = ri.Cvar_Get ("r_roundImagesDown", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_roundImagesDown, "When images are scaled, round images down instead of up." );
 	r_colorMipLevels = ri.Cvar_Get ("r_colorMipLevels", "0", CVAR_LATCH );
 	ri.Cvar_SetDescription( r_colorMipLevels, "Debugging tool to artificially color different mipmap levels so that they are more apparent." );
-	r_detailTextures = ri.Cvar_Get( "r_detailtextures", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_detailTextures, "Enables usage of shader stages flagged as detail." );
 
 	r_mergeLightmaps = ri.Cvar_Get( "r_mergeLightmaps", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_mergeLightmaps, "Merge built-in small lightmaps into bigger lightmaps (atlases)." );
-
-	r_mapGreyScale = ri.Cvar_Get( "r_mapGreyScale", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_CheckRange( r_mapGreyScale, "-1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription(r_mapGreyScale, "Desaturate world map textures only, works independently from \\r_fx_greyscale, negative values only desaturate lightmaps.");
 
 	r_subdivisions = ri.Cvar_Get( "r_subdivisions", "2", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription(r_subdivisions, "Distance to subdivide bezier curved surfaces. Higher values mean less subdivision and less geometric complexity.");
@@ -1394,25 +1300,9 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_ignoreGLErrors, "Ignore OpenGL errors." );
 	r_fastsky = ri.Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_fastsky, "Draw flat colored skies." );
-	r_dlightMode = ri.Cvar_Get( "r_dlightMode", "2", CVAR_ARCHIVE );
+	r_dlightMode = ri.Cvar_Get( "r_dlightMode", "1", CVAR_ARCHIVE );
 	ri.Cvar_CheckRange( r_dlightMode, "0", "2", CV_INTEGER );
 	ri.Cvar_SetDescription( r_dlightMode, "Dynamic light mode:\n 0: Off\n 1: High-quality per-pixel dynamic lights\n 2: Same as 1 but applies to all MD3 models too" );
-	r_dlightScale = ri.Cvar_Get( "r_dlightScale", "1.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( r_dlightScale, "0.1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( r_dlightScale, "Scales dynamic light radius." );
-	r_dlightSpecPower = ri.Cvar_Get( "r_dlightSpecPower", "2", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( r_dlightSpecPower, "1", "32", CV_FLOAT );
-	ri.Cvar_SetDescription( r_dlightSpecPower, "Factors specularity effect from dynamic lights on surfaces." );
-	ri.Cvar_SetGroup( r_dlightSpecPower, CVG_RENDERER );
-	r_dlightSpecColor = ri.Cvar_Get( "r_dlightSpecColor", "-1.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( r_dlightSpecColor, "-1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( r_dlightSpecColor, "Color base for specular component:\n <= 0: use current texture and modulate by abs(r_dlightSpecColor)\n > 0: use constant color with RGB components set to \\r_dlightSpecColor" );
-	ri.Cvar_SetGroup( r_dlightSpecColor, CVG_RENDERER );
-	r_dlightIntensity = ri.Cvar_Get( "r_dlightIntensity", "1.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( r_dlightIntensity, "0.1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( r_dlightIntensity, "Adjusts dynamic light intensity but not radius." );
-	r_dlightSaturation = ri.Cvar_Get( "r_dlightSaturation", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( r_dlightSaturation, "0", "1", CV_FLOAT );
 
 	r_ext_multisample = ri.Cvar_Get( "r_ext_multisample", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_ext_multisample, "0", "8", CV_INTEGER );
@@ -1449,10 +1339,6 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_bloom_reflection, "-4", "4", CV_FLOAT );
 	ri.Cvar_SetDescription( r_bloom_reflection, "Bloom lens reflection effect, value is an intensity factor of the effect, negative value means blend only reflection and skip main bloom texture." );
 
-	r_dlightBacks = ri.Cvar_Get( "r_dlightBacks", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_dlightBacks, "Whether or not dynamic lights should light up back-face culled geometry, affects only VQ3 dynamic lights." );
-	r_finish = ri.Cvar_Get( "r_finish", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_finish, "Force a glFinish call after rendering a scene." );
 	r_textureMode = ri.Cvar_Get( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
 	ri.Cvar_SetDescription( r_textureMode, "Texture interpolation mode:\n GL_NEAREST: Nearest neighbor interpolation and will therefore appear similar to Quake II except with the added colored lighting\n GL_LINEAR: Linear interpolation and will appear to blend in objects that are closer than the resolution that the textures are set as\n GL_NEAREST_MIPMAP_NEAREST: Nearest neighbor interpolation with mipmapping for bilinear hardware, mipmapping will blend objects that are farther away than the resolution that they are set as\n GL_LINEAR_MIPMAP_NEAREST: Linear interpolation with mipmapping for bilinear hardware\n GL_NEAREST_MIPMAP_LINEAR: Nearest neighbor interpolation with mipmapping for trilinear hardware\n GL_LINEAR_MIPMAP_LINEAR: Linear interpolation with mipmapping for trilinear hardware" );
 	ri.Cvar_SetGroup( r_textureMode, CVG_RENDERER );
@@ -1460,20 +1346,6 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_gamma, "0.5", "3", CV_FLOAT );
 	ri.Cvar_SetDescription( r_gamma, "Gamma correction factor." );
 	ri.Cvar_SetGroup( r_gamma, CVG_RENDERER );
-	r_facePlaneCull = ri.Cvar_Get ("r_facePlaneCull", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_facePlaneCull, "Enables culling of planar surfaces with back side test." );
-
-	r_railWidth = ri.Cvar_Get( "r_railWidth", "16", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_railWidth, "Radius of railgun trails." );
-	r_railCoreWidth = ri.Cvar_Get( "r_railCoreWidth", "6", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_railCoreWidth, "Size of railgun trail rings when enabled in game code (normally \\cg_oldRail 0)." );
-	r_railSegmentLength = ri.Cvar_Get( "r_railSegmentLength", "32", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_railSegmentLength, "Length of segments in railgun trails." );
-
-	r_ambientScale = ri.Cvar_Get( "r_ambientScale", "3.50", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_ambientScale, "Light grid ambient light scaling on entity models." );
-	r_directedScale = ri.Cvar_Get( "r_directedScale", "0.50", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_directedScale, "Light grid direct light scaling on entity models." );
 
 	//postFX
 	r_postfx = ri.Cvar_Get( "r_postfx", "1", CVAR_ARCHIVE_ND );
@@ -1517,77 +1389,29 @@ static void R_Register( void )
 	r_fx_blur = ri.Cvar_Get( "r_fx_blur", "0.0", 0 );
 	ri.Cvar_SetGroup( r_fx_blur, CVG_RENDERER );
 
-	r_recurseLimit = ri.Cvar_Get( "r_recurseLimit", "8", CVAR_ARCHIVE_ND );
-
 	//
 	// temporary variables that can change at any time
 	//
-	r_showImages = ri.Cvar_Get( "r_showImages", "0", CVAR_TEMP );
-	ri.Cvar_SetDescription( r_showImages, "Draw all images currently loaded into memory:\n 0: Disabled\n 1: Show images set to uniform size\n 2: Show images with scaled relative to largest image" );
-
-	r_debugLight = ri.Cvar_Get( "r_debuglight", "0", CVAR_TEMP );
-	ri.Cvar_SetDescription( r_debugLight, "Debugging tool to print ambient and directed lighting information." );
-	r_debugSort = ri.Cvar_Get( "r_debugSort", "0", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_debugSort, "Debugging tool to filter out shaders with depth sorting order values higher than the set value." );
-	r_printShaders = ri.Cvar_Get( "r_printShaders", "0", 0 );
-	ri.Cvar_SetDescription( r_printShaders, "Debugging tool to print on console of the number of shaders used." );
-
-	r_nocurves = ri.Cvar_Get ("r_nocurves", "0", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_nocurves, "Set to 1 to disable drawing world bezier curves. Set to 0 to enable." );
 	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_drawworld, "Set to 0 to disable drawing the world. Set to 1 to enable." );
-	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", 0 );
-	ri.Cvar_SetDescription( r_lightmap, "Show only lightmaps on all world surfaces." );
-	r_portalOnly = ri.Cvar_Get ("r_portalOnly", "0", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_portalOnly, "Set to 1 to render only first mirror/portal view if it is present on the scene." );
-
-	r_skipBackEnd = ri.Cvar_Get ("r_skipBackEnd", "0", CVAR_CHEAT);
-	ri.Cvar_SetDescription( r_skipBackEnd, "Skips loading rendering backend." );
-
-	r_lodscale = ri.Cvar_Get( "r_lodscale", "5", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_lodscale, "Set scale for level of detail adjustment." );
-	r_norefresh = ri.Cvar_Get ("r_norefresh", "0", CVAR_CHEAT);
-	ri.Cvar_SetDescription( r_norefresh, "Bypasses refreshing of the rendered scene." );
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_drawentities, "Draw all world entities." );
 	r_nocull = ri.Cvar_Get ("r_nocull", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_nocull, "Draw all culled objects." );
-	r_novis = ri.Cvar_Get ("r_novis", "0", CVAR_CHEAT);
-	ri.Cvar_SetDescription( r_novis, "Disables usage of PVS." );
-	r_showcluster = ri.Cvar_Get ("r_showcluster", "0", CVAR_CHEAT);
-	ri.Cvar_SetDescription( r_showcluster, "Shows current cluster index." );
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_speeds, "Prints out various debugging stats from PVS:\n 0: Disabled\n 1: Backend BSP\n 2: Frontend grid culling\n 3: Current view cluster index\n 4: Dynamic lighting\n 5: zFar clipping" );
-	r_debugSurface = ri.Cvar_Get ("r_debugSurface", "0", CVAR_CHEAT);
-	ri.Cvar_SetDescription( r_debugSurface, "Backend visual debugging tool for bezier mesh surfaces." );
-	r_nobind = ri.Cvar_Get ("r_nobind", "0", CVAR_CHEAT);
-	ri.Cvar_SetDescription( r_nobind, "Backend debugging tool: Disables texture binding." );
 	r_showtris = ri.Cvar_Get ("r_showtris", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_showtris, "Debugging tool: Wireframe rendering of polygon triangles in the world." );
 	r_showsky = ri.Cvar_Get( "r_showsky", "0", 0 );
 	ri.Cvar_SetDescription( r_showsky, "Forces sky in front of all surfaces." );
-	r_shownormals = ri.Cvar_Get ("r_shownormals", "0", CVAR_CHEAT);
-	ri.Cvar_SetDescription( r_shownormals, "Debugging tool: Show wireframe surface normals." );
-	r_clear = ri.Cvar_Get( "r_clear", "0", 0 );
-	ri.Cvar_SetDescription( r_clear, "Forces screen buffer clearing every frame, removing any hall of mirrors effect in void.\n Use \\r_clearColor to set color." );
-	r_offsetFactor = ri.Cvar_Get( "r_offsetFactor", "-1", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_offsetFactor, "Offset factor for shaders with polygonOffset stages." );
-	r_offsetUnits = ri.Cvar_Get( "r_offsetunits", "-2", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_offsetUnits, "Offset units for shaders with polygonOffset stages." );
-	r_drawBuffer = ri.Cvar_Get( "r_drawBuffer", "GL_BACK", CVAR_CHEAT );
-	ri.Cvar_SetDescription( r_drawBuffer, "Sets which frame buffer to draw into." );
 	r_lockpvs = ri.Cvar_Get ("r_lockpvs", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_lockpvs, "Debugging tool: Locks to current potentially visible set. Useful for testing vis-culling in maps." );
 	r_noportals = ri.Cvar_Get( "r_noportals", "0", 0 );
 	ri.Cvar_SetDescription(r_noportals, "Disables in-game portals, valid values: 0: Portals enabled\n 1: Portals disabled\n 2: Portals and mirrors disabled" );
-	r_shadows = ri.Cvar_Get( "cg_shadows", "1", 0 );
 
-	r_marksOnTriangleMeshes = ri.Cvar_Get("r_marksOnTriangleMeshes", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_marksOnTriangleMeshes, "Enables impact marks on triangle mesh surfaces (ie: MD3 models.) Requires impact marks to be enabled in the game code." );
-
-	r_aviMotionJpegQuality = ri.Cvar_Get( "r_aviMotionJpegQuality", "90", CVAR_ARCHIVE_ND );
+	r_aviMotionJpegQuality = ri.Cvar_Get( "r_aviMotionJpegQuality", "100", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_aviMotionJpegQuality, "Controls quality of Jpeg video capture when \\cl_aviMotionJpeg 1." );
-	r_screenshotJpegQuality = ri.Cvar_Get( "r_screenshotJpegQuality", "90", CVAR_ARCHIVE_ND );
+	r_screenshotJpegQuality = ri.Cvar_Get( "r_screenshotJpegQuality", "100", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_screenshotJpegQuality, "Controls quality of Jpeg screenshots when using screenshotJpeg." );
 
 	if ( glConfig.vidWidth )
@@ -1622,22 +1446,6 @@ static void R_Register( void )
 	r_ext_supersample = ri.Cvar_Get( "r_ext_supersample", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_ext_supersample, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_ext_supersample, "Super-sample anti-aliasing." );
-
-	r_renderWidth = ri.Cvar_Get( "r_renderWidth", "800", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_CheckRange( r_renderWidth, "96", NULL, CV_INTEGER );
-	ri.Cvar_SetDescription( r_renderWidth, "Video width to render to when \\r_renderScale > 0." );
-	r_renderHeight = ri.Cvar_Get( "r_renderHeight", "600", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_CheckRange( r_renderHeight, "72", NULL, CV_INTEGER );
-	ri.Cvar_SetDescription( r_renderHeight, "Video height to render to when \\r_renderScale > 0." );
-
-	r_renderScale = ri.Cvar_Get( "r_renderScale", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_CheckRange( r_renderScale, "0", "4", CV_INTEGER );
-	ri.Cvar_SetDescription( r_renderScale, "Scaling mode to be used with custom render resolution:\n"
-		" 0 - disabled\n"
-		" 1 - nearest filtering, stretch to full size\n"
-		" 2 - nearest filtering, preserve aspect ratio (black bars on sides)\n"
-		" 3 - linear filtering, stretch to full size\n"
-		" 4 - linear filtering, preserve aspect ratio (black bars on sides)\n" );
 }
 
 #define EPSILON 1e-6f

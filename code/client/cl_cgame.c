@@ -805,14 +805,8 @@ static void CL_AdjustTimeDelta( void ) {
 		cl.serverTimeDelta = newDelta;
 		cl.oldServerTime = cl.snap.serverTime;	// FIXME: is this a problem for cgame?
 		cl.serverTime = cl.snap.serverTime;
-		if ( cl_showTimeDelta->integer ) {
-			Com_Printf( "<RESET> " );
-		}
 	} else if ( deltaDelta > 100 ) {
 		// fast adjust, cut the difference in half
-		if ( cl_showTimeDelta->integer ) {
-			Com_Printf( "<FAST> " );
-		}
 		cl.serverTimeDelta = ( cl.serverTimeDelta + newDelta ) >> 1;
 	} else {
 		// slow drift adjust, only move 1 or 2 msec
@@ -829,10 +823,6 @@ static void CL_AdjustTimeDelta( void ) {
 				cl.serverTimeDelta++;
 			}
 		}
-	}
-
-	if ( cl_showTimeDelta->integer ) {
-		Com_Printf( "%i ", cl.serverTimeDelta );
 	}
 }
 
@@ -866,65 +856,6 @@ static void CL_FirstSnapshot( void ) {
 		Cbuf_AddText( "\n" );
 		Cvar_Set( "activeAction", "" );
 	}
-}
-
-/*
-==================
-CL_AvgPing
-
-Calculates Average Ping from snapshots in buffer. Used by AutoNudge.
-==================
-*/
-static float CL_AvgPing( void ) {
-	int ping[PACKET_BACKUP];
-	int count = 0;
-	int i, j, iTemp;
-	float result;
-
-	for ( i = 0; i < PACKET_BACKUP; i++ ) {
-		if ( cl.snapshots[i].ping > 0 && cl.snapshots[i].ping < 999 ) {
-			ping[count] = cl.snapshots[i].ping;
-			count++;
-		}
-	}
-
-	if ( count == 0 )
-		return 0;
-
-	// sort ping array
-	for ( i = count - 1; i > 0; --i ) {
-		for ( j = 0; j < i; ++j ) {
-			if (ping[j] > ping[j + 1]) {
-				iTemp = ping[j];
-				ping[j] = ping[j + 1];
-				ping[j + 1] = iTemp;
-			}
-		}
-	}
-
-	// use median average ping
-	if ( (count % 2) == 0 )
-		result = (ping[count / 2] + ping[(count / 2) - 1]) / 2.0f;
-	else
-		result = ping[count / 2];
-
-	return result;
-}
-
-/*
-==================
-CL_TimeNudge
-
-Returns either auto-nudge or cl_timeNudge value.
-==================
-*/
-static int CL_TimeNudge( void ) {
-	float autoNudge = cl_autoNudge->value;
-
-	if ( autoNudge != 0.0f )
-		return (int)((CL_AvgPing() * autoNudge) + 0.5f) * -1;
-	else
-		return cl_timeNudge->integer;
 }
 
 /*
@@ -980,13 +911,9 @@ void CL_SetCGameTime( void ) {
 		// \timescale 0 is used to lock a demo in place for single frame advances
 		cl.serverTimeDelta -= cls.frametime;
 	} else {
-		// cl_timeNudge is a user adjustable cvar that allows more
-		// or less latency to be added in the interest of better
-		// smoothness or better responsiveness.
-		cl.serverTime = cls.realtime + cl.serverTimeDelta - CL_TimeNudge();
+		cl.serverTime = cls.realtime + cl.serverTimeDelta;
 
-		// guarantee that time will never flow backwards, even if
-		// serverTimeDelta made an adjustment or cl_timeNudge was changed
+		// guarantee that time will never flow backwards
 		if ( cl.serverTime - cl.oldServerTime < 0 ) {
 			cl.serverTime = cl.oldServerTime;
 		}
@@ -994,7 +921,6 @@ void CL_SetCGameTime( void ) {
 
 		// note if we are almost past the latest frame (without timeNudge),
 		// so we will try and adjust back a bit when the next snapshot arrives
-		//if ( cls.realtime + cl.serverTimeDelta >= cl.snap.serverTime - 5 ) {
 		if ( cls.realtime + cl.serverTimeDelta - cl.snap.serverTime >= -5 ) {
 			cl.extrapolatedSnapshot = qtrue;
 		}

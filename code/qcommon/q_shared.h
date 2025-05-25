@@ -26,10 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define Q3_VERSION            "SourceTech 1.7"
-#ifndef SVN_VERSION
-  #define SVN_VERSION Q3_VERSION
-#endif
+#define ENGINE_VERSION        "SourceTech 1.7"
 #define CLIENT_WINDOW_TITLE   "SourceTech: Engine"
 #define CONSOLE_WINDOW_TITLE  "SourceTech: Console"
 

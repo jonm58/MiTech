@@ -142,49 +142,6 @@ static void DrawTris( const shaderCommands_t *input ) {
 	qglDepthRange( 0, 1 );
 }
 
-
-/*
-================
-DrawNormals
-
-Draws vertex normals for debugging
-================
-*/
-static void DrawNormals( const shaderCommands_t *input ) {
-	int		i;
-
-	GL_ClientState( 0, CLS_NONE );
-
-	qglDisable( GL_TEXTURE_2D );
-	qglColor4f( 1, 1, 1, 1 );
-
-	qglDepthRange( 0, 0 );	// never occluded
-
-	GL_State( GLS_DEPTHMASK_TRUE );
-
-	for ( i = tess.numVertexes-1; i >= 0; i-- ) {
-		VectorMA( tess.xyz[i], 2.0, tess.normal[i], tess.xyz[i*2 + 1] );
-		VectorCopy( tess.xyz[i], tess.xyz[i*2] );
-	}
-
-	qglVertexPointer( 3, GL_FLOAT, sizeof( tess.xyz[0] ), tess.xyz );
-
-	if ( qglLockArraysEXT ) {
-		qglLockArraysEXT( 0, tess.numVertexes * 2 );
-	}
-
-	qglDrawArrays( GL_LINES, 0, tess.numVertexes * 2 );
-
-	if ( qglUnlockArraysEXT ) {
-		qglUnlockArraysEXT();
-	}
-
-	qglEnable( GL_TEXTURE_2D );
-
-	qglDepthRange( 0, 1 );
-}
-
-
 /*
 ==============
 RB_BeginSurface
@@ -214,7 +171,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	}
 
 #ifdef USE_TESS_NEEDS_NORMAL
-	tess.needsNormal = state->needsNormal || tess.dlightPass || r_shownormals->integer;
+	tess.needsNormal = state->needsNormal || tess.dlightPass;
 #endif
 
 #ifdef USE_TESS_NEEDS_ST2
@@ -278,12 +235,7 @@ static void DrawMultitextured( const shaderCommands_t *input, int stage ) {
 	GL_SelectTexture( 1 );
 	qglEnable( GL_TEXTURE_2D );
 	R_BindAnimatedImage( &pStage->bundle[1] );
-
-	if ( r_lightmap->integer ) {
-		GL_TexEnv( GL_REPLACE );
-	} else {
-		GL_TexEnv( pStage->mtEnv );
-	}
+	GL_TexEnv( pStage->mtEnv );
 
 	R_DrawElements( input->numIndexes, input->indexes );
 
@@ -698,10 +650,6 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 				GL_ProgramDisable();
 			}
 		}
-
-		// allow skipping out to show just lightmaps during development
-		if ( r_lightmap->integer && ( pStage->bundle[0].lightmap != LIGHTMAP_INDEX_NONE || pStage->bundle[1].lightmap != LIGHTMAP_INDEX_NONE ) )
-			break;
 	}
 }
 
@@ -740,10 +688,9 @@ void RB_StageIteratorGeneric( void )
 	GL_Cull( shader->cullType );
 
 	// set polygon offset if necessary
-	if ( shader->polygonOffset )
-	{
+	if ( shader->polygonOffset ) {
 		qglEnable( GL_POLYGON_OFFSET_FILL );
-		qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value );
+		qglPolygonOffset( -1, -2 );
 	}
 
 	//
@@ -849,17 +796,6 @@ void RB_EndSurface( void ) {
 		ri.Error( ERR_DROP, "RB_EndSurface() - SHADER_MAX_VERTEXES hit" );
 	}
 
-	if ( tess.shader == tr.shadowShader ) {
-		RB_ShadowTessEnd();
-		return;
-	}
-
-	// for debugging of sort order issues, stop rendering after a given sort value
-	if ( r_debugSort->integer && r_debugSort->integer < tess.shader->sort && !backEnd.doneSurfaces ) {
-		VBO_UnBind();
-		return;
-	}
-
 	//
 	// update performance counters
 	//
@@ -885,9 +821,6 @@ void RB_EndSurface( void ) {
 	if ( !VBO_Active() ) {
 		if ( r_showtris->integer ) {
 			DrawTris( input );
-		}
-		if ( r_shownormals->integer ) {
-			DrawNormals( input );
 		}
 	}
 

@@ -52,7 +52,6 @@ cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates t
 cvar_t	*sv_anticheatengine;
 cvar_t	*sv_ace_wallhack;
 
-cvar_t *sv_levelTimeReset;
 cvar_t *sv_filter;
 
 /*
@@ -799,8 +798,7 @@ static void SVC_RemoteCommand( const netadr_t *from ) {
 	}
 
 	pw = Cmd_Argv( 1 );
-	if ( ( sv_rconPassword->string[0] && strcmp( pw, sv_rconPassword->string ) == 0 ) ||
-		( rconPassword2[0] && strcmp( pw, rconPassword2 ) == 0 ) ) {
+	if ( ( sv_rconPassword->string[0] && strcmp( pw, sv_rconPassword->string ) == 0 ) ) {
 		valid = qtrue;
 		Com_Printf( "Rcon from %s: %s\n", NET_AdrToString( from ), Cmd_ArgsFrom( 2 ) );
 	} else {
@@ -818,7 +816,7 @@ static void SVC_RemoteCommand( const netadr_t *from ) {
 	redirectAddress = *from;
 	Com_BeginRedirect( sv_outputbuf, sizeof( sv_outputbuf ), SV_FlushRedirect );
 
-	if ( !sv_rconPassword->string[0] && !rconPassword2[0] ) {
+	if ( !sv_rconPassword->string[0] ) {
 		Com_Printf( "No rconpassword set on the server.\n" );
 	} else if ( !valid ) {
 		Com_Printf( "Bad rconpassword.\n" );
@@ -1237,10 +1235,10 @@ Player movement occurs as a result of packet events, which
 happen before SV_Frame is called
 ==================
 */
+#define RESTART_BUFFER_MS 10000
 void SV_Frame( int msec ) {
 	int		frameMsec;
 	int		startTime;
-	int		i;
 
 	if ( Cvar_CheckGroup( CVG_SERVER ) )
 		SV_TrackCvarChanges(); // update rate settings, etc.
@@ -1293,20 +1291,9 @@ void SV_Frame( int msec ) {
 		return;
 	}
 
-	// try to do silent restart earlier if possible
-	if ( sv.time > (12*3600*1000) && ( sv_levelTimeReset->integer == 0 || sv.time > 0x40000000 ) ) {
-		if ( svs.clients ) {
-			for ( i = 0; i < sv.maxclients; i++ ) {
-				// FIXME: deal with bots (reconnect?)
-				if ( svs.clients[i].state != CS_FREE && svs.clients[i].netchan.remoteAddress.type != NA_BOT ) {
-					break;
-				}
-			}
-			if ( i == sv.maxclients ) {
-				SV_Restart( "Restarting server" );
-				return;
-			}
-		}
+	if ( sv.time >= (INT32_MAX - RESTART_BUFFER_MS) ) {
+	    SV_Restart( "Restarting server before int32 overflow" );
+	    return;
 	}
 
 	if ( sv.restartTime && sv.time - sv.restartTime >= 0 ) {

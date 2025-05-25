@@ -1201,7 +1201,7 @@ void HandleEvents( void )
 				key = IN_TranslateSDLToQ3Key( &e.key.keysym, qtrue );
 
 				if ( key == K_ENTER && keys[K_ALT].down ) {
-					Cvar_SetIntegerValue( "r_fullscreen", glw_state.isFullscreen ? 0 : 1 );
+					Cvar_SetIntegerValue( "r_fullscreen", glw_state.isFullscreen ? 0 : 2 );
 					Cbuf_AddText( "vid_restart\n" );
 					break;
 				}
@@ -1338,10 +1338,6 @@ void HandleEvents( void )
 				switch ( e.window.event )
 				{
 					case SDL_WINDOWEVENT_MOVED:
-						if ( gw_active && !gw_minimized && !glw_state.isFullscreen ) {
-							Cvar_SetIntegerValue( "vid_xpos", e.window.data1 );
-							Cvar_SetIntegerValue( "vid_ypos", e.window.data2 );
-						}
 						break;
 					// window states:
 					case SDL_WINDOWEVENT_HIDDEN:
@@ -1352,10 +1348,10 @@ void HandleEvents( void )
 					// keyboard focus:
 					case SDL_WINDOWEVENT_FOCUS_LOST:	lastKeyDown = 0; Key_ClearStates(); gw_active = qfalse; break;
 					case SDL_WINDOWEVENT_FOCUS_GAINED:	lastKeyDown = 0; Key_ClearStates(); gw_active = qtrue; gw_minimized = qfalse;
-														if ( re.SetColorMappings ) {
-															re.SetColorMappings();
-														}
-														break;
+						if ( re.SetColorMappings ) {
+							re.SetColorMappings();
+						}
+						break;
 					// mouse focus:
 					case SDL_WINDOWEVENT_ENTER: mouse_focus = qtrue; break;
 					case SDL_WINDOWEVENT_LEAVE: if ( glw_state.isFullscreen ) mouse_focus = qfalse; break;

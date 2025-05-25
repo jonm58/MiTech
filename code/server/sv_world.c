@@ -70,28 +70,6 @@ typedef struct worldSector_s {
 static worldSector_t	sv_worldSectors[AREA_NODES];
 static int			sv_numworldSectors;
 
-
-/*
-===============
-SV_SectorList_f
-===============
-*/
-void SV_SectorList_f( void ) {
-	int				i, c;
-	worldSector_t	*sec;
-	svEntity_t		*ent;
-
-	for ( i = 0 ; i < AREA_NODES ; i++ ) {
-		sec = &sv_worldSectors[i];
-
-		c = 0;
-		for ( ent = sec->entities ; ent ; ent = ent->nextEntityInWorldSector ) {
-			c++;
-		}
-		Com_Printf( "sector %i: %i entities\n", i, c );
-	}
-}
-
 /*
 ===============
 SV_CreateworldSector

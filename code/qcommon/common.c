@@ -432,9 +432,6 @@ quake3 set test blah + map test
 static int	com_numConsoleLines;
 static char	*com_consoleLines[MAX_CONSOLE_LINES];
 
-// master rcon password
-char	rconPassword2[MAX_CVAR_VALUE_STRING];
-
 /*
 ==================
 Com_ParseCommandLine
@@ -451,7 +448,6 @@ static void Com_ParseCommandLine( char *commandLine ) {
 
 	inq = 0;
 	com_consoleLines[0] = commandLine;
-	rconPassword2[0] = '\0';
 
 	while ( *commandLine ) {
 		if (*commandLine == '"') {
@@ -471,76 +467,6 @@ static void Com_ParseCommandLine( char *commandLine ) {
 	}
 	parsed = 1;
 }
-
-char cl_title[ MAX_CVAR_VALUE_STRING ] = CLIENT_WINDOW_TITLE;
-
-/*
-===================
-Com_EarlyParseCmdLine
-
-returns qtrue if both vid_xpos and vid_ypos was set
-===================
-*/
-qboolean Com_EarlyParseCmdLine( char *commandLine, char *con_title, int title_size, int *vid_xpos, int *vid_ypos )
-{
-	int		flags = 0;
-	int		i;
-
-	*con_title = '\0';
-	Com_ParseCommandLine( commandLine );
-
-	for ( i = 0 ; i < com_numConsoleLines ; i++ ) {
-		Cmd_TokenizeString( com_consoleLines[i] );
-		if ( !Q_stricmpn( Cmd_Argv(0), "set", 3 ) && !Q_stricmp( Cmd_Argv(1), "cl_title" ) ) {
-			com_consoleLines[i][0] = '\0';
-			Q_strncpyz( cl_title, Cmd_ArgsFrom( 2 ), sizeof(cl_title) );
-			continue;
-		}
-		if ( !Q_stricmp( Cmd_Argv(0), "cl_title" ) ) {
-			com_consoleLines[i][0] = '\0';
-			Q_strncpyz( cl_title, Cmd_ArgsFrom( 1 ), sizeof(cl_title) );
-			continue;
-		}
-		if ( !Q_stricmpn( Cmd_Argv(0), "set", 3 ) && !Q_stricmp( Cmd_Argv(1), "con_title" ) ) {
-			com_consoleLines[i][0] = '\0';
-			Q_strncpyz( con_title, Cmd_ArgsFrom( 2 ), title_size );
-			continue;
-		}
-		if ( !Q_stricmp( Cmd_Argv(0), "con_title" ) ) {
-			com_consoleLines[i][0] = '\0';
-			Q_strncpyz( con_title, Cmd_ArgsFrom( 1 ), title_size );
-			continue;
-		}
-		if ( !Q_stricmpn( Cmd_Argv(0), "set", 3 ) && !Q_stricmp( Cmd_Argv(1), "vid_xpos" ) ) {
-			*vid_xpos = atoi( Cmd_Argv( 2 ) );
-			flags |= 1;
-			continue;
-		}
-		if ( !Q_stricmp( Cmd_Argv(0), "vid_xpos" ) ) {
-			*vid_xpos = atoi( Cmd_Argv( 1 ) );
-			flags |= 1;
-			continue;
-		}
-		if ( !Q_stricmpn( Cmd_Argv(0), "set", 3 ) && !Q_stricmp( Cmd_Argv(1), "vid_ypos" ) ) {
-			*vid_ypos = atoi( Cmd_Argv( 2 ) );
-			flags |= 2;
-			continue;
-		}
-		if ( !Q_stricmp( Cmd_Argv(0), "vid_ypos" ) ) {
-			*vid_ypos = atoi( Cmd_Argv( 1 ) );
-			flags |= 2;
-			continue;
-		}
-		if ( !Q_stricmpn( Cmd_Argv(0), "set", 3 ) && !Q_stricmp( Cmd_Argv(1), "rconPassword2" ) ) {
-			com_consoleLines[i][0] = '\0';
-			Q_strncpyz( rconPassword2, Cmd_Argv( 2 ), sizeof( rconPassword2 ) );
-			continue;
-		}
-	}
-
-	return (flags == 3) ? qtrue : qfalse ;
-}
-
 
 /*
 ===================
@@ -3376,7 +3302,7 @@ void Com_Init( char *commandLine ) {
 	// get the initial time base
 	Sys_Milliseconds();
 
-	Com_Printf( "%s %s %s\n", SVN_VERSION, PLATFORM_STRING, __DATE__ );
+	Com_Printf( "%s %s %s\n", ENGINE_VERSION, PLATFORM_STRING, __DATE__ );
 
 	if ( Q_setjmp( abortframe ) ) {
 		Sys_Error ("Error during initialization");
@@ -3573,7 +3499,7 @@ void Com_Init( char *commandLine ) {
 	Cmd_SetCommandCompletionFunc( "writeconfig", Cmd_CompleteWriteCfgName );
 	Cmd_AddCommand( "game_restart", Com_GameRestart_f );
 
-	s = va( "%s %s %s", Q3_VERSION, PLATFORM_STRING, __DATE__ );
+	s = va( "%s %s %s", ENGINE_VERSION, PLATFORM_STRING, __DATE__ );
 	com_version = Cvar_Get( "version", s, CVAR_PROTECTED | CVAR_ROM | CVAR_SERVERINFO );
 	Cvar_SetDescription( com_version, "Read-only CVAR to see the version of the game." );
 

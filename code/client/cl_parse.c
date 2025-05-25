@@ -567,13 +567,6 @@ static void CL_ParseGamestate( msg_t *msg ) {
 	// parse serverId and other cvars
 	CL_SystemInfoChanged( qtrue );
 
-	// stop recording now so the demo won't have an unnecessary level load at the end.
-	if ( cl_autoRecordDemo->integer && clc.demorecording ) {
-		if ( !clc.demoplaying ) {
-			CL_StopRecord_f();
-		}
-	}
-
 	info = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
 	mapname = Info_ValueForKey( info, "mapname" );
 	Cbuf_AddText( "exec maps/default.cfg \n" );				//load default map script on client

@@ -1419,10 +1419,7 @@ static void RB_IterateStagesVBO( const shaderCommands_t *input )
 				qglEnable( GL_TEXTURE_2D );
 				R_BindAnimatedImage( &pStage->bundle[1] );
 				if ( fparm == NULL ) {
-					if ( r_lightmap->integer )
-						GL_TexEnv( GL_REPLACE );
-					else
-						GL_TexEnv( pStage->mtEnv );
+					GL_TexEnv( pStage->mtEnv );
 				}
 				VBO_RenderIndexes();
 				qglDisable( GL_TEXTURE_2D );
@@ -1525,7 +1522,7 @@ void RB_StageIteratorVBO( void )
 	if ( shader->polygonOffset )
 	{
 		qglEnable( GL_POLYGON_OFFSET_FILL );
-		qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value );
+		qglPolygonOffset( -1, -2 );
 	}
 
 	RB_IterateStagesVBO( input );

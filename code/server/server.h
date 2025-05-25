@@ -280,7 +280,6 @@ extern	cvar_t	*sv_lanForceRate;
 extern	cvar_t	*sv_anticheatengine;
 extern	cvar_t	*sv_ace_wallhack;
 
-extern	cvar_t *sv_levelTimeReset;
 extern	cvar_t *sv_filter;
 
 //===========================================================
@@ -411,9 +410,6 @@ void SV_LinkEntity( sharedEntity_t *ent );
 
 
 clipHandle_t SV_ClipHandleForEntity( const sharedEntity_t *ent );
-
-
-void SV_SectorList_f( void );
 
 
 int SV_AreaEntities( const vec3_t mins, const vec3_t maxs, int *entityList, int maxcount );

@@ -603,7 +603,6 @@ Q3REND1OBJ = \
   $(B)/rend1/tr_shade.o \
   $(B)/rend1/tr_shade_calc.o \
   $(B)/rend1/tr_shader.o \
-  $(B)/rend1/tr_shadows.o \
   $(B)/rend1/tr_sky.o \
   $(B)/rend1/tr_surface.o \
   $(B)/rend1/tr_vbo.o \

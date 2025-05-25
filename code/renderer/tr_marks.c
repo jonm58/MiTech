@@ -431,14 +431,12 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 				}
 			}
 		}
-		else if(*surfaces[i] == SF_TRIANGLES && r_marksOnTriangleMeshes->integer) {
+		else if(*surfaces[i] == SF_TRIANGLES) {
 
 			srfTriangles_t *surf = (srfTriangles_t *) surfaces[i];
 
-			for (k = 0; k < surf->numIndexes; k += 3)
-			{
-				for(j = 0; j < 3; j++)
-				{
+			for (k = 0; k < surf->numIndexes; k += 3) {
+				for(j = 0; j < 3; j++) {
 					v = surf->verts[surf->indexes[k + j]].xyz;
 					VectorMA(v, MARKER_OFFSET, surf->verts[surf->indexes[k + j]].normal, clipPoints[0][j]);
 				}

@@ -26,28 +26,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 cvar_t	*cl_noprint;
 cvar_t	*cl_debugMove;
-cvar_t	*cl_motd;
 
 cvar_t	*rcon_client_password;
 cvar_t	*rconAddress;
 
 cvar_t	*cl_timeout;
-cvar_t	*cl_autoNudge;
-cvar_t	*cl_timeNudge;
-cvar_t	*cl_showTimeDelta;
 
 cvar_t	*cl_shownet;
-cvar_t	*cl_autoRecordDemo;
-cvar_t	*cl_drawRecording;
 
 cvar_t	*cl_aviFrameRate;
 cvar_t	*cl_aviMotionJpeg;
-cvar_t	*cl_forceavidemo;
 cvar_t	*cl_aviPipeFormat;
 
 cvar_t	*cl_activeAction;
-
-cvar_t	*cl_motdString;
 
 cvar_t	*cl_allowDownload;
 cvar_t	*cl_conXOffset;
@@ -58,25 +49,11 @@ cvar_t	*cl_serverStatusResendTime;
 
 cvar_t	*cl_lanForcePackets;
 
-cvar_t	*cl_guidServerUniq;
-
-cvar_t	*cl_dlURL;
-cvar_t	*cl_dlDirectory;
-
 cvar_t	*cl_reconnectArgs;
-
-// common cvars for GLimp modules
-cvar_t	*vid_xpos;			// X coordinate of window position
-cvar_t	*vid_ypos;			// Y coordinate of window position
-cvar_t	*r_noborder;
 
 cvar_t *r_swapInterval;
 cvar_t *r_fullscreen;
-cvar_t *r_mode;
-cvar_t *r_modeFullscreen;
-cvar_t *r_customwidth;
-cvar_t *r_customheight;
-cvar_t *r_customPixelAspect;
+cvar_t *r_resolution;
 
 cvar_t *r_availableModes;
 
@@ -243,7 +220,6 @@ void CL_StopRecord_f( void ) {
 	}
 
 	clc.demorecording = qfalse;
-	clc.spDemoRecording = qfalse;
 }
 
 
@@ -516,9 +492,6 @@ static void CL_Record_f( void ) {
 	}
 
 	if ( clc.demorecording ) {
-		if ( !clc.spDemoRecording ) {
-			Com_Printf( "Already recording.\n" );
-		}
 		return;
 	}
 
@@ -560,12 +533,6 @@ static void CL_Record_f( void ) {
 	clc.demorecording = qtrue;
 
 	Com_TruncateLongString( clc.recordNameShort, clc.recordName );
-
-	if ( Cvar_VariableIntegerValue( "ui_recordSPDemo" ) ) {
-	  clc.spDemoRecording = qtrue;
-	} else {
-	  clc.spDemoRecording = qfalse;
-	}
 
 	// don't start saving messages until a non-delta compressed message is received
 	clc.demowaiting = qtrue;
@@ -1316,10 +1283,7 @@ static void CL_Connect_f( void ) {
 
 	Com_Printf( "%s resolved to %s\n", cls.servername, serverString );
 
-	if ( cl_guidServerUniq->integer )
-		CL_UpdateGUID( serverString, strlen( serverString ) );
-	else
-		CL_UpdateGUID( NULL, 0 );
+	CL_UpdateGUID( NULL, 0 );
 
 	// if we aren't playing on a lan, we need to authenticate
 	// with the cd key
@@ -1865,7 +1829,7 @@ static void CL_CheckForResend( void ) {
 
 		// for now - this will be used to inform server about q3msgboom fix
 		// this is optional key so will not trigger oversize warning
-		Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "client", Q3_VERSION );
+		Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "client", ENGINE_VERSION );
 
 		if ( !notOverflowed ) {
 			Com_Printf( S_COLOR_YELLOW "WARNING: oversize userinfo, you might be not able to join remote server!\n" );
@@ -1888,36 +1852,6 @@ static void CL_CheckForResend( void ) {
 		Com_Error( ERR_FATAL, "CL_CheckForResend: bad cls.state" );
 	}
 }
-
-
-/*
-===================
-CL_MotdPacket
-===================
-*/
-static void CL_MotdPacket( const netadr_t *from ) {
-	const char *challenge;
-	const char *info;
-
-	// if not from our server, ignore it
-	if ( !NET_CompareAdr( from, &cls.updateServer ) ) {
-		return;
-	}
-
-	info = Cmd_Argv(1);
-
-	// check challenge
-	challenge = Info_ValueForKey( info, "challenge" );
-	if ( strcmp( challenge, cls.updateChallenge ) ) {
-		return;
-	}
-
-	challenge = Info_ValueForKey( info, "motd" );
-
-	Q_strncpyz( cls.updateInfoString, info, sizeof( cls.updateInfoString ) );
-	Cvar_Set( "cl_motdString", challenge );
-}
-
 
 /*
 ===================
@@ -2251,18 +2185,6 @@ static qboolean CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		return fromserver;
 	}
 
-	// cd check
-	if ( !Q_stricmp(c, "keyAuthorize") ) {
-		// we don't use these now, so dump them on the floor
-		return qfalse;
-	}
-
-	// global MOTD from id
-	if ( !Q_stricmp(c, "motd") ) {
-		CL_MotdPacket( from );
-		return qfalse;
-	}
-
 	// print string from server
 	if ( !Q_stricmp(c, "print") ) {
 		// NOTE: we may have to add exceptions for auth and update servers
@@ -2471,7 +2393,7 @@ void CL_Frame( int msec, int realMsec ) {
 	// if recording an avi, lock to a fixed fps
 	if ( CL_VideoRecording() && msec ) {
 		// save the current screen
-		if ( cls.state == CA_ACTIVE || cl_forceavidemo->integer ) {
+		if ( cls.state == CA_ACTIVE ) {
 			float fps, frameDuration;
 
 			if ( com_timescale->value > 0.0001f )
@@ -2487,44 +2409,6 @@ void CL_Frame( int msec, int realMsec ) {
 			clc.aviVideoFrameRemainder = frameDuration - msec;
 
 			realMsec = msec; // sync sound duration
-		}
-	}
-
-	if ( cl_autoRecordDemo->integer && !clc.demoplaying ) {
-		if ( cls.state == CA_ACTIVE && !clc.demorecording ) {
-			// If not recording a demo, and we should be, start one
-			qtime_t	now;
-			const char	*nowString;
-			char		*p;
-			char		mapName[ MAX_QPATH ];
-			char		serverName[ MAX_OSPATH ];
-
-			Com_RealTime( &now );
-			nowString = va( "%04d%02d%02d%02d%02d%02d",
-					1900 + now.tm_year,
-					1 + now.tm_mon,
-					now.tm_mday,
-					now.tm_hour,
-					now.tm_min,
-					now.tm_sec );
-
-			Q_strncpyz( serverName, cls.servername, MAX_OSPATH );
-			// Replace the ":" in the address as it is not a valid
-			// file name character
-			p = strchr( serverName, ':' );
-			if ( p ) {
-				*p = '.';
-			}
-
-			Q_strncpyz( mapName, COM_SkipPath( cl.mapname ), sizeof( cl.mapname ) );
-			COM_StripExtension(mapName, mapName, sizeof(mapName));
-
-			Cbuf_ExecuteText( EXEC_NOW,
-					va( "record %s-%s-%s", nowString, serverName, mapName ) );
-		}
-		else if ( cls.state != CA_ACTIVE && clc.demorecording ) {
-			// Recording, but not CA_ACTIVE, so stop recording
-			CL_StopRecord_f();
 		}
 	}
 
@@ -2634,10 +2518,11 @@ static void CL_InitRenderer( void ) {
 	re.BeginRegistration( &cls.glconfig );
 
 	// load character sets
-	cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
-	cls.defaultFont[0] = re.RegisterShader( "gfx/2d/default_font" ); //32x32
-	cls.defaultFont[1] = re.RegisterShader( "gfx/2d/default_font1" ); //64x64
-	cls.defaultFont[2] = re.RegisterShader( "gfx/2d/default_font2" ); //128x128
+	cls.defaultFont[0] = re.RegisterShader( "default_font0" ); //256
+	cls.defaultFont[1] = re.RegisterShader( "default_font1" ); //512
+	cls.defaultFont[2] = re.RegisterShader( "default_font2" ); //1024
+	cls.defaultFont[3] = re.RegisterShader( "default_font3" ); //2048
+	cls.defaultFont[4] = re.RegisterShader( "default_font4" ); //4096
 	cls.whiteShader = re.RegisterShader( "white" );
 	cls.consoleShader = re.RegisterShader( "console" );
 
@@ -3370,9 +3255,10 @@ void WriteMD3(const char *name, const md3SurfaceData_t *surfaces, int numSurface
     Q_strncpyz(header.name, name, sizeof(header.name));
     
     md3Frame_t frame = {0};
-    VectorSet(frame.bounds[0], -25, -25, -25);
-    VectorSet(frame.bounds[1], 25, 25, 25);
-    frame.radius = 50.0f * OBJ_TO_MD3_SCALE;
+    VectorSet(frame.bounds[0], 25, 25, 25);
+    VectorSet(frame.bounds[1], -25, -25, -25);
+	VectorSet(frame.localOrigin, 0, 0, 0);
+    frame.radius = 50.0f;
     Q_strncpyz(frame.name, "default", sizeof(frame.name));
     
     FS_Write(&header, sizeof(header), f);
@@ -3494,79 +3380,35 @@ void CL_ConvertOBJ(void) {
     CL_StartConvertOBJ(name);
 }
 
-/*
-** CL_GetModeInfo
-*/
-typedef struct vidmode_s
-{
-	const char	*description;
-	int			width, height;
-	float		pixelAspect;		// pixel width / height
-} vidmode_t;
+qboolean CL_ParseResolution( const char *str, int *width, int *height ) {
+    if ( !str || !width || !height ) return qfalse;
 
-static const vidmode_t cl_vidModes[] =
-{
-	{ "Mode  0: 320x240",			320,	240,	1 },
-	{ "Mode  1: 400x300",			400,	300,	1 },
-	{ "Mode  2: 512x384",			512,	384,	1 },
-	{ "Mode  3: 640x480",			640,	480,	1 },
-	{ "Mode  4: 800x600",			800,	600,	1 },
-	{ "Mode  5: 960x720",			960,	720,	1 },
-	{ "Mode  6: 1024x768",			1024,	768,	1 },
-	{ "Mode  7: 1152x864",			1152,	864,	1 },
-	{ "Mode  8: 1280x1024 (5:4)",	1280,	1024,	1 },
-	{ "Mode  9: 1600x1200",			1600,	1200,	1 },
-	{ "Mode 10: 2048x1536",			2048,	1536,	1 },
-	{ "Mode 11: 856x480 (wide)",	856,	480,	1 },
-	// extra modes:
-	{ "Mode 12: 1280x960",			1280,	960,	1 },
-	{ "Mode 13: 1280x720",			1280,	720,	1 },
-	{ "Mode 14: 1280x800 (16:10)",	1280,	800,	1 },
-	{ "Mode 15: 1366x768",			1366,	768,	1 },
-	{ "Mode 16: 1440x900 (16:10)",	1440,	900,	1 },
-	{ "Mode 17: 1600x900",			1600,	900,	1 },
-	{ "Mode 18: 1680x1050 (16:10)",	1680,	1050,	1 },
-	{ "Mode 19: 1920x1080",			1920,	1080,	1 },
-	{ "Mode 20: 1920x1200 (16:10)",	1920,	1200,	1 },
-	{ "Mode 21: 2560x1080 (21:9)",	2560,	1080,	1 },
-	{ "Mode 22: 3440x1440 (21:9)",	3440,	1440,	1 },
-	{ "Mode 23: 3840x2160",			3840,	2160,	1 },
-	{ "Mode 24: 4096x2160 (4K)",	4096,	2160,	1 }
-};
-static const int s_numVidModes = ARRAY_LEN( cl_vidModes );
+    int w = 0, h = 0;
+    if ( sscanf( str, "%dx%d", &w, &h ) == 2 && w > 0 && h > 0 ) {
+        *width = w;
+        *height = h;
+		return qtrue;
+    }
+	return qfalse;
+}
 
-qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, int mode, const char *modeFS, int dw, int dh, qboolean fullscreen )
-{
-	const	vidmode_t *vm;
+qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, const char *resolution, int dw, int dh, int fullscreen ) {
 	float	pixelAspect;
 
-	// set dedicated fullscreen mode
-	if ( fullscreen && *modeFS )
-		mode = atoi( modeFS );
+	//fix unknown native desktop resolution
+	if ( fullscreen == 3 && (dw == 0 || dh == 0) )
+		resolution = "640x480";
 
-	if ( mode < -2 )
-		return qfalse;
-
-	if ( mode >= s_numVidModes )
-		return qfalse;
-
-	// fix unknown desktop resolution
-	if ( mode == -2 && (dw == 0 || dh == 0) )
-		mode = 3;
-
-	if ( mode == -2 ) { // desktop resolution
+	if ( fullscreen == 3 ) { //native desktop resolution
 		*width = dw;
 		*height = dh;
-		pixelAspect = r_customPixelAspect->value;
-	} else if ( mode == -1 ) { // custom resolution
-		*width = r_customwidth->integer;
-		*height = r_customheight->integer;
-		pixelAspect = r_customPixelAspect->value;
-	} else { // predefined resolution
-		vm = &cl_vidModes[ mode ];
-		*width  = vm->width;
-		*height = vm->height;
-		pixelAspect = vm->pixelAspect;
+		pixelAspect = 1;
+	} else { //custom resolution
+		if (!CL_ParseResolution(resolution, width, height)) {
+    		*width = 640;
+    		*height = 480;
+		}
+		pixelAspect = 1;
 	}
 
 	*windowAspect = (float)*width / ( *height * pixelAspect );
@@ -3574,56 +3416,14 @@ qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, int mode,
 	return qtrue;
 }
 
-
-/*
-** CL_ModeList_f
-*/
-static void CL_ModeList_f( void )
-{
-	int i;
-
-	Com_Printf( "\n" );
-	for ( i = 0; i < s_numVidModes; i++ )
-	{
-		Com_Printf( "%s\n", cl_vidModes[ i ].description );
-	}
-	Com_Printf( "\n" );
-}
-
-static void CL_InitGLimp_Cvars( void )
-{
+static void CL_InitGLimp_Cvars( void )  {
 	// shared with GLimp
 	r_swapInterval = Cvar_Get( "r_swapInterval", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( r_swapInterval, "V-blanks to wait before swapping buffers.\n 0: No V-Sync\n 1: Synced to the monitor's refresh rate." );
-
-	vid_xpos = Cvar_Get( "vid_xpos", "3", CVAR_ARCHIVE );
-	Cvar_CheckRange( vid_xpos, NULL, NULL, CV_INTEGER );
-	Cvar_SetDescription( vid_xpos, "Saves/sets window X-coordinate when windowed, requires \\vid_restart." );
-	vid_ypos = Cvar_Get( "vid_ypos", "22", CVAR_ARCHIVE );
-	Cvar_CheckRange( vid_ypos, NULL, NULL, CV_INTEGER );
-	Cvar_SetDescription( vid_ypos, "Saves/sets window Y-coordinate when windowed, requires \\vid_restart." );
-
-	r_noborder = Cvar_Get( "r_noborder", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_CheckRange( r_noborder, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( r_noborder, "Setting to 1 will remove window borders and title bar in windowed mode, hold ALT to drag & drop it with opened console." );
-
-	r_mode = Cvar_Get( "r_mode", "-2", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_CheckRange( r_mode, "-2", va( "%i", s_numVidModes-1 ), CV_INTEGER );
-	Cvar_SetDescription( r_mode, "Set video mode:\n -2 - use current desktop resolution\n -1 - use \\r_customWidth and \\r_customHeight\n  0..N - enter \\modelist for details" );
-	r_modeFullscreen = Cvar_Get( "r_modeFullscreen", "-2", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_SetDescription( r_modeFullscreen, "Dedicated fullscreen mode, set to \"\" to use \\r_mode in all cases." );
-
-	r_fullscreen = Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_SetDescription( r_fullscreen, "Fullscreen mode. Set to 0 for windowed mode." );
-	r_customPixelAspect = Cvar_Get( "r_customPixelAspect", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_SetDescription( r_customPixelAspect, "Enables custom aspect of the screen, with \\r_mode -1." );
-	r_customwidth = Cvar_Get( "r_customWidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_CheckRange( r_customwidth, "4", NULL, CV_INTEGER );
-	Cvar_SetDescription( r_customwidth, "Custom width to use with \\r_mode -1." );
-	r_customheight = Cvar_Get( "r_customHeight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_CheckRange( r_customheight, "4", NULL, CV_INTEGER );
-	Cvar_SetDescription( r_customheight, "Custom height to use with \\r_mode -1." );
-
+	r_resolution = Cvar_Get( "r_resolution", "640x480", CVAR_ARCHIVE | CVAR_LATCH );
+	Cvar_SetDescription( r_resolution, "Set resolution in [width]x[height] format" );
+	r_fullscreen = Cvar_Get( "r_fullscreen", "3", CVAR_ARCHIVE | CVAR_LATCH );
+	Cvar_SetDescription( r_fullscreen, "Fullscreen mode: \n 0 - windowed. \n 1 - borderless windowed. \n 2 - fullscreen. \n 3 - fullscreen native." );
 	r_availableModes = Cvar_Get( "r_availableModes", "0", CVAR_ROM );
 }
 
@@ -3634,7 +3434,6 @@ CL_Init
 ====================
 */
 void CL_Init( void ) {
-	const char *s;
 	cvar_t *cv;
 
 	Com_Printf( "----- Client Initialization -----\n" );
@@ -3655,41 +3454,23 @@ void CL_Init( void ) {
 	//
 	cl_noprint = Cvar_Get( "cl_noprint", "0", 0 );
 	Cvar_SetDescription( cl_noprint, "Disable printing of information in the console." );
-	cl_motd = Cvar_Get( "cl_motd", "1", 0 );
-	Cvar_SetDescription( cl_motd, "Toggle the display of the 'Message of the day'. When Quake 3 Arena starts a map up, it sends the GL_RENDERER string to the Message Of The Day server at id. This responds back with a message of the day to the client." );
 
 	cl_timeout = Cvar_Get( "cl_timeout", "200", 0 );
 	Cvar_CheckRange( cl_timeout, "5", NULL, CV_INTEGER );
 	Cvar_SetDescription( cl_timeout, "Duration of receiving nothing from server for client to decide it must be disconnected (in seconds)." );
 
-	cl_autoNudge = Cvar_Get( "cl_autoNudge", "0", CVAR_TEMP );
-	Cvar_CheckRange( cl_autoNudge, "0", "1", CV_FLOAT );
-	Cvar_SetDescription( cl_autoNudge, "Automatic time nudge that uses your average ping as the time nudge, values:\n  0 - use fixed \\cl_timeNudge\n (0..1] - factor of median average ping to use as timenudge\n" );
-	cl_timeNudge = Cvar_Get( "cl_timeNudge", "0", CVAR_TEMP );
-	Cvar_CheckRange( cl_timeNudge, "-30", "30", CV_INTEGER );
-	Cvar_SetDescription( cl_timeNudge, "Allows more or less latency to be added in the interest of better smoothness or better responsiveness." );
-
 	cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
 	Cvar_SetDescription( cl_shownet, "Toggle the display of current network status." );
-	cl_showTimeDelta = Cvar_Get ("cl_showTimeDelta", "0", CVAR_TEMP );
-	Cvar_SetDescription( cl_showTimeDelta, "Prints the time delta of each packet to the console (the time delta between server updates)." );
 	rcon_client_password = Cvar_Get ("rconPassword", "", CVAR_TEMP );
 	Cvar_SetDescription( rcon_client_password, "Sets a remote console password so clients may change server settings without direct access to the server console." );
 	cl_activeAction = Cvar_Get( "activeAction", "", CVAR_TEMP );
 	Cvar_SetDescription( cl_activeAction, "Contents of this variable will be executed upon first frame of play.\nNote: It is cleared every time it is executed." );
-
-	cl_autoRecordDemo = Cvar_Get ("cl_autoRecordDemo", "0", CVAR_ARCHIVE);
-	Cvar_SetDescription( cl_autoRecordDemo, "Auto-record demos when starting or joining a game." );
-	cl_drawRecording = Cvar_Get("cl_drawRecording", "1", CVAR_ARCHIVE);
-	Cvar_SetDescription( cl_drawRecording, "Hide (0) or shorten (1) \"RECORDING\" HUD message when recording demo." );
 
 	cl_aviFrameRate = Cvar_Get ("cl_aviFrameRate", "25", CVAR_ARCHIVE);
 	Cvar_CheckRange( cl_aviFrameRate, "1", "1000", CV_INTEGER );
 	Cvar_SetDescription( cl_aviFrameRate, "The framerate used for capturing video." );
 	cl_aviMotionJpeg = Cvar_Get ("cl_aviMotionJpeg", "1", CVAR_ARCHIVE);
 	Cvar_SetDescription( cl_aviMotionJpeg, "Enable/disable the MJPEG codec for avi output." );
-	cl_forceavidemo = Cvar_Get ("cl_forceavidemo", "0", 0);
-	Cvar_SetDescription( cl_forceavidemo, "Forces all demo recording into a sequence of screenshots in TGA format." );
 
 	cl_aviPipeFormat = Cvar_Get( "cl_aviPipeFormat",
 		"-preset medium -crf 23 -c:v libx264 -flags +cgop -pix_fmt yuvj420p "
@@ -3719,32 +3500,12 @@ void CL_Init( void ) {
 	cl_serverStatusResendTime = Cvar_Get ("cl_serverStatusResendTime", "750", 0);
 	Cvar_SetDescription( cl_serverStatusResendTime, "Time between re-sending server status requests if no response is received (in milliseconds)." );
 
-	// init cg_autoswitch so the ui will have it correctly even
-	// if the cgame hasn't been started
-	Cvar_Get ("cg_autoswitch", "1", CVAR_ARCHIVE);
-
-	cl_motdString = Cvar_Get( "cl_motdString", "", CVAR_ROM );
-	Cvar_SetDescription( cl_motdString, "Message of the day string from id's master server, it is a read only variable." );
-
-	cv = Cvar_Get( "cl_maxPing", "800", CVAR_ARCHIVE_ND );
+	cv = Cvar_Get( "cl_maxPing", "999", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( cv, "100", "999", CV_INTEGER );
 	Cvar_SetDescription( cv, "Specify the maximum allowed ping to a server." );
 
 	cl_lanForcePackets = Cvar_Get( "cl_lanForcePackets", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_lanForcePackets, "Bypass \\cl_maxpackets for LAN games, send packets every frame." );
-
-	cl_guidServerUniq = Cvar_Get( "cl_guidServerUniq", "0", CVAR_ARCHIVE_ND );
-	Cvar_SetDescription( cl_guidServerUniq, "Makes cl_guid unique for each server." );
-
-	cl_dlURL = Cvar_Get( "cl_dlURL", "http://ws.q3df.org/maps/downloads/%1", CVAR_ARCHIVE_ND );
-	Cvar_SetDescription( cl_dlURL, "Cvar must point to download location." );
-
-	cl_dlDirectory = Cvar_Get( "cl_dlDirectory", "0", CVAR_ARCHIVE_ND );
-	Cvar_CheckRange( cl_dlDirectory, "0", "1", CV_INTEGER );
-	s = va( "Save downloads initiated by \\dlmap and \\download commands in:\n"
-		" 0 - current game directory\n"
-		" 1 - basegame (%s) directory\n", FS_GetBaseGameDir() );
-	Cvar_SetDescription( cl_dlDirectory, s );
 
 	cl_reconnectArgs = Cvar_Get( "cl_reconnectArgs", "", CVAR_ARCHIVE_ND | CVAR_NOTABCOMPLETE );
 
@@ -3797,8 +3558,6 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("stopvideo", CL_StopVideo_f );
 	Cmd_AddCommand ("serverinfo", CL_Serverinfo_f );
 	Cmd_AddCommand ("systeminfo", CL_Systeminfo_f );
-
-	Cmd_AddCommand( "modelist", CL_ModeList_f );
 
 	Cmd_AddCommand( "importOBJ", CL_ConvertOBJ );
 

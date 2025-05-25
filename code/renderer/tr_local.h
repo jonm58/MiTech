@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define MAX_TEXTURE_SIZE	2048 // must be less or equal to 32768
 
-#define USE_TESS_NEEDS_NORMAL
+//#define USE_TESS_NEEDS_NORMAL
 //#define USE_TESS_NEEDS_ST2
 
 #include "../qcommon/q_shared.h"
@@ -42,7 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 typedef uint32_t glIndex_t;
 
-#define	REFENTITYNUM_BITS	16	// as we actually using only 1 bit for dlight mask in opengl1 renderer
+#define	REFENTITYNUM_BITS	13	// as we actually using only 1 bit for dlight mask in opengl1 renderer
 #define	REFENTITYNUM_MASK	((1<<REFENTITYNUM_BITS) - 1)
 // the last N-bit number (2^REFENTITYNUM_BITS - 1) is reserved for the special world refentity,
 //  and this is reflected by the value of MAX_REFENTITIES (which therefore is not a power-of-2)
@@ -51,7 +51,7 @@ typedef uint32_t glIndex_t;
 // 14 bits
 // can't be increased without changing bit packing for drawsurfs
 // see QSORT_SHADERNUM_SHIFT
-#define SHADERNUM_BITS	11
+#define SHADERNUM_BITS	14
 #define MAX_SHADERS		(1<<SHADERNUM_BITS)
 #define SHADERNUM_MASK	(MAX_SHADERS-1)
 
@@ -60,12 +60,12 @@ typedef struct dlight_s {
 	vec3_t	origin2;
 	vec3_t	dir;		// origin2 - origin
 
-	vec3_t	color;				// range from 0.0 to 1.0, should be color normalized
+	vec3_t	color;		// range from 0.0 to 1.0, should be color normalized
 	float	radius;
 
-	vec3_t	transformed;		// origin in local coordinate system
-	vec3_t	transformed2;		// origin2 in local coordinate system
-	int		additive;			// texture detail is lost tho when the lightmap is dark
+	vec3_t	transformed;	// origin in local coordinate system
+	vec3_t	transformed2;	// origin2 in local coordinate system
+	int		additive;		// texture detail is lost tho when the lightmap is dark
 	qboolean linear;
 	struct litSurf_s	*head;
 	struct litSurf_s	*tail;
@@ -83,7 +83,6 @@ typedef struct {
 	vec3_t		ambientLight;	// color normalized to 0-255
 	int			ambientLightInt;	// 32 bit rgba packed
 	vec3_t		directedLight;
-	vec3_t		shadowLightDir;	// normalized direction towards light
 	qboolean	intShaderTime;
 } trRefEntity_t;
 
@@ -147,7 +146,6 @@ typedef enum {
 	DEFORM_NORMALS,
 	DEFORM_BULGE,
 	DEFORM_MOVE,
-	DEFORM_PROJECTION_SHADOW,
 	DEFORM_AUTOSPRITE,
 	DEFORM_AUTOSPRITE2,
 	DEFORM_TEXT0,
@@ -1002,8 +1000,6 @@ typedef struct {
 	shader_t				*defaultShader;
 	shader_t				*whiteShader;
 	shader_t				*cinematicShader;
-	shader_t				*shadowShader;
-	shader_t				*projectionShadowShader;
 
 	shader_t				*sunShader;
 
@@ -1088,25 +1084,14 @@ extern	qboolean			superSampled;
 //
 // cvars
 //
-
-extern cvar_t	*r_railWidth;
-extern cvar_t	*r_railCoreWidth;
-extern cvar_t	*r_railSegmentLength;
-
 extern cvar_t	*r_znear;				// near Z clip plane
 extern cvar_t	*r_zproj;				// z distance of projection plane
 
 extern cvar_t	*r_lodbias;				// push/pull LOD transitions
-extern cvar_t	*r_lodscale;
 
 extern cvar_t	*r_fastsky;				// controls whether sky should be cleared or drawn
 extern cvar_t	*r_mergeLightmaps;
 extern cvar_t	*r_dlightMode;			// 0 - vq3, 1 - pmlight
-extern cvar_t	*r_dlightSpecPower;		// 1 - 32
-extern cvar_t	*r_dlightSpecColor;		// -1.0 - 1.0
-extern cvar_t	*r_dlightScale;			// 0.1 - 1.0
-extern cvar_t	*r_dlightIntensity;		// 0.1 - 1.0
-extern cvar_t	*r_dlightSaturation;	// 0.0 - 1.0
 extern cvar_t	*r_hdr;
 extern cvar_t	*r_bloom_threshold;
 extern cvar_t	*r_bloom_threshold_mode;
@@ -1117,55 +1102,26 @@ extern cvar_t	*r_bloom_intensity;
 extern cvar_t	*r_bloom_filter_size;
 extern cvar_t	*r_bloom_reflection;
 
-extern cvar_t	*r_renderWidth;
-extern cvar_t	*r_renderHeight;
-extern cvar_t	*r_renderScale;
-
-extern cvar_t	*r_dlightBacks;			// dlight non-facing surfaces for continuity
-
-extern	cvar_t	*r_norefresh;			// bypasses the ref rendering
 extern	cvar_t	*r_drawentities;		// disable/enable entity rendering
 extern	cvar_t	*r_drawworld;			// disable/enable world rendering
 extern	cvar_t	*r_speeds;				// various levels of information display
-extern  cvar_t	*r_detailTextures;		// enables/disables detail texturing stages
-extern	cvar_t	*r_novis;				// disable/enable usage of PVS
 extern	cvar_t	*r_nocull;
-extern	cvar_t	*r_facePlaneCull;		// enables culling of planar surfaces with back side test
-extern	cvar_t	*r_nocurves;
-extern	cvar_t	*r_showcluster;
 
 extern cvar_t	*r_gamma;
 
-extern	cvar_t	*r_nobind;						// turns off binding to appropriate textures
-extern	cvar_t	*r_singleShader;				// make most world faces use default shader
-extern	cvar_t	*r_roundImagesDown;
 extern	cvar_t	*r_colorMipLevels;				// development aid to see texture mip usage
 extern	cvar_t	*r_picmip;						// controls picmip values
 extern	cvar_t	*r_nomip;						// apply picmip only on worldspawn textures
-extern	cvar_t	*r_finish;
 extern	cvar_t	*r_textureMode;
-extern	cvar_t	*r_offsetFactor;
-extern	cvar_t	*r_offsetUnits;
-
-extern	cvar_t	*r_fullbright;					// avoid lightmap pass
-extern	cvar_t	*r_lightmap;					// render lightmaps only
 
 extern	cvar_t	*r_showtris;					// enables wireframe rendering of the world
 extern	cvar_t	*r_showsky;						// forces sky in front of all surfaces
-extern	cvar_t	*r_shownormals;					// draws wireframe normals
-extern	cvar_t	*r_clear;						// force screen clear every frame
-
-extern	cvar_t	*r_shadows;						// controls shadows: 0 = none, 1 = blur, 2 = stencil, 3 = black planar projection
-
-extern	cvar_t	*r_intensity;
 
 extern	cvar_t	*r_lockpvs;
 extern	cvar_t	*r_noportals;
-extern	cvar_t	*r_portalOnly;
 
 extern	cvar_t	*r_subdivisions;
 extern	cvar_t	*r_lodCurveError;
-extern	cvar_t	*r_skipBackEnd;
 
 //postFX
 extern	cvar_t	*r_postfx;
@@ -1191,22 +1147,7 @@ extern	cvar_t	*r_fx_chameleon;
 extern	cvar_t	*r_fx_ambientlight;
 extern	cvar_t	*r_fx_blur;
 
-extern	cvar_t	*r_recurseLimit;
-
 extern	cvar_t	*r_ignoreGLErrors;
-
-extern	cvar_t	*r_mapGreyScale;
-
-extern	cvar_t	*r_debugSurface;
-extern	cvar_t	*r_simpleMipMaps;
-
-extern	cvar_t	*r_showImages;
-extern	cvar_t	*r_defaultImage;
-extern	cvar_t	*r_debugSort;
-
-extern	cvar_t	*r_printShaders;
-
-extern cvar_t	*r_marksOnTriangleMeshes;
 
 //====================================================================
 
@@ -1478,18 +1419,6 @@ void FBO_BlitSS( void );
 qboolean FBO_Bloom( const float gamma, const float obScale, qboolean finalPass );
 void FBO_CopyScreen( void );
 GLuint FBO_ScreenTexture( void );
-
-/*
-============================================================
-
-SHADOWS
-
-============================================================
-*/
-
-void RB_ShadowTessEnd( void );
-void RB_ShadowFinish( void );
-void RB_ProjectionShadowDeform( void );
 
 /*
 ============================================================
@@ -1825,8 +1754,6 @@ extern const char *fogInVPCode;
 
 qboolean ARB_CompileProgram( programType ptype, const char *text, GLuint program );
 void ARB_ProgramEnableExt( GLuint vertexProgram, GLuint fragmentProgram );
-
-void QGL_SetRenderScale( qboolean verbose );
 
 int R_GetLightmapCoords( const int lightmapIndex, float *x, float *y );
 

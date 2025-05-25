@@ -820,8 +820,6 @@ static int Sys_ParseArgs( int argc, const char* argv[] ) {
 
 
 int main( int argc, const char* argv[] ) {
-	char con_title[ MAX_CVAR_VALUE_STRING ];
-	int xpos, ypos;
 	char  *cmdline;
 	int   len, i;
 	tty_err	err;
@@ -853,8 +851,6 @@ int main( int argc, const char* argv[] ) {
 			strcat( cmdline, " " );
 		strcat( cmdline, argv[i] );
 	}
-
-	Com_EarlyParseCmdLine( cmdline, con_title, sizeof( con_title ), &xpos, &ypos );
 
 	Com_Init( cmdline );
 

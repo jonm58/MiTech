@@ -188,7 +188,7 @@ void GLW_DetectDisplayModes( int display ) {
 GLimp_SetMode
 ===============
 */
-static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
+static int GLW_SetMode( const char *resolution, int fullscreen ) {
 	glconfig_t *config = glw_state.config;
 	int perChannelColorBits;
 	int colorBits[3], depthBits, stencilBits;
@@ -214,8 +214,8 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 			Com_DPrintf( "SDL_GetWindowDisplayIndex() failed: %s\n", SDL_GetError() );
 		}
 	} else {
-		x = vid_xpos->integer;
-		y = vid_ypos->integer;
+		x = 0;
+		y = 0;
 		display = FindNearestDisplay( &x, &y, 640, 480 );
 	}
 
@@ -229,13 +229,18 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 
 	GLW_DetectDisplayModes(display);
 
-	config->isFullscreen = fullscreen;
-	glw_state.isFullscreen = fullscreen;
+	if(fullscreen >= 2){
+		config->isFullscreen = qtrue;
+		glw_state.isFullscreen = qtrue;
+	} else {
+		config->isFullscreen = qfalse;
+		glw_state.isFullscreen = qfalse;
+	}
 
-	Com_Printf( "...setting mode %d:", mode );
+	Com_Printf( "...setting resolution %s:", resolution );
 
-	if ( !CL_GetModeInfo( &config->vidWidth, &config->vidHeight, &config->windowAspect, mode, modeFS, glw_state.desktop_width, glw_state.desktop_height, fullscreen ) ) {
-		Com_Printf( " invalid mode\n" );
+	if ( !CL_GetModeInfo( &config->vidWidth, &config->vidHeight, &config->windowAspect, resolution, glw_state.desktop_width, glw_state.desktop_height, fullscreen ) ) {
+		Com_Printf( " invalid resolution\n" );
 		return RSERR_INVALID_MODE;
 	}
 
@@ -257,13 +262,13 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 	gw_active = qfalse;
 	gw_minimized = qtrue;
 
-	if ( fullscreen ) {
+	if ( fullscreen >= 2 ) {
 #ifdef MACOS_X
 		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 #else
 		flags |= SDL_WINDOW_FULLSCREEN;
 #endif
-	} else if ( r_noborder->integer ) {
+	} else if ( r_fullscreen->integer == 1 ) {
 		flags |= SDL_WINDOW_BORDERLESS;
 	}
 
@@ -283,12 +288,12 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 #endif
 
-	if ( ( SDL_window = SDL_CreateWindow( cl_title, x, y, config->vidWidth, config->vidHeight, flags ) ) == NULL ) {
+	if ( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y, config->vidWidth, config->vidHeight, flags ) ) == NULL ) {
 		Com_DPrintf( "SDL_CreateWindow failed: %s\n", SDL_GetError() );
 		return RSERR_FATAL_ERROR;
 	}
 
-	if ( fullscreen ) {
+	if ( fullscreen >= 2 ) {
 		SDL_DisplayMode mode;
 
 		mode.w = config->vidWidth;
@@ -337,7 +342,7 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 		return RSERR_INVALID_MODE;
 	}
 
-	if ( !fullscreen && r_noborder->integer )
+	if ( r_fullscreen->integer == 1 )
 		SDL_SetWindowHitTest( SDL_window, SDL_HitTestFunc, NULL );
 
 #ifdef USE_VULKAN_API
@@ -361,14 +366,14 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen ) {
 GLimp_StartDriverAndSetMode
 ===============
 */
-static rserr_t GLimp_StartDriverAndSetMode( int mode, const char *modeFS, qboolean fullscreen, qboolean vulkan ) {
+static rserr_t GLimp_StartDriverAndSetMode( const char *resolution, int fullscreen, qboolean vulkan ) {
 	rserr_t err;
 
-	if ( fullscreen && in_nograb->integer ) {
+	if ( fullscreen >= 2 && in_nograb->integer ) {
 		Com_Printf( "Fullscreen not allowed with \\in_nograb 1\n");
 		Cvar_Set( "r_fullscreen", "0" );
 		r_fullscreen->modified = qfalse;
-		fullscreen = qfalse;
+		fullscreen = 0;
 	}
 
 	if ( !SDL_WasInit( SDL_INIT_VIDEO ) ) {
@@ -384,14 +389,14 @@ static rserr_t GLimp_StartDriverAndSetMode( int mode, const char *modeFS, qboole
 		Com_Printf( "SDL using driver \"%s\"\n", driverName );
 	}
 
-	err = GLW_SetMode( mode, modeFS, fullscreen );
+	err = GLW_SetMode( resolution, fullscreen );
 
 	switch ( err ) {
 		case RSERR_INVALID_FULLSCREEN:
-			Com_Printf( "...WARNING: fullscreen unavailable in this mode\n" );
+			Com_Printf( "...WARNING: fullscreen unavailable in this resolution\n" );
 			return err;
 		case RSERR_INVALID_MODE:
-			Com_Printf( "...WARNING: could not set the given mode (%d)\n", mode );
+			Com_Printf( "...WARNING: could not set the given resolution (%s)\n", resolution );
 			return err;
 		default:
 			break;
@@ -425,20 +430,18 @@ void GLimp_Init( glconfig_t *config ) {
 	r_swapInterval = Cvar_Get( "r_swapInterval", "0", CVAR_ARCHIVE | CVAR_LATCH );
 
 	// Create the window and set up the context
-	err = GLimp_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_fullscreen->integer, qfalse );
+	err = GLimp_StartDriverAndSetMode( r_resolution->string, r_fullscreen->integer, qfalse );
 	if ( err != RSERR_OK ) {
 		if ( err == RSERR_FATAL_ERROR ) {
 			Com_Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem" );
 			return;
 		}
 
-		if ( r_mode->integer != 3 || ( r_fullscreen->integer && atoi( r_modeFullscreen->string ) != 3 ) ) {
-			Com_Printf( "Setting \\r_mode %d failed, falling back on \\r_mode %d\n", r_mode->integer, 3 );
-			if ( GLimp_StartDriverAndSetMode( 3, "", r_fullscreen->integer, qfalse ) != RSERR_OK ) {
-				// Nothing worked, give up
-				Com_Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem" );
-				return;
-			}
+		Com_Printf( "Setting resolution %s failed, falling back on 640x480\n", r_resolution->string );
+		if ( GLimp_StartDriverAndSetMode( "640x480", r_fullscreen->integer, qfalse ) != RSERR_OK ) {
+			// Nothing worked, give up
+			Com_Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem" );
+			return;
 		}
 	}
 
@@ -499,16 +502,16 @@ void VKimp_Init( glconfig_t *config ) {
 	glw_state.config = config;
 
 	// Create the window and set up the context
-	err = GLimp_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_fullscreen->integer, qtrue /* Vulkan */ );
+	err = GLimp_StartDriverAndSetMode( r_resolution->string, r_fullscreen->integer, qtrue /* Vulkan */ );
 	if ( err != RSERR_OK ){
 		if ( err == RSERR_FATAL_ERROR ){
 			Com_Error( ERR_FATAL, "VKimp_Init() - could not load Vulkan subsystem" );
 			return;
 		}
 
-		Com_Printf( "Setting r_mode %d failed, falling back on r_mode %d\n", r_mode->integer, 3 );
+		Com_Printf( "Setting resolution %s failed, falling back on 640x480\n", r_resolution->string );
 
-		err = GLimp_StartDriverAndSetMode( 3, "", r_fullscreen->integer, qtrue /* Vulkan */ );
+		err = GLimp_StartDriverAndSetMode( "640x480", r_fullscreen->integer, qtrue /* Vulkan */ );
 		if( err != RSERR_OK ){
 			// Nothing worked, give up
 			Com_Error( ERR_FATAL, "VKimp_Init() - could not load Vulkan subsystem" );

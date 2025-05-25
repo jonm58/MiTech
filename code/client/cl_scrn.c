@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static qboolean	scr_initialized;		// ready to draw
 
 cvar_t		*cl_timegraph;
-static cvar_t		*cl_debuggraph;
 static cvar_t		*cl_graphheight;
 static cvar_t		*cl_graphscale;
 static cvar_t		*cl_graphshift;
@@ -47,7 +46,6 @@ void SCR_DrawNamedPic( float x, float y, float width, float height, const char *
 	SCR_AdjustFrom640( &x, &y, &width, &height );
 	re.DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
-
 
 /*
 ================
@@ -79,6 +77,25 @@ void SCR_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 
 /*
 ================
+SCR_AdjustFrom640
+
+Select a font resolution from font size
+================
+*/
+int SCR_GetFontRes(float fontSize) {
+	float	fontScale;
+
+	fontScale = cls.glconfig.vidHeight / 480.0;
+
+    if (fontSize*fontScale > 128) return 4;	//4096
+    if (fontSize*fontScale > 64)  return 3;	//2048
+    if (fontSize*fontScale > 32)  return 2;	//1024
+    if (fontSize*fontScale > 16)  return 1;	//512
+    return 0; //256 default
+}
+
+/*
+================
 SCR_FillRect
 
 Coordinates are 640*480 virtual values
@@ -93,7 +110,6 @@ void SCR_FillRect( float x, float y, float width, float height, const float *col
 	re.SetColor( NULL );
 }
 
-
 /*
 ================
 SCR_DrawPic
@@ -106,24 +122,15 @@ void SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader
 	re.DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
-
 /*
 ** SCR_DrawChar
 ** chars are drawn at 640*480 virtual screen size
 */
-static void SCR_DrawChar( int x, int y, float size, int ch ) {
-	int row, col;
-	float frow, fcol;
+static void SCR_DrawChar( int x, int y, float fontSize, int ch ) {
+	int 	row, col;
+	float 	frow, fcol;
 	float	ax, ay, aw, ah;
-	int		q;
-
-	q = 0;
-	if(size > 16){
-	q = 1;	
-	}
-	if(size > 32){
-	q = 2;	
-	}
+	int		fontRes = SCR_GetFontRes(fontSize);
 
 	ch &= 255;
 
@@ -131,19 +138,14 @@ static void SCR_DrawChar( int x, int y, float size, int ch ) {
 		return;
 	}
 
-	if ( y < -size ) {
+	if ( y < -fontSize ) {
 		return;
-	}
-
-	// Unicode Russian support
-	if (ch > 0x80) {
-		ch += 48;
 	}
 
 	ax = x;
 	ay = y;
-	aw = size;
-	ah = size;
+	aw = fontSize;
+	ah = fontSize;
 	SCR_AdjustFrom640( &ax, &ay, &aw, &ah );
 
 	row = ch>>4;
@@ -151,12 +153,9 @@ static void SCR_DrawChar( int x, int y, float size, int ch ) {
 
 	frow = row*0.0625;
 	fcol = col*0.0625;
-	size = 0.0625;
+	fontSize = 0.0625;
 
-	re.DrawStretchPic( ax, ay, aw, ah,
-					   fcol, frow, 
-					   fcol + size, frow + size, 
-					   cls.defaultFont[q] );
+	re.DrawStretchPic( ax, ay, aw, ah, fcol, frow, fcol + fontSize, frow + fontSize, cls.defaultFont[fontRes] );
 }
 
 
@@ -179,11 +178,6 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 		return;
 	}
 
-	// Unicode Russian support
-	if (ch > 0x80) {
-		ch += 48;
-	}
-
 	row = ch>>4;
 	col = ch&15;
 
@@ -196,7 +190,6 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 					   fcol + size, frow + size, 
 					   cls.defaultFont[0] );
 }
-
 
 /*
 ** SCR_DrawSmallString
@@ -240,8 +233,7 @@ to a fixed color.
 Coordinates are at 640 by 480 virtual resolution
 ==================
 */
-void SCR_DrawStringExt( int x, int y, float size, const char *string, const float *setColor, qboolean forceColor,
-		qboolean noColorEscape ) {
+void SCR_DrawStringExt( int x, int y, float size, const char *string, const float *setColor, qboolean forceColor, qboolean noColorEscape ) {
 	vec4_t		color;
 	const char	*s;
 	int			xx;
@@ -381,19 +373,11 @@ static void SCR_DrawDemoRecording( void ) {
 	if ( !clc.demorecording ) {
 		return;
 	}
-	if ( clc.spDemoRecording ) {
-		return;
-	}
-
+	
 	pos = FS_FTell( clc.recordfile );
 
-	if (cl_drawRecording->integer == 1) {
-		sprintf(string, "RECORDING %s: %ik", clc.recordNameShort, pos / 1024);
-		SCR_DrawStringExt(320 - strlen(string) * 4, 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
-	} else if (cl_drawRecording->integer == 2) {
-		sprintf(string, "RECORDING: %ik", pos / 1024);
-		SCR_DrawStringExt(320 - strlen(string) * 4, 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
-	}
+	sprintf(string, "RECORDING: %ik", pos / 1024);
+	SCR_DrawStringExt(320 - strlen(string) * 4, 32, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
 }
 
 /*
@@ -462,7 +446,6 @@ SCR_Init
 */
 void SCR_Init( void ) {
 	cl_timegraph = Cvar_Get ("timegraph", "0", CVAR_CHEAT);
-	cl_debuggraph = Cvar_Get ("debuggraph", "0", CVAR_CHEAT);
 	cl_graphheight = Cvar_Get ("graphheight", "32", CVAR_CHEAT);
 	cl_graphscale = Cvar_Get ("graphscale", "1", CVAR_CHEAT);
 	cl_graphshift = Cvar_Get ("graphshift", "0", CVAR_CHEAT);
@@ -561,7 +544,7 @@ static void SCR_DrawScreenField( void ) {
 	Con_DrawConsole ();
 
 	// debug graph can be drawn on top of anything
-	if ( cl_debuggraph->integer || cl_timegraph->integer || cl_debugMove->integer ) {
+	if ( cl_timegraph->integer || cl_debugMove->integer ) {
 		SCR_DrawDebugGraph ();
 	}
 }
