@@ -276,7 +276,7 @@ typedef struct {
 } texModInfo_t;
 
 
-#define MAX_IMAGE_ANIMATIONS		24
+#define MAX_IMAGE_ANIMATIONS		96
 
 #define LIGHTMAP_INDEX_NONE			0
 #define LIGHTMAP_INDEX_SHADER		1
@@ -1629,8 +1629,8 @@ typedef enum {
 // these are sort of arbitrary limits.
 // the limits apply to the sum of all scenes in a frame --
 // the main view, all the 3D icons, etc
-#define	MAX_POLYS		65536
-#define	MAX_POLYVERTS	65536*2
+#define	MAX_POLYS		1024
+#define	MAX_POLYVERTS	2048
 
 // all of the information needed by the back end must be
 // contained in a backEndData_t

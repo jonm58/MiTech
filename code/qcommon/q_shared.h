@@ -1439,9 +1439,9 @@ typedef enum _flag_status {
 
 
 #define	MAX_GLOBAL_SERVERS				4096
-#define	MAX_OTHER_SERVERS					128
-#define MAX_PINGREQUESTS					32
-#define MAX_SERVERSTATUSREQUESTS	16
+#define	MAX_OTHER_SERVERS				128
+#define MAX_PINGREQUESTS				32
+#define MAX_SERVERSTATUSREQUESTS		16
 
 #define SAY_ALL		0
 #define SAY_TEAM	1
