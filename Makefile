@@ -996,6 +996,9 @@ ifeq ($(QVM_RUNTIME_COMPILE),1)
   ifeq ($(ARCH),aarch64)
     Q3DOBJ += $(B)/ded/vm_aarch64.o
   endif
+  ifeq ($(ARCH),arm64)
+    Q3DOBJ += $(B)/ded/vm_aarch64.o
+  endif
 endif
 
 $(B)/$(TARGET_SERVER): $(Q3DOBJ)
