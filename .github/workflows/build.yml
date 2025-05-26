@@ -69,11 +69,7 @@ jobs:
           - btype: Release
             rule: install
 
-          - arch: x86
-            use_sdl: USE_SDL=0
-
           - arch: x86_64
-            use_sdl: USE_SDL=1
 
     steps:
 
@@ -89,7 +85,7 @@ jobs:
     - name: Build
       if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip in Release builds
       run: |
-        make ${{ matrix.rule }} -j 8 ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin ${{ matrix.use_sdl }} RENDERER_DEFAULT=opengl
+        make ${{ matrix.rule }} -j 8 ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin RENDERER_DEFAULT=opengl
 
     - uses: actions/upload-artifact@v4
       if: matrix.cc == 'gcc' && matrix.btype == 'release'
@@ -142,9 +138,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - artifact_dir: linux-x86
-            artifact_name: sandbox_linux-x86.zip
-
           - artifact_dir: linux-x86_64
             artifact_name: sandbox_linux-x86_64.zip
 
