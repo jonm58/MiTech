@@ -381,7 +381,7 @@ clients along with it.
 This is NOT called for map_restart
 ================
 */
-void SV_SpawnServer( const char *mapname, qboolean killBots ) {
+void SV_SpawnServer( const char *mapname ) {
 	int			i;
 	int			checksum;
 	qboolean	isBot;
@@ -514,10 +514,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			const char *denied;
 
 			if ( svs.clients[i].netchan.remoteAddress.type == NA_BOT ) {
-				if ( killBots ) {
-					SV_DropClient( &svs.clients[i], "was kicked" );
-					continue;
-				}
 				isBot = qtrue;
 			}
 			else {
@@ -633,7 +629,7 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_floodProtect, "Toggle server flood protection to keep players from bringing the server down." );
 
 	// systeminfo
-	Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
+	Cvar_Get( "sv_cheats", "0", CVAR_SYSTEMINFO);
 	sv_serverid = Cvar_Get( "sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_referencedPakNames = Cvar_Get( "sv_referencedPakNames", "", CVAR_SYSTEMINFO | CVAR_ROM );
 	Cvar_SetDescription( sv_referencedPakNames, "Variable holds a list of all the pk3 files the server loaded data from." );

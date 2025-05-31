@@ -147,9 +147,7 @@ Restart the server on a different map
 ==================
 */
 static void SV_Map_f( void ) {
-	const char		*cmd;
 	const char		*map;
-	qboolean	killBots, cheat;
 	char		expanded[MAX_QPATH];
 	char		mapname[MAX_QPATH];
 	int			len;
@@ -176,48 +174,12 @@ static void SV_Map_f( void ) {
 	// force latched values to get set
 	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
 
-	cmd = Cmd_Argv(0);
-	if( Q_stricmpn( cmd, "sp", 2 ) == 0 ) {
-		Cvar_SetIntegerValue( "g_gametype", GT_SINGLE );
-		Cvar_Set( "g_doWarmup", "0" );
-		cmd += 2;
-		if (!Q_stricmp( cmd, "devmap" ) ) {
-			cheat = qtrue;
-		} else {
-			cheat = qfalse;
-		}
-		killBots = qtrue;
-	}
-	else {
-		if ( !Q_stricmp( cmd, "devmap" ) ) {
-			cheat = qtrue;
-		} else {
-			cheat = qfalse;
-		}
-		if( sv_gametype->integer == GT_SINGLE ) {
-			Cvar_SetIntegerValue( "g_gametype", GT_SANDBOX );
-			killBots = qtrue;
-		} else {
-			killBots = qfalse;
-		}
-	}
-
 	// save the map name here cause on a map restart we reload the q3config.cfg
 	// and thus nuke the arguments of the map command
 	Q_strncpyz(mapname, map, sizeof(mapname));
 
 	// start up the map
-	SV_SpawnServer( mapname, killBots );
-
-	// set the cheat value
-	// if the level was started with "map <levelname>", then
-	// cheats will not be allowed.  If started with "devmap <levelname>"
-	// then cheats will be allowed
-	if ( cheat ) {
-		Cvar_Set( "sv_cheats", "1" );
-	} else {
-		Cvar_Set( "sv_cheats", "0" );
-	}
+	SV_SpawnServer( mapname );
 }
 
 /*
@@ -273,7 +235,7 @@ static void SV_MapRestart_f( void ) {
 		// restart the map the slow way
 		Q_strncpyz( mapname, Cvar_VariableString( "mapname" ), sizeof( mapname ) );
 
-		SV_SpawnServer( mapname, qfalse );
+		SV_SpawnServer( mapname );
 		return;
 	}
 
@@ -298,9 +260,6 @@ static void SV_MapRestart_f( void ) {
 	// had been changed from their default values will generate broadcast updates
 	sv.state = SS_LOADING;
 	sv.restarting = qtrue;
-
-	// make sure that level time is not zero
-	//sv.time = sv.time ? sv.time : 8;
 
 	SV_RestartGameProgs();
 
@@ -862,12 +821,6 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_AddCommand ("map_restart", SV_MapRestart_f);
 	Cmd_AddCommand ("map", SV_Map_f);
 	Cmd_SetCommandCompletionFunc( "map", SV_CompleteMapName );
-	Cmd_AddCommand ("devmap", SV_Map_f);
-	Cmd_SetCommandCompletionFunc( "devmap", SV_CompleteMapName );
-	Cmd_AddCommand ("spmap", SV_Map_f);
-	Cmd_SetCommandCompletionFunc( "spmap", SV_CompleteMapName );
-	Cmd_AddCommand ("spdevmap", SV_Map_f);
-	Cmd_SetCommandCompletionFunc( "spdevmap", SV_CompleteMapName );
 	Cmd_AddCommand ("killserver", SV_KillServer_f);
 	Cmd_AddCommand( "filter", SV_AddFilter_f );
 	Cmd_AddCommand( "filtercmd", SV_AddFilterCmd_f );

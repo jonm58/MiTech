@@ -91,7 +91,6 @@ typedef struct campspot_s
 typedef enum {
 	GT_SANDBOX,
 	GT_MAPEDITOR,
-	GT_SINGLE, //SHOULD BE 3 FOR ENGINE 
 	GT_FFA,
 	GT_TOURNAMENT,
 	GT_TEAM,
@@ -826,10 +825,7 @@ int BotGetLevelItemGoal(int index, const char *name, bot_goal_t *goal) {
 	} //end for
 	for (; li; li = li->next) {
 		//
-		if (g_gametype == GT_SINGLE) {
-			if (li->flags & IFL_NOTSINGLE) continue;
-		}
-		else if (g_gametype >= GT_TEAM) {
+		if (g_gametype >= GT_TEAM) {
 			if (li->flags & IFL_NOTTEAM) continue;
 		}
 		else {
@@ -973,10 +969,7 @@ void BotUpdateEntityItems(void)
 			//if this level item is already linked
 			if (li->entitynum) continue;
 			//
-			if (g_gametype == GT_SINGLE) {
-				if (li->flags & IFL_NOTSINGLE) continue;
-			}
-			else if (g_gametype >= GT_TEAM) {
+			if (g_gametype >= GT_TEAM) {
 				if (li->flags & IFL_NOTTEAM) continue;
 			}
 			else {
@@ -1197,11 +1190,7 @@ int BotChooseLTGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 	//go through the items in the level
 	for (li = levelitems; li; li = li->next)
 	{
-		if (g_gametype == GT_SINGLE) {
-			if (li->flags & IFL_NOTSINGLE)
-				continue;
-		}
-		else if (g_gametype >= GT_TEAM) {
+		if (g_gametype >= GT_TEAM) {
 			if (li->flags & IFL_NOTTEAM)
 				continue;
 		}
@@ -1368,11 +1357,7 @@ int BotChooseNBGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 	//go through the items in the level
 	for (li = levelitems; li; li = li->next)
 	{
-		if (g_gametype == GT_SINGLE) {
-			if (li->flags & IFL_NOTSINGLE)
-				continue;
-		}
-		else if (g_gametype >= GT_TEAM) {
+		if (g_gametype >= GT_TEAM) {
 			if (li->flags & IFL_NOTTEAM)
 				continue;
 		}

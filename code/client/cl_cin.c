@@ -1287,10 +1287,6 @@ static void RoQShutdown( void ) {
 
 	if (cinTable[currentHandle].alterGameState) {
 		cls.state = CA_DISCONNECTED;
-		// we can't just do a vstr nextmap, because
-		// if we are aborting the intro cinematic with
-		// a devmap command, nextmap would be valid by
-		// the time it was referenced
 		s = Cvar_VariableString( "nextmap" );
 		if ( s[0] ) {
 			Cbuf_ExecuteText( EXEC_APPEND, va("%s\n", s) );
