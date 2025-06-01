@@ -616,13 +616,6 @@ static void SVC_Status( const netadr_t *from ) {
 	int		playerLength;
 	char	infostring[MAX_INFO_STRING+160]; // add some space for challenge string
 
-	// ignore if we are in single player
-#ifndef DEDICATED
-	if ( Cvar_VariableIntegerValue( "g_gametype" ) == GT_SINGLE || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
-		return;
-	}
-#endif
-
 	// Prevent using getstatus as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
 		if ( com_developer->integer ) {
@@ -686,13 +679,6 @@ static void SVC_Info( const netadr_t *from ) {
 	const char	*gamedir;
     const char	*addondir;
 	char	infostring[MAX_INFO_STRING];
-
-	// ignore if we are in single player
-#ifndef DEDICATED
-	if ( Cvar_VariableIntegerValue( "g_gametype" ) == GT_SINGLE || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
-		return;
-	}
-#endif
 
 	// Prevent using getinfo as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {

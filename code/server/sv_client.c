@@ -107,13 +107,6 @@ void SV_GetChallenge( const netadr_t *from ) {
 	int		challenge;
 	int		clientChallenge;
 
-	// ignore if we are in single player
-#ifndef DEDICATED
-	if ( Cvar_VariableIntegerValue( "g_gametype" ) == GT_SINGLE || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
-		return;
-	}
-#endif
-
 	// Prevent using getchallenge as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
 		if ( com_developer->integer ) {

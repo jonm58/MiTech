@@ -88,20 +88,17 @@ typedef struct campspot_s
 } campspot_t;
 
 typedef enum {
+	//FFA GAMEMODES
 	GT_SANDBOX,
 	GT_MAPEDITOR,
 	GT_FFA,
-	GT_TOURNAMENT,
+	//TEAM GAMEMODES
 	GT_TEAM,
 	GT_CTF,
 	GT_1FCTF,
 	GT_OBELISK,
 	GT_HARVESTER,	
-	GT_ELIMINATION,
-	GT_CTF_ELIMINATION,
-	GT_LMS,
-	GT_DOUBLE_D,
-	GT_DOMINATION,
+
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
