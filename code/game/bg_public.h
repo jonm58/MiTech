@@ -24,17 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define _BG_PUBLIC_H
 
 // CS_SERVERINFO and CS_SYSTEMINFO are defined in q_shared.h
-#define	CS_MUSIC				2
-#define	CS_SCORES1				3
-#define	CS_SCORES2				4
-#define	CS_GAME_VERSION			5
-#define	CS_LEVEL_START_TIME		6
-#define	CS_INTERMISSION			7
-#define CS_FLAGSTATUS			8
-#define CS_SHADERSTATE			9
-#define CS_BOTINFO				10 // 2 slots
-#define	CS_ITEMS				12
-#define	CS_MODELS				13
+#define	CS_MODELS				2000
 #define	CS_SOUNDS				(CS_MODELS+MAX_MODELS)
 #define	CS_PLAYERS				(CS_SOUNDS+MAX_SOUNDS)
 #define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
