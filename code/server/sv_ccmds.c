@@ -193,9 +193,8 @@ This allows fair starts with variable load times.
 static void SV_MapRestart_f( void ) {
 	int			i;
 	client_t	*client;
-	const char		*denied;
+	const char	*denied;
 	qboolean	isBot;
-	int			delay;
 
 	// make sure we aren't restarting twice in the same frame
 	if ( com_frameTime == sv.restartedServerId ) {
@@ -210,12 +209,6 @@ static void SV_MapRestart_f( void ) {
 
 	if ( sv.restartTime != 0 ) {
 		return;
-	}
-
-	if ( Cmd_Argc() > 1 ) {
-		delay = atoi( Cmd_Argv(1) );
-	} else {
-		delay = 0;
 	}
 
 	// check for changes in variables that can't just be restarted
@@ -287,7 +280,7 @@ static void SV_MapRestart_f( void ) {
 			// this generally shouldn't happen, because the client
 			// was connected before the level change
 			SV_DropClient( client, denied );
-			Com_Printf( "SV_MapRestart_f(%d): dropped client %i - denied!\n", delay, i );
+			Com_Printf( "SV_MapRestart_f: dropped client %i - denied!\n", i );
 			continue;
 		}
 
