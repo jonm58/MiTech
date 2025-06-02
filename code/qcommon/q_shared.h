@@ -1110,10 +1110,11 @@ typedef enum {
 //
 // per-level limits
 //
-#define	MAX_CLIENTS			128		// absolute limit
-#define MAX_LOCATIONS		64
-
-#define	GENTITYNUM_BITS		12		// not all of them send on network
+#define	MAX_CUSTOMSTRINGS	128
+#define	MAX_MODELS			1024
+#define	MAX_SOUNDS			256
+#define	MAX_CLIENTS			128
+#define	GENTITYNUM_BITS		12
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
 
 // entitynums are communicated with GENTITY_BITS, so any reserved
@@ -1123,9 +1124,8 @@ typedef enum {
 #define	ENTITYNUM_WORLD		(MAX_GENTITIES-2)
 #define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
 
-#define	MAX_MODELS			4096
-#define	MAX_SOUNDS			4096
-#define	MAX_CONFIGSTRINGS	10000+32
+#define	MAX_CONFIGSTRINGS	1600
+#define	MAX_GAMESTATE_CHARS	32000
 
 // these are the only configstrings that the system reserves, all the
 // other ones are strictly for servergame to clientgame communication
@@ -1134,7 +1134,6 @@ typedef enum {
 
 #define	RESERVED_CONFIGSTRINGS	2	// game can't modify below this, only the system can
 
-#define	MAX_GAMESTATE_CHARS	20000
 typedef struct {
 	int			stringOffsets[MAX_CONFIGSTRINGS];
 	char		stringData[MAX_GAMESTATE_CHARS];
