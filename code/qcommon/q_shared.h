@@ -1134,7 +1134,7 @@ typedef enum {
 
 #define	RESERVED_CONFIGSTRINGS	2	// game can't modify below this, only the system can
 
-#define	MAX_GAMESTATE_CHARS	16384*16
+#define	MAX_GAMESTATE_CHARS	20000
 typedef struct {
 	int			stringOffsets[MAX_CONFIGSTRINGS];
 	char		stringData[MAX_GAMESTATE_CHARS];
@@ -1146,8 +1146,7 @@ typedef struct {
 // bit field limits
 #define	MAX_STATS				16
 #define	MAX_PERSISTANT			16
-#define	MAX_POWERUPS			16
-#define	MAX_WEAPONS				16		
+#define	MAX_POWERUPS			16	
 
 #define	MAX_PS_EVENTS			2
 
@@ -1219,10 +1218,8 @@ typedef struct playerState_s {
 	int			stats[MAX_STATS];
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	int			ammo[MAX_WEAPONS];
 
 	int			generic1;
-	int			generic2;
 	int			loopSound;
 	int			jumppad_ent;	// jumppad entity hit this frame
 
@@ -1346,7 +1343,6 @@ typedef struct entityState_s {
 
 	int		generic1;
 	int		generic2;
-	int		generic3;
 } entityState_t;
 
 typedef enum {

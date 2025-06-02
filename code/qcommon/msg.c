@@ -26,7 +26,6 @@ static int pcount[256];
 
 /*
 ==============================================================================
-
 			MESSAGE IO FUNCTIONS
 
 Handles byte ordering and avoids alignment errors
@@ -39,7 +38,6 @@ void MSG_Init( msg_t *buf, byte *data, int length ) {
 	buf->maxbits = length * 8;
 }
 
-
 void MSG_InitOOB( msg_t *buf, byte *data, int length ) {
 	Com_Memset (buf, 0, sizeof(*buf));
 	buf->data = data;
@@ -48,18 +46,15 @@ void MSG_InitOOB( msg_t *buf, byte *data, int length ) {
 	buf->oob = qtrue;
 }
 
-
 void MSG_Clear( msg_t *buf ) {
 	buf->cursize = 0;
 	buf->overflowed = qfalse;
 	buf->bit = 0;					//<- in bits
 }
 
-
 void MSG_Bitstream( msg_t *buf ) {
 	buf->oob = qfalse;
 }
-
 
 void MSG_BeginReading( msg_t *msg ) {
 	msg->readcount = 0;
@@ -67,13 +62,11 @@ void MSG_BeginReading( msg_t *msg ) {
 	msg->oob = qfalse;
 }
 
-
 void MSG_BeginReadingOOB( msg_t *msg ) {
 	msg->readcount = 0;
 	msg->bit = 0;
 	msg->oob = qtrue;
 }
-
 
 void MSG_Copy(msg_t *buf, byte *data, int length, const msg_t *src)
 {
@@ -151,7 +144,6 @@ void MSG_WriteBits( msg_t *msg, int value, int bits ) {
 	}
 }
 
-
 static int MSG_ReadBits( msg_t *msg, int bits ) {
 	int		value;
 	qboolean	sgn;
@@ -225,8 +217,6 @@ static int MSG_ReadBits( msg_t *msg, int bits ) {
 
 	return value;
 }
-
-
 
 //================================================================================
 
@@ -321,7 +311,6 @@ void MSG_WriteAngle( msg_t *sb, float f ) {
 void MSG_WriteAngle16( msg_t *sb, float f ) {
 	MSG_WriteShort (sb, ANGLE2SHORT(f));
 }
-
 
 //============================================================
 
@@ -663,7 +652,7 @@ static const netField_t entityStateFields[] =
 { NETF(pos.trType), 8 },
 { NETF(eFlags), 19 },
 { NETF(otherEntityNum), GENTITYNUM_BITS },
-{ NETF(weapon), 8 },
+{ NETF(weapon), 16 },
 { NETF(clientNum), 8 },
 { NETF(angles[1]), 0 },
 { NETF(pos.trDuration), 32 },
@@ -678,7 +667,6 @@ static const netField_t entityStateFields[] =
 { NETF(loopSound), 16 },
 { NETF(generic1), 8 },
 { NETF(generic2), 8 },
-{ NETF(generic3), 16 },
 { NETF(origin2[2]), 0 },
 { NETF(origin2[0]), 0 },
 { NETF(origin2[1]), 0 },
@@ -701,7 +689,6 @@ static const netField_t entityStateFields[] =
 { NETF(constantLight), 32 },
 { NETF(frame), 16 }
 };
-
 
 // if (int)f == f and (int)f + ( 1<<(FLOAT_INT_BITS-1) ) < ( 1 << FLOAT_INT_BITS )
 // the float will be sent with FLOAT_INT_BITS, otherwise all 32 bits will be sent
@@ -1002,7 +989,6 @@ static const netField_t playerStateFields[] =
 { PSF(damagePitch), 8 },
 { PSF(damageCount), 8 },
 { PSF(generic1), 8 },
-{ PSF(generic2), 16 },
 { PSF(pm_type), 8 },					
 { PSF(delta_angles[0]), 16 },
 { PSF(delta_angles[2]), 16 },
@@ -1010,7 +996,7 @@ static const netField_t playerStateFields[] =
 { PSF(eventParms[0]), 8 },
 { PSF(eventParms[1]), 8 },
 { PSF(clientNum), 8 },
-{ PSF(weapon), 5 },
+{ PSF(weapon), 16 },
 { PSF(viewangles[2]), 0 },
 { PSF(grapplePoint[0]), 0 },
 { PSF(grapplePoint[1]), 0 },
@@ -1030,7 +1016,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	int				i;
 	int				statsbits;
 	int				persistantbits;
-	int				ammobits;
 	int				powerupbits;
 	int				numFields;
 	const netField_t *field;
@@ -1065,7 +1050,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 		}
 
 		MSG_WriteBits( msg, 1, 1 );	// changed
-//		pcount[i]++;
 
 		if ( field->bits == 0 ) {
 			// float
@@ -1088,7 +1072,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 		}
 	}
 
-
 	//
 	// send the arrays
 	//
@@ -1104,12 +1087,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 			persistantbits |= 1<<i;
 		}
 	}
-	ammobits = 0;
-	for (i=0 ; i<MAX_WEAPONS ; i++) {
-		if (to->ammo[i] != from->ammo[i]) {
-			ammobits |= 1<<i;
-		}
-	}
 	powerupbits = 0;
 	for (i=0 ; i<MAX_POWERUPS ; i++) {
 		if (to->powerups[i] != from->powerups[i]) {
@@ -1117,7 +1094,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 		}
 	}
 
-	if (!statsbits && !persistantbits && !ammobits && !powerupbits) {
+	if (!statsbits && !persistantbits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		return;
 	}
@@ -1140,17 +1117,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 		for (i=0 ; i<MAX_PERSISTANT ; i++)
 			if (persistantbits & (1<<i) )
 				MSG_WriteShort (msg, to->persistant[i]);
-	} else {
-		MSG_WriteBits( msg, 0, 1 );	// no change
-	}
-
-
-	if ( ammobits ) {
-		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteBits( msg, ammobits, MAX_WEAPONS );
-		for (i=0 ; i<MAX_WEAPONS ; i++)
-			if (ammobits & (1<<i) )
-				MSG_WriteShort (msg, to->ammo[i]);
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
@@ -1280,17 +1246,6 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 			for (i=0 ; i<MAX_PERSISTANT ; i++) {
 				if (bits & (1<<i) ) {
 					to->persistant[i] = MSG_ReadShort(msg);
-				}
-			}
-		}
-
-		// parse ammo
-		if ( MSG_ReadBits( msg, 1 ) ) {
-			LOG("PS_AMMO");
-			bits = MSG_ReadBits (msg, MAX_WEAPONS);
-			for (i=0 ; i<MAX_WEAPONS ; i++) {
-				if (bits & (1<<i) ) {
-					to->ammo[i] = MSG_ReadShort(msg);
 				}
 			}
 		}
