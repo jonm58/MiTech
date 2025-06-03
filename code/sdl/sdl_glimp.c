@@ -214,8 +214,8 @@ static int GLW_SetMode( const char *resolution, int fullscreen ) {
 			Com_DPrintf( "SDL_GetWindowDisplayIndex() failed: %s\n", SDL_GetError() );
 		}
 	} else {
-		x = 0;
-		y = 0;
+		x = 30;
+		y = 30;
 		display = FindNearestDisplay( &x, &y, 640, 480 );
 	}
 

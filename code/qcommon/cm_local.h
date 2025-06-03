@@ -24,15 +24,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include "cm_polylib.h"
 
-#define	MAX_SUBMODELS			4096
-#define	BOX_MODEL_HANDLE		4095
-
+#define	MAX_SUBMODELS			1024
+#define	BOX_MODEL_HANDLE		1023
 
 // forced double-precison functions
 #define DotProductDP(x,y)		((double)(x)[0]*(y)[0]+(double)(x)[1]*(y)[1]+(double)(x)[2]*(y)[2])
 #define VectorSubtractDP(a,b,c)	((c)[0]=(double)((a)[0]-(b)[0]),(c)[1]=(double)((a)[1]-(b)[1]),(c)[2]=(double)((a)[2]-(b)[2]))
 #define VectorAddDP(a,b,c)		((c)[0]=(double)((a)[0]+(b)[0]),(c)[1]=(double)((a)[1]+(b)[1]),(c)[2]=(double)((a)[2]+(b)[2]))
-
 
 static ID_INLINE double DotProductDPf( const float *v1, const float *v2 ) {
 	double x[3], y[3];
@@ -40,7 +38,6 @@ static ID_INLINE double DotProductDPf( const float *v1, const float *v2 ) {
 	VectorCopy( v2, y );
 	return x[0]*y[0]+x[1]*y[1]+x[2]*y[2];
 }
-
 
 static ID_INLINE void CrossProductDP( const vec3_t v1, const vec3_t v2, vec3_t cross ) {
 	double d1[3], d2[3];
@@ -50,7 +47,6 @@ static ID_INLINE void CrossProductDP( const vec3_t v1, const vec3_t v2, vec3_t c
 	cross[1] = d1[2]*d2[0] - d1[0]*d2[2];
 	cross[2] = d1[0]*d2[1] - d1[1]*d2[0];
 }
-
 
 static ID_INLINE vec_t VectorNormalizeDP( vec3_t v ) {
 	double	length, ilength, d[3];
@@ -70,7 +66,6 @@ static ID_INLINE vec_t VectorNormalizeDP( vec3_t v ) {
 		
 	return length;
 }
-
 
 typedef struct {
 	cplane_t	*plane;

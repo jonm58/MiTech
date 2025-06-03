@@ -406,7 +406,6 @@ void Con_Shutdown( void )
 	Cmd_RemoveCommand( "messagemode" );
 	Cmd_RemoveCommand( "messagemode2" );
 	Cmd_RemoveCommand( "messagemode3" );
-	Cmd_RemoveCommand( "messagemode4" );
 }
 
 

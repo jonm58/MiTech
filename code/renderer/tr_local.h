@@ -1625,12 +1625,11 @@ typedef enum {
 	RC_CLEARCOLOR
 } renderCommand_t;
 
-
 // these are sort of arbitrary limits.
 // the limits apply to the sum of all scenes in a frame --
 // the main view, all the 3D icons, etc
-#define	MAX_POLYS		1024
-#define	MAX_POLYVERTS	2048
+#define	MAX_POLYS		1024*16
+#define	MAX_POLYVERTS	1024*32
 
 // all of the information needed by the back end must be
 // contained in a backEndData_t
