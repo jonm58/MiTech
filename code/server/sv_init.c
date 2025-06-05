@@ -107,8 +107,6 @@ void SV_SetConfigstring (int index, const char *val) {
 	int		i;
 	client_t	*client;
 
-	Com_Printf( "!! SET CONFIGSTRING[%d] = %s\n", index, val );
-
 	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
 		Com_Error (ERR_DROP, "SV_SetConfigstring: bad index %i", index);
 	}
