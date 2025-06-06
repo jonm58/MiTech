@@ -838,12 +838,8 @@ static void CL_FirstSnapshot( void ) {
 	cl.serverTimeDelta = cl.snap.serverTime - cls.realtime;
 	cl.oldServerTime = cl.snap.serverTime;
 
-	clc.timeDemoBaseTime = cl.snap.serverTime;
-
 	// if this is the first frame of active play,
 	// execute the contents of activeAction now
-	// this is to allow scripting a timedemo to start right
-	// after loading
 	if ( cl_activeAction->string[0] ) {
 		Cbuf_AddText( cl_activeAction->string );
 		Cbuf_AddText( "\n" );
@@ -930,23 +926,6 @@ void CL_SetCGameTime( void ) {
 		return;
 	}
 
-	// if we are playing a demo back, we can just keep reading
-	// messages from the demo file until the cgame definitely
-	// has valid snapshots to interpolate between
-
-	// a timedemo will always use a deterministic set of time samples
-	// no matter what speed machine it is run on,
-	// while a normal demo may have different time samples
-	// each time it is played back
-	if ( com_timedemo->integer ) {
-		if ( !clc.timeDemoStart ) {
-			clc.timeDemoStart = Sys_Milliseconds();
-		}
-		clc.timeDemoFrames++;
-		cl.serverTime = clc.timeDemoBaseTime + clc.timeDemoFrames * 50;
-	}
-
-	//while ( cl.serverTime >= cl.snap.serverTime ) {
 	while ( cl.serverTime - cl.snap.serverTime >= 0 ) {
 		// feed another message, which should change
 		// the contents of cl.snap

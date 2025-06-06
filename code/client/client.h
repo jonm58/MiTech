@@ -214,10 +214,6 @@ typedef struct {
 	fileHandle_t	demofile;
 	fileHandle_t	recordfile;
 
-	int		timeDemoFrames;		// counter of rendered frames
-	int		timeDemoStart;		// cls.realtime before first frame
-	int		timeDemoBaseTime;	// each frame will be at this time + frameNum * 50
-
 	float	aviVideoFrameRemainder;
 	float	aviSoundFrameRemainder;
 	int		aviFrameEndTime;
@@ -357,7 +353,6 @@ extern	cvar_t	*cl_debugMove;
 extern	cvar_t	*cl_timegraph;
 extern	cvar_t	*cl_shownet;
 
-extern	cvar_t	*com_timedemo;
 extern	cvar_t	*cl_aviFrameRate;
 extern	cvar_t	*cl_aviMotionJpeg;
 extern	cvar_t	*cl_aviPipeFormat;
@@ -365,9 +360,6 @@ extern	cvar_t	*cl_aviPipeFormat;
 extern	cvar_t	*cl_activeAction;
 
 extern	cvar_t	*cl_allowDownload;
-extern	cvar_t	*cl_conXOffset;
-extern	cvar_t	*cl_conColor;
-extern	cvar_t	*cl_inGameVideo;
 
 extern	cvar_t	*cl_lanForcePackets;
 

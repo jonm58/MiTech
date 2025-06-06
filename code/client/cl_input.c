@@ -65,10 +65,6 @@ static cvar_t *cl_nodelta;
 static cvar_t *cl_showSend;
 
 static cvar_t *cl_sensitivity;
-static cvar_t *cl_mouseAccel;
-static cvar_t *cl_mouseAccelOffset;
-static cvar_t *cl_mouseAccelStyle;
-static cvar_t *cl_showMouseRate;
 
 static cvar_t *cl_run;
 static cvar_t *cl_freelook;
@@ -430,8 +426,7 @@ static void CL_JoystickMove( usercmd_t *cmd ) {
 CL_MouseMove
 =================
 */
-static void CL_MouseMove( usercmd_t *cmd )
-{
+static void CL_MouseMove( usercmd_t *cmd ) {
 	float mx, my;
 
 	// allow mouse smoothing
@@ -453,56 +448,8 @@ static void CL_MouseMove( usercmd_t *cmd )
 	if (mx == 0.0f && my == 0.0f)
 		return;
 
-	if ( cl_mouseAccel->value != 0.0f )
-	{
-		if ( cl_mouseAccelStyle->integer == 0 )
-		{
-			float accelSensitivity;
-			float rate;
-
-			rate = sqrt(mx * mx + my * my) / (float) frame_msec;
-
-			accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
-			mx *= accelSensitivity;
-			my *= accelSensitivity;
-
-			if ( cl_showMouseRate->integer )
-				Com_Printf( "rate: %f, accelSensitivity: %f\n", rate, accelSensitivity );
-		}
-		else
-		{
-			float rate[2];
-			float power[2];
-			float offset = cl_mouseAccelOffset->value;
-
-			// clip at a small positive number to avoid division
-			// by zero (or indeed going backwards!)
-			if ( offset < 0.001f ) {
-				offset = 0.001f;
-			}
-
-			// sensitivity remains pretty much unchanged at low speeds
-			// cl_mouseAccel is a power value to how the acceleration is shaped
-			// cl_mouseAccelOffset is the rate for which the acceleration will have doubled the non accelerated amplification
-			// NOTE: decouple the config cvars for independent acceleration setup along X and Y?
-
-			rate[0] = fabsf( mx ) / (float) frame_msec;
-			rate[1] = fabsf( my ) / (float) frame_msec;
-			power[0] = powf( rate[0] / offset, cl_mouseAccel->value );
-			power[1] = powf( rate[1] / offset, cl_mouseAccel->value );
-
-			mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * offset);
-			my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * offset);
-
-			if(cl_showMouseRate->integer)
-				Com_Printf("ratex: %f, ratey: %f, powx: %f, powy: %f\n", rate[0], rate[1], power[0], power[1]);
-		}
-	}
-	else
-	{
-		mx *= cl_sensitivity->value;
-		my *= cl_sensitivity->value;
-	}
+	mx *= cl_sensitivity->value;
+	my *= cl_sensitivity->value;
 
 	// ingame FOV
 	mx *= cl.cgameSensitivity;
@@ -981,23 +928,8 @@ void CL_InitInput( void ) {
 	Cvar_SetDescription( cl_run, "Persistent player running movement." );
 	cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );
 	Cvar_SetDescription( cl_sensitivity, "Sets base mouse sensitivity (mouse speed)." );
-	cl_mouseAccel = Cvar_Get( "cl_mouseAccel", "0", CVAR_ARCHIVE_ND );
-	Cvar_SetDescription( cl_mouseAccel, "Toggle the use of mouse acceleration the mouse speeds up or becomes more sensitive as it continues in one direction." );
 	cl_freelook = Cvar_Get( "cl_freelook", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_freelook, "Allow pitching or up/down look with mouse." );
-
-	// 0: legacy mouse acceleration
-	// 1: new implementation
-	cl_mouseAccelStyle = Cvar_Get( "cl_mouseAccelStyle", "0", CVAR_ARCHIVE_ND );
-	Cvar_SetDescription( cl_mouseAccelStyle, "Choose between two different mouse acceleration styles." );
-	// offset for the power function (for style 1, ignored otherwise)
-	// this should be set to the max rate value
-	cl_mouseAccelOffset = Cvar_Get( "cl_mouseAccelOffset", "5", CVAR_ARCHIVE_ND );
-	Cvar_CheckRange( cl_mouseAccelOffset, "0.001", "50000", CV_FLOAT );
-	Cvar_SetDescription( cl_mouseAccelOffset, "Sets how much base mouse delta will be doubled by acceleration. Requires 'cl_mouseAccelStyle 1'." );
-
-	cl_showMouseRate = Cvar_Get( "cl_showMouseRate", "0", 0 );
-	Cvar_SetDescription( cl_showMouseRate, "Prints mouse acceleration info when 'cl_mouseAccel' has a value set (rate of mouse samples per frame)." );
 
 	m_pitch = Cvar_Get( "m_pitch", "0.022", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( m_pitch, "Set the up and down movement distance of the player in relation to how much the mouse moves." );

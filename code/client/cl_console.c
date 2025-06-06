@@ -662,7 +662,7 @@ Draws the console with the solid background
 */
 static void Con_DrawSolidConsole( float frac ) {
 
-	static float conColorValue[4] = { 0.0, 0.0, 0.0, 0.0 };
+	static float conColorValue[4] = { 0.00, 0.00, 0.00, 0.75 };
 	// for cvar value change tracking
 	static char  conColorString[ MAX_CVAR_VALUE_STRING ] = { '\0' };
 
@@ -698,30 +698,8 @@ static void Con_DrawSolidConsole( float frac ) {
 	if ( yf < 1.0 ) {
 		yf = 0;
 	} else {
-		// custom console background color
-		if ( cl_conColor->string[0] ) {
-			// track changes
-			if ( strcmp( cl_conColor->string, conColorString ) ) 
-			{
-				Q_strncpyz( conColorString, cl_conColor->string, sizeof( conColorString ) );
-				Q_strncpyz( buf, cl_conColor->string, sizeof( buf ) );
-				Com_Split( buf, v, 4, ' ' );
-				for ( i = 0; i < 4 ; i++ ) {
-					conColorValue[ i ] = Q_atof( v[ i ] ) / 255.0f;
-					if ( conColorValue[ i ] > 1.0f ) {
-						conColorValue[ i ] = 1.0f;
-					} else if ( conColorValue[ i ] < 0.0f ) {
-						conColorValue[ i ] = 0.0f;
-					}
-				}
-			}
-			re.SetColor( conColorValue );
-			re.DrawStretchPic( 0, 0, wf, yf, 0, 0, 1, 1, cls.whiteShader );
-		} else {
-			re.SetColor( g_color_table[ ColorIndex( COLOR_WHITE ) ] );
-			re.DrawStretchPic( 0, 0, wf, yf, 0, 0, 1, 1, cls.consoleShader );
-		}
-
+		re.SetColor( conColorValue );
+		re.DrawStretchPic( 0, 0, wf, yf, 0, 0, 1, 1, cls.whiteShader );
 	}
 
 	re.SetColor( g_color_table[ ColorIndex( COLOR_CYAN ) ] );

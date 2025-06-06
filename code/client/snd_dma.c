@@ -484,12 +484,7 @@ static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchanne
 
 	startTime = s_soundtime; // Com_Milliseconds();
 
-	// borrowed from cnq3
-	// a UNIQUE entity starting the same sound twice in a frame is either a bug,
-	// a timedemo, or a shitmap (eg q3ctf4) giving multiple items on spawn.
-	// even if you can create a case where it IS "valid", it's still pointless
-	// because you implicitly can't DISTINGUISH between the sounds:
-	// all that happens is the sound plays at double volume, which is just annoying
+	// borrowed from cnq3, don't allow run double sound in one frame
 
 	if ( entityNum != ENTITYNUM_WORLD ) {
 		ch = s_channels;
@@ -501,13 +496,9 @@ static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchanne
 			if ( ch->thesfx != sfx )
 				continue;
 			sfx->lastTimeUsed = startTime;
-			//Com_Printf( S_COLOR_YELLOW "double sound start: %d %s\n", entityNum, sfx->soundName);
 			return;
 		}
 	}
-
-//	Com_Printf("playing %s\n", sfx->soundName);
-	// pick a channel to play on
 
 	// try to limit sound duplication
 	if ( entityNum == listener_number )

@@ -56,7 +56,6 @@ cvar_t	*com_journal;
 cvar_t	*com_maxfps;
 cvar_t	*com_maxfpsUnfocused;
 cvar_t	*com_yieldCPU;
-cvar_t	*com_timedemo;
 #endif
 #ifdef USE_AFFINITY_MASK
 cvar_t	*com_affinityMask;
@@ -3320,9 +3319,6 @@ void Com_Init( char *commandLine ) {
 	com_cameraMode = Cvar_Get( "com_cameraMode", "0", CVAR_CHEAT );
 
 #ifndef DEDICATED
-	com_timedemo = Cvar_Get( "timedemo", "0", 0 );
-	Cvar_CheckRange( com_timedemo, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( com_timedemo, "When set to '1' times a demo and returns frames per second like a benchmark." );
 	cl_paused = Cvar_Get( "cl_paused", "0", CVAR_ROM );
 	Cvar_SetDescription( cl_paused, "Read-only CVAR to toggle functionality of paused games (the variable holds the status of the paused flag on the client side)." );
 	cl_packetdelay = Cvar_Get( "cl_packetdelay", "0", CVAR_CHEAT );

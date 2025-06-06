@@ -41,9 +41,6 @@ cvar_t	*cl_aviPipeFormat;
 cvar_t	*cl_activeAction;
 
 cvar_t	*cl_allowDownload;
-cvar_t	*cl_conXOffset;
-cvar_t	*cl_conColor;
-cvar_t	*cl_inGameVideo;
 
 cvar_t	*cl_serverStatusResendTime;
 
@@ -570,16 +567,6 @@ CL_DemoCompleted
 =================
 */
 static void CL_DemoCompleted( void ) {
-	if ( com_timedemo->integer ) {
-		int	time;
-
-		time = Sys_Milliseconds() - clc.timeDemoStart;
-		if ( time > 0 ) {
-			Com_Printf( "%i frames, %3.*f seconds: %3.1f fps\n", clc.timeDemoFrames,
-			time > 10000 ? 1 : 2, time/1000.0, clc.timeDemoFrames*1000.0 / time );
-		}
-	}
-
 	CL_Disconnect( qtrue );
 	CL_NextDemo();
 }
@@ -2292,7 +2279,7 @@ CL_NoDelay
 */
 qboolean CL_NoDelay( void )
 {
-	if ( CL_VideoRecording() || ( com_timedemo->integer && clc.demofile != FS_INVALID_HANDLE ) )
+	if (CL_VideoRecording())
 		return qtrue;
 
 	return qfalse;
@@ -3425,19 +3412,6 @@ void CL_Init( void ) {
 
 	cl_allowDownload = Cvar_Get( "cl_allowDownload", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_allowDownload, "Enables downloading of content needed in server. Valid bitmask flags:\n 1: Downloading enabled\n 2: Do not use HTTP/FTP downloads\n 4: Do not use UDP downloads" );
-
-	cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
-	Cvar_SetDescription( cl_conXOffset, "Console notifications X-offset." );
-	cl_conColor = Cvar_Get( "cl_conColor", "", 0 );
-	Cvar_SetDescription( cl_conColor, "Console background color, set as R G B A values from 0-255, use with \\seta to save in config." );
-
-#ifdef MACOS_X
-	// In game video is REALLY slow in Mac OS X right now due to driver slowness
-	cl_inGameVideo = Cvar_Get( "r_inGameVideo", "0", CVAR_ARCHIVE_ND );
-#else
-	cl_inGameVideo = Cvar_Get( "r_inGameVideo", "1", CVAR_ARCHIVE_ND );
-#endif
-	Cvar_SetDescription( cl_inGameVideo, "Controls whether in-game video should be drawn." );
 
 	cl_serverStatusResendTime = Cvar_Get ("cl_serverStatusResendTime", "750", 0);
 	Cvar_SetDescription( cl_serverStatusResendTime, "Time between re-sending server status requests if no response is received (in milliseconds)." );
