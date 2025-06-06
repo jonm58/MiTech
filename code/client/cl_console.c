@@ -661,11 +661,7 @@ Draws the console with the solid background
 ================
 */
 static void Con_DrawSolidConsole( float frac ) {
-
 	static float conColorValue[4] = { 0.00, 0.00, 0.00, 0.75 };
-	// for cvar value change tracking
-	static char  conColorString[ MAX_CVAR_VALUE_STRING ] = { '\0' };
-
 	int				i, x, y;
 	int				rows;
 	short			*text;
@@ -674,7 +670,6 @@ static void Con_DrawSolidConsole( float frac ) {
 	int				currentColorIndex;
 	int				colorIndex;
 	float			yf, wf;
-	char			buf[ MAX_CVAR_VALUE_STRING ], *v[4];
 
 	lines = cls.glconfig.vidHeight * frac;
 	if ( lines <= 0 )
