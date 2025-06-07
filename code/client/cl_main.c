@@ -1020,9 +1020,6 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 
 	cls.state = CA_DISCONNECTED;
 
-	// allow cheats locally
-	Cvar_Set( "sv_cheats", "1" );
-
 	CL_UpdateGUID( NULL, 0 );
 
 	Cmd_RemoveCgameCommands();

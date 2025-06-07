@@ -885,19 +885,15 @@ Cvar_SetCheatState
 Any testing variables will be reset to the safe values
 ============
 */
-void Cvar_SetCheatState(void)
-{
+void Cvar_SetCheatState(void) {
 	cvar_t	*var;
 
 	// set all default vars to the safe value
-	for(var = cvar_vars; var ; var = var->next)
-	{
-		if(var->flags & CVAR_CHEAT)
-		{
+	for(var = cvar_vars; var ; var = var->next) {
+		if(var->flags & CVAR_CHEAT) {
 			// the CVAR_LATCHED|CVAR_CHEAT vars might escape the reset here 
 			// because of a different var->latchedString
-			if (var->latchedString)
-			{
+			if (var->latchedString) {
 				Z_Free(var->latchedString);
 				var->latchedString = NULL;
 			}
