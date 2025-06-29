@@ -417,7 +417,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 
 		// check if the entity is within the max view distance
 		if (distanceSquared > maxViewDistanceSquared) {
-			if (ent->s.eType != ET_BEAM && ent->s.eType != ET_MOVER) {
+			if (ent->s.eType != ET_MOVER) {
 				continue;
 			}
 		}
