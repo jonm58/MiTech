@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  windows-mingw:
+  windows:
     name: ${{ matrix.btype }} Windows ${{ matrix.arch }}
     runs-on: ubuntu-22.04
     strategy:
@@ -39,12 +39,12 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: matrix.cc == 'gcc' && matrix.btype == 'release'
       with:
-        name: mingw64-${{ matrix.arch }}
+        name: windows-${{ matrix.arch }}
         path: bin
         if-no-files-found: error
         retention-days: 5
 
-  ubuntu-x86:
+  ubuntu:
     name: ${{ matrix.btype }} Ubuntu ${{ matrix.arch }}
     runs-on: ubuntu-22.04
     strategy:
@@ -120,7 +120,7 @@ jobs:
 
   update-release:
     if: ${{ github.event_name == 'release' }}
-    needs: [windows-mingw, ubuntu-x86, macos]
+    needs: [windows, ubuntu, macos]
     runs-on: ubuntu-latest
 
     strategy:
@@ -130,10 +130,10 @@ jobs:
             artifact_name: sandbox_linux-x86_64.zip
 
           - artifact_dir: windows-x86
-            artifact_name: sandbox_mingw64-x86.zip 
+            artifact_name: sandbox_windows-x86.zip 
 
           - artifact_dir: windows-x86_64
-            artifact_name: sandbox_mingw64-x86_64.zip
+            artifact_name: sandbox_windows-x86_64.zip
 
           - artifact_dir: darwin-universal2
             artifact_name: sandbox_macos.zip
@@ -152,6 +152,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           file: ${{ matrix.artifact_name }}
+
 
 
 
