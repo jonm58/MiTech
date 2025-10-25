@@ -34,11 +34,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../client/keys.h"
 
-#if ARCH x86
-#define DEF_COMHUNKMEGS			1023
-#endif
-#if ARCH x86_64
-#define DEF_COMHUNKMEGS			2047
+#if ARCH == x86
+    #define DEF_COMHUNKMEGS 1023
+#elif ARCH == x86_64
+    #define DEF_COMHUNKMEGS 2047
+#else
+    #define DEF_COMHUNKMEGS 1023  // defaults
 #endif
 #define DEF_COMZONEMEGS			16
 
