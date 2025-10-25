@@ -4,58 +4,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  windows-msys:
-    name: ${{ matrix.btype }} Windows-GCC ${{ matrix.arch }}
-    runs-on: windows-2025
+  windows-mingw:
+    runs-on: ubuntu-22.04
     strategy:
-      fail-fast: false
       matrix:
-        arch: [x86_64]  #disabled windows 32 bit (check allocate memory and add x86)
-        cc: [gcc]
-        btype: [Release]
-        include:
-#          - arch: x86
-#            msystem: MINGW32
-#            prefix: mingw-w64-i686
-
-          - arch: x86_64
-            msystem: MINGW64
-            prefix: mingw-w64-x86_64
-
-          - btype: Release
-            rule: install
-
-    defaults:
-      run:
-        shell: msys2 {0}
-
+        arch: [x86, x86_64]
     steps:
-
-    - uses: msys2/setup-msys2@v2
-      with:
-        install: ${{ matrix.prefix }}-binutils ${{ matrix.prefix }}-make ${{ matrix.prefix }}-${{ matrix.cc }}
-        msystem: ${{ matrix.msystem }}
-        path-type: minimal
-        release: false
-        update: false
+    - name: Install tools
+      run: sudo apt-get update && sudo apt-get -y install mingw-w64 make libsdl2-dev libcurl4-openssl-dev
 
     - uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Build
-      if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip Debug configuration in Release build
+    - name: Set compiler
       run: |
-        make ${{ matrix.rule }} -j 8 ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin RENDERER_DEFAULT=opengl
+        if [ "${{ matrix.arch }}" == "x86" ]; then
+          echo "COMPILER=i686-w64-mingw32-gcc" >> $GITHUB_ENV
+          echo "CXXCOMPILER=i686-w64-mingw32-g++" >> $GITHUB_ENV
+          echo "DESTDIR=bin/windows-x86" >> $GITHUB_ENV
+        else
+          echo "COMPILER=x86_64-w64-mingw32-gcc" >> $GITHUB_ENV
+          echo "CXXCOMPILER=x86_64-w64-mingw32-g++" >> $GITHUB_ENV
+          echo "DESTDIR=bin/windows-x86_64" >> $GITHUB_ENV
+        fi
 
-    - uses: actions/upload-artifact@v4
-      if: matrix.cc == 'gcc' && matrix.btype == 'release'
+    - name: Build
+      run: make install -j8 ARCH=${{ matrix.arch }} CC=${COMPILER} CXX=${CXXCOMPILER} DESTDIR=${DESTDIR} RENDERER_DEFAULT=opengl
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: windows-mingw-${{ matrix.arch }}
-        path: bin
+        name: windows-${{ matrix.arch }}
+        path: ${{ env.DESTDIR }}
         if-no-files-found: error
         retention-days: 5
-        
+
   ubuntu-x86:
     name: ${{ matrix.btype }} Ubuntu ${{ matrix.arch }}
     runs-on: ubuntu-22.04
