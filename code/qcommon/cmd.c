@@ -891,6 +891,18 @@ qboolean Cmd_CompleteArgument( const char *command, const char *args, int argNum
 	return qfalse;
 }
 
+static void Cmd_ReplaceCvarsInArgs( void ) {
+    for ( int i = 0; i < Cmd_Argc(); i++ ) {
+        char *arg = cmd_argv[i];
+        
+        if ( arg[0] == '$' ) {      // If arg begin with $
+            cvar_t *var = Cvar_FindVar( arg + 1 );      // +1 skip $
+            if ( var ) {
+                strcpy( arg, var->string );     // Replace on cvar value
+            }       // If cvar not found - just keep it
+        }
+    }
+}
 
 /*
 ============
@@ -907,6 +919,8 @@ void Cmd_ExecuteString( const char *text ) {
 	if ( !Cmd_Argc() ) {
 		return;		// no tokens
 	}
+
+    Cmd_ReplaceCvarsInArgs();
 
 	// check registered command functions
 	for ( prev = &cmd_functions ; *prev ; prev = &cmd->next ) {
