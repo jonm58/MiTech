@@ -5,7 +5,7 @@ on:
 
 jobs:
   windows:
-    name: ${{ matrix.btype }} Windows ${{ matrix.arch }}
+    name: ${{ matrix.btype }} Windows
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -43,7 +43,7 @@ jobs:
         retention-days: 5
 
   ubuntu:
-    name: ${{ matrix.btype }} Ubuntu ${{ matrix.arch }}
+    name: ${{ matrix.btype }} Ubuntu
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -147,6 +147,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           file: ${{ matrix.artifact_name }}
+
 
 
 
