@@ -559,6 +559,21 @@ void Cmd_CommandCompletion(void (*callback)(const char* s)) {
 	}
 }
 
+qboolean Cmd_CompleteArgument(const char* command, const char* args, int argNum) {
+	const cmd_function_t* cmd;
+
+	for(cmd = cmd_functions; cmd; cmd = cmd->next) {
+		if(!Q_stricmp(command, cmd->name)) {
+			if(cmd->complete) {
+				cmd->complete(args, argNum);
+			}
+			return qtrue;
+		}
+	}
+
+	return qfalse;
+}
+
 static void Cmd_ReplaceCvarsInArgs(void) {
 	for(int i = 0; i < Cmd_Argc(); i++) {
 		char* arg = cmd_argv[i];
