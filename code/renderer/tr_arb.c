@@ -2214,6 +2214,10 @@ void QGL_InitFBO( void )
 	
 	fboEnabled = qfalse;
 	frameBufferMultiSampling = qfalse;
+	
+	if(!r_modernMode->integer){
+	    return;
+	}
 
 	if ( !qglGenProgramsARB || !qglGenFramebuffers ) {
 	    ri.Printf( PRINT_WARNING, "...FBO is not available\n" );

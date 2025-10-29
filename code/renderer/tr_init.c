@@ -42,6 +42,7 @@ cvar_t	*r_znear;
 cvar_t	*r_zproj;
 
 //postFX
+cvar_t	*r_modernMode;
 cvar_t	*r_postfx;
 cvar_t	*r_postprocess;
 
@@ -506,7 +507,7 @@ static void InitOpenGL( void )
 
 		ri.CL_SetScaling( 1.0, gls.captureWidth, gls.captureHeight );
 
-		if ( qglGenProgramsARB && qglGenFramebuffers ) {
+		if ( r_modernMode->integer && qglGenProgramsARB && qglGenFramebuffers ) {
 			gls.captureWidth = glConfig.vidWidth;
 			gls.captureHeight = glConfig.vidHeight;
 
@@ -1348,6 +1349,7 @@ static void R_Register( void )
 	ri.Cvar_SetGroup( r_gamma, CVG_RENDERER );
 
 	//postFX
+	r_modernMode = ri.Cvar_Get( "r_modernMode", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	r_postfx = ri.Cvar_Get( "r_postfx", "1", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetGroup( r_postfx, CVG_RENDERER );
 	r_postprocess = ri.Cvar_Get( "r_postprocess", "0", CVAR_ARCHIVE_ND );

@@ -1123,6 +1123,7 @@ extern	cvar_t	*r_subdivisions;
 extern	cvar_t	*r_lodCurveError;
 
 //postFX
+extern  cvar_t	*r_modernMode;
 extern	cvar_t	*r_postfx;
 extern	cvar_t	*r_postprocess;
 
