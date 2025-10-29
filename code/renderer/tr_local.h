@@ -42,7 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 typedef uint32_t glIndex_t;
 
-#define	REFENTITYNUM_BITS	13	// as we actually using only 1 bit for dlight mask in opengl1 renderer
+#define	REFENTITYNUM_BITS	12	// as we actually using only 1 bit for dlight mask in opengl1 renderer
 #define	REFENTITYNUM_MASK	((1<<REFENTITYNUM_BITS) - 1)
 // the last N-bit number (2^REFENTITYNUM_BITS - 1) is reserved for the special world refentity,
 //  and this is reflected by the value of MAX_REFENTITIES (which therefore is not a power-of-2)
@@ -811,10 +811,10 @@ void		R_Modellist_f (void);
 //====================================================
 
 #define	MAX_DRAWIMAGES			16384
-#define	MAX_SKINS				4096
+#define	MAX_SKINS				2048
 
 
-#define	MAX_DRAWSURFS			0x200000
+#define	MAX_DRAWSURFS			0x20000
 #define	DRAWSURF_MASK			(MAX_DRAWSURFS-1)
 
 /*
@@ -838,7 +838,7 @@ the bits are allocated as follows:
 */
 #define	DLIGHT_BITS 1 // qboolean in opengl1 renderer
 #define	DLIGHT_MASK ((1<<DLIGHT_BITS)-1)
-#define	FOGNUM_BITS 4
+#define	FOGNUM_BITS 5
 #define	FOGNUM_MASK ((1<<FOGNUM_BITS)-1)
 
 #define	QSORT_FOGNUM_SHIFT	DLIGHT_BITS
@@ -1629,8 +1629,8 @@ typedef enum {
 // these are sort of arbitrary limits.
 // the limits apply to the sum of all scenes in a frame --
 // the main view, all the 3D icons, etc
-#define	MAX_POLYS		1024*16
-#define	MAX_POLYVERTS	1024*32
+#define	MAX_POLYS		1024*8
+#define	MAX_POLYVERTS	1024*16
 
 // all of the information needed by the back end must be
 // contained in a backEndData_t
