@@ -1057,8 +1057,10 @@ static const void *RB_DrawBuffer( const void *data ) {
 	}
 
 	// clear screen
-	//qglClearColor( 0, 0, 0, 1 );
-	//qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	if( r_modernMode->integer ){
+	    qglClearColor( 0, 0, 0, 1 );
+	    qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	}
 
 	return (const void *)(cmd + 1);
 }
