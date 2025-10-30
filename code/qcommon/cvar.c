@@ -660,7 +660,7 @@ typedef enum {
     FT_CREATE,
     FT_SAVE,
     FT_RESET,
-    FT_UNSET
+    FT_UNSET,
 	FT_SET,
 	FT_ADD,
 	FT_SUB,
@@ -823,7 +823,7 @@ qboolean Cvar_Command(void) {
         if(ftype == FT_CREATE) {
 		    Cvar_Set2(Cmd_Argv(0), Cmd_ArgsFrom(2), qfalse);
 		    return qtrue;
-	    } else if ((ftype == FT_SAVE) {
+	    } else if (ftype == FT_SAVE) {
 	        v = Cvar_Set2(Cmd_Argv(0), Cmd_ArgsFrom(2), qfalse);
 	        if(v && !(v->flags & CVAR_ARCHIVE)) {
 				v->flags |= CVAR_ARCHIVE;
