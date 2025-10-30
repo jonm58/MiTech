@@ -411,44 +411,6 @@ void GL_ClientState( int unit, unsigned stateBits )
 
 void RB_SetGL2D( void );
 
-/*
-================
-RB_Hyperspace
-
-A player has predicted a teleport, but hasn't arrived yet
-================
-*/
-static void RB_Hyperspace( void ) {
-	color4ub_t c;
-
-	if ( !backEnd.isHyperspace ) {
-		// do initialization shit
-	}
-
-	if ( tess.shader != tr.whiteShader ) {
-		RB_EndSurface();
-		RB_BeginSurface( tr.whiteShader, 0 );
-	}
-
-	VBO_UnBind();
-
-	RB_SetGL2D();
-
-	c.rgba[0] = c.rgba[1] = c.rgba[2] = (backEnd.refdef.time & 255);
-	c.rgba[3] = 255;
-
-	RB_AddQuadStamp2( backEnd.refdef.x, backEnd.refdef.y, backEnd.refdef.width, backEnd.refdef.height,
-		0.0, 0.0, 0.0, 0.0, c );
-
-	RB_EndSurface();
-
-	tess.numIndexes = 0;
-	tess.numVertexes = 0;
-
-	backEnd.isHyperspace = qtrue;
-}
-
-
 static void SetViewportAndScissor( void ) {
 	qglMatrixMode( GL_PROJECTION );
 	qglLoadMatrixf( backEnd.viewParms.projectionMatrix );
@@ -500,14 +462,6 @@ static void RB_BeginDrawingView( void ) {
 #endif
 	}
 	qglClear( clearBits );
-
-	if ( backEnd.refdef.rdflags & RDF_HYPERSPACE ) {
-		RB_Hyperspace();
-		backEnd.projection2D = qfalse;
-		SetViewportAndScissor();
-	} else {
-		backEnd.isHyperspace = qfalse;
-	}
 
 	glState.faceCulling = -1;		// force face culling to set next time
 
