@@ -457,7 +457,7 @@ static void Cvar_Sort(void) {
 }
 
 static void Cvar_Print(const cvar_t* v) {
-	Com_Printf("\"%s\" :\"%s" S_COLOR_WHITE "\"", v->name, v->string);
+	Com_Printf("\"%s\": \"%s" S_COLOR_WHITE "\"", v->name, v->string);
 
 	if(!(v->flags & CVAR_ROM)) {
 		Com_Printf(" default:\"%s" S_COLOR_WHITE "\"\n", v->resetString);
@@ -727,7 +727,7 @@ static void Cvar_Op(funcType_t ftype, int* ival, float* fval) {
 	int icap, imod;
 	float fcap, fmod;
 
-	GetValue(3, &imod, &fmod);  // index 3: value
+	GetValue(2, &imod, &fmod);
 
 	switch(ftype) {
 		case FT_ADD:
@@ -765,14 +765,14 @@ static void Cvar_Op(funcType_t ftype, int* ival, float* fval) {
 		default: break;
 	}
 
-	if(Cmd_Argc() > 4) {  // low bound
-		if(GetValue(4, &icap, &fcap)) {
+	if(Cmd_Argc() > 3) {  // low bound
+		if(GetValue(3, &icap, &fcap)) {
 			if(*ival < icap) *ival = icap;
 			if(*fval < fcap) *fval = fcap;
 		}
 	}
-	if(Cmd_Argc() > 5) {  // high bound
-		if(GetValue(5, &icap, &fcap)) {
+	if(Cmd_Argc() > 4) {  // high bound
+		if(GetValue(4, &icap, &fcap)) {
 			if(*ival > icap) *ival = icap;
 			if(*fval > fcap) *fval = fcap;
 		}
@@ -786,14 +786,14 @@ static void Cvar_Rand(int* ival, float* fval) {
 	*ival = rand();
 	*fval = *ival;
 
-	if(Cmd_Argc() > 3) {  // base
-		if(GetValue(3, &icap, &fcap)) {
+	if(Cmd_Argc() > 2) {  // base
+		if(GetValue(2, &icap, &fcap)) {
 			*ival += icap;
 			*fval = *ival;
 		}
 	}
-	if(Cmd_Argc() > 4) {  // modulus
-		if(GetValue(4, &icap, &fcap)) {
+	if(Cmd_Argc() > 3) {  // modulus
+		if(GetValue(3, &icap, &fcap)) {
 			if(icap) {
 				*ival %= icap;
 				*fval = *ival;
