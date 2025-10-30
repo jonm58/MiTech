@@ -655,6 +655,125 @@ void Cvar_SetCheatState(void) {
 	}
 }
 
+typedef enum {
+	FT_BAD = 0,
+	FT_SET,
+	FT_ADD,
+	FT_SUB,
+	FT_MUL,
+	FT_DIV,
+	FT_MOD,
+	FT_SIN,
+	FT_COS,
+	FT_RAND,
+} funcType_t;
+
+static funcType_t GetFuncType(void) {
+	const char* cmd;
+	cmd = Cmd_Argv(1);
+	if(!Q_stricmp(cmd, "=")) return FT_SET;
+	if(!Q_stricmp(cmd, "+=")) return FT_ADD;
+	if(!Q_stricmp(cmd, "-=")) return FT_SUB;
+	if(!Q_stricmp(cmd, "*=")) return FT_MUL;
+	if(!Q_stricmp(cmd, "/=")) return FT_DIV;
+	if(!Q_stricmp(cmd, "%=")) return FT_MOD;
+	if(!Q_stricmp(cmd, "s=")) return FT_SIN;
+	if(!Q_stricmp(cmd, "c=")) return FT_COS;
+	if(!Q_stricmp(cmd, ":=")) return FT_RAND;
+
+	return FT_BAD;
+}
+
+static qboolean AllowEmptyCvar(funcType_t ftype) {
+	switch(ftype) {
+		case FT_ADD:
+		case FT_SUB:
+		case FT_MUL:
+		case FT_DIV:
+		case FT_MOD: return qfalse;
+		default: return qtrue;
+	};
+}
+
+static void Cvar_Op(funcType_t ftype, int* ival, float* fval) {
+	int icap, imod;
+	float fcap, fmod;
+
+	GetValue(3, &imod, &fmod);  // index 3: value
+
+	switch(ftype) {
+		case FT_ADD:
+			*ival += imod;
+			*fval += fmod;
+			break;
+		case FT_SUB:
+			*ival -= imod;
+			*fval -= fmod;
+			break;
+		case FT_MUL:
+			*ival *= imod;
+			*fval *= fmod;
+			break;
+		case FT_DIV:
+			if(imod) *ival /= imod;
+			if(fmod) *fval /= fmod;
+			break;
+		case FT_MOD:
+			if(imod) {
+				*ival %= imod;
+				*fval = (float)((int)*fval % imod);  // FIXME: use float
+			}
+			break;
+
+		case FT_SIN:
+			*ival = sin(imod);
+			*fval = sin(fmod);
+			break;
+
+		case FT_COS:
+			*ival = cos(imod);
+			*fval = cos(fmod);
+			break;
+		default: break;
+	}
+
+	if(Cmd_Argc() > 4) {  // low bound
+		if(GetValue(4, &icap, &fcap)) {
+			if(*ival < icap) *ival = icap;
+			if(*fval < fcap) *fval = fcap;
+		}
+	}
+	if(Cmd_Argc() > 5) {  // high bound
+		if(GetValue(5, &icap, &fcap)) {
+			if(*ival > icap) *ival = icap;
+			if(*fval > fcap) *fval = fcap;
+		}
+	}
+}
+
+static void Cvar_Rand(int* ival, float* fval) {
+	int icap;
+	float fcap;
+
+	*ival = rand();
+	*fval = *ival;
+
+	if(Cmd_Argc() > 3) {  // base
+		if(GetValue(3, &icap, &fcap)) {
+			*ival += icap;
+			*fval = *ival;
+		}
+	}
+	if(Cmd_Argc() > 4) {  // modulus
+		if(GetValue(4, &icap, &fcap)) {
+			if(icap) {
+				*ival %= icap;
+				*fval = *ival;
+			}
+		}
+	}
+}
+
 qboolean Cvar_Command(void) {
 	cvar_t* v;
 	funcType_t ftype;
@@ -814,133 +933,6 @@ static const char* GetValue(int index, int* ival, float* fval) {
 	}
 }
 
-typedef enum {
-	FT_BAD = 0,
-	FT_SET,
-	FT_ADD,
-	FT_SUB,
-	FT_MUL,
-	FT_DIV,
-	FT_MOD,
-	FT_SIN,
-	FT_COS,
-	FT_RAND,
-} funcType_t;
-
-static funcType_t GetFuncType(void) {
-	const char* cmd;
-	cmd = Cmd_Argv(1);
-	if(!Q_stricmp(cmd, "=")) return FT_SET;
-	if(!Q_stricmp(cmd, "+=")) return FT_ADD;
-	if(!Q_stricmp(cmd, "-=")) return FT_SUB;
-	if(!Q_stricmp(cmd, "*=")) return FT_MUL;
-	if(!Q_stricmp(cmd, "/=")) return FT_DIV;
-	if(!Q_stricmp(cmd, "%=")) return FT_MOD;
-	if(!Q_stricmp(cmd, "s=")) return FT_SIN;
-	if(!Q_stricmp(cmd, "c=")) return FT_COS;
-	if(!Q_stricmp(cmd, ":=")) return FT_RAND;
-
-	return FT_BAD;
-}
-
-static qboolean AllowEmptyCvar(funcType_t ftype) {
-	switch(ftype) {
-		case FT_ADD:
-		case FT_SUB:
-		case FT_MUL:
-		case FT_DIV:
-		case FT_MOD: return qfalse;
-		default: return qtrue;
-	};
-}
-
-static void Cvar_Op(funcType_t ftype, int* ival, float* fval) {
-	int icap, imod;
-	float fcap, fmod;
-
-	GetValue(3, &imod, &fmod);  // index 3: value
-
-	switch(ftype) {
-		case FT_ADD:
-			*ival += imod;
-			*fval += fmod;
-			break;
-		case FT_SUB:
-			*ival -= imod;
-			*fval -= fmod;
-			break;
-		case FT_MUL:
-			*ival *= imod;
-			*fval *= fmod;
-			break;
-		case FT_DIV:
-			if(imod) *ival /= imod;
-			if(fmod) *fval /= fmod;
-			break;
-		case FT_MOD:
-			if(imod) {
-				*ival %= imod;
-				*fval = (float)((int)*fval % imod);  // FIXME: use float
-			}
-			break;
-
-		case FT_SIN:
-			*ival = sin(imod);
-			*fval = sin(fmod);
-			break;
-
-		case FT_COS:
-			*ival = cos(imod);
-			*fval = cos(fmod);
-			break;
-		default: break;
-	}
-
-	if(Cmd_Argc() > 4) {  // low bound
-		if(GetValue(4, &icap, &fcap)) {
-			if(*ival < icap) *ival = icap;
-			if(*fval < fcap) *fval = fcap;
-		}
-	}
-	if(Cmd_Argc() > 5) {  // high bound
-		if(GetValue(5, &icap, &fcap)) {
-			if(*ival > icap) *ival = icap;
-			if(*fval > fcap) *fval = fcap;
-		}
-	}
-}
-
-static void Cvar_Rand(int* ival, float* fval) {
-	int icap;
-	float fcap;
-
-	*ival = rand();
-	*fval = *ival;
-
-	if(Cmd_Argc() > 3) {  // base
-		if(GetValue(3, &icap, &fcap)) {
-			*ival += icap;
-			*fval = *ival;
-		}
-	}
-	if(Cmd_Argc() > 4) {  // modulus
-		if(GetValue(4, &icap, &fcap)) {
-			if(icap) {
-				*ival %= icap;
-				*fval = *ival;
-			}
-		}
-	}
-}
-
-/*
-============
-Cvar_WriteVariables
-
-Appends lines containing "set variable value" for all variables
-with the archive flag set to qtrue.
-============
-*/
 void Cvar_WriteVariables(fileHandle_t f) {
 	cvar_t* var;
 	char buffer[MAX_CMD_LINE];
@@ -970,11 +962,6 @@ void Cvar_WriteVariables(fileHandle_t f) {
 	}
 }
 
-/*
-============
-Cvar_List_f
-============
-*/
 static void Cvar_List_f(void) {
 	cvar_t* var;
 	int i;
@@ -1049,11 +1036,6 @@ static void Cvar_List_f(void) {
 	Com_Printf("%i cvar indexes\n", cvar_numIndexes);
 }
 
-/*
-============
-Cvar_ListModified_f
-============
-*/
 static void Cvar_ListModified_f(void) {
 	cvar_t* var;
 	int totalModified;
@@ -1129,13 +1111,6 @@ static void Cvar_ListModified_f(void) {
 	Com_Printf("\n%i total modified cvars\n", totalModified);
 }
 
-/*
-============
-Cvar_Unset
-
-Unsets a cvar
-============
-*/
 static cvar_t* Cvar_Unset(cvar_t* cv) {
 	cvar_t* next = cv->next;
 
@@ -1167,13 +1142,6 @@ static cvar_t* Cvar_Unset(cvar_t* cv) {
 	return next;
 }
 
-/*
-============
-Cvar_Unset_f
-
-Unsets a userdefined cvar
-============
-*/
 static void Cvar_Unset_f(void) {
 	cvar_t* cv;
 
@@ -1188,15 +1156,6 @@ static void Cvar_Unset_f(void) {
 
 	Cvar_Unset(cv);
 }
-
-/*
-============
-Cvar_Restart
-
-Resets all cvars to their hardcoded values and removes userdefined variables
-and variables added via the VMs if requested.
-============
-*/
 
 void Cvar_Restart(qboolean unsetVM) {
 	cvar_t* curvar = cvar_vars;
@@ -1232,23 +1191,8 @@ static void Cvar_Trim(qboolean verbose) {
 	}
 }
 
-/*
-============
-Cvar_Restart_f
-
-Resets all cvars to their hardcoded values
-============
-*/
 static void Cvar_Restart_f(void) { Cvar_Restart(qfalse); }
 
-/*
-============
-Cvar_Trim_f
-
-Removes all user-created cvars
-This will only accept to run when both the server and client are running unless forced
-============
-*/
 static void Cvar_Trim_f(void) {
 	qboolean forced = qfalse;
 	qboolean verbose = qtrue;
