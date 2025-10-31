@@ -595,7 +595,7 @@ static void Cvar_Op(funcType_t ftype, float* val) {
 			if(mod) *val /= mod;
 			break;
 		case FT_MOD:
-			if(mod) *val = (float)((int)*val % mod);  // FIXME: use float
+			if(mod) *val = (float)(*val % mod);  // FIXME: use float
 			break;
 
 		case FT_SIN:
@@ -621,8 +621,8 @@ static void Cvar_Op(funcType_t ftype, float* val) {
 	}
 }
 
-static void Cvar_Rand(int* val) {
-	int cap;
+static void Cvar_Rand(float* val) {
+	float cap;
 
 	*val = rand();
 
