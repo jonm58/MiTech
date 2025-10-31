@@ -408,9 +408,6 @@ void SV_SpawnServer( const char *mapname ) {
 	// clear collision map data
 	CM_ClearMap();
 
-	// timescale can be updated before SV_Frame() and cause division-by-zero in SV_RateMsec()
-	Cvar_CheckRange( com_timescale, "0.001", NULL, CV_FLOAT );
-
 	// Restart renderer?
 	// CL_StartHunkUsers( );
 
@@ -607,13 +604,11 @@ void SV_Init( void )
 	sv_mapname = Cvar_Get ("sv_mapname", "", CVAR_SERVERINFO );
 	Cvar_SetDescription( sv_mapname, "Display the name of the current map being used on a server." );
 	sv_privateClients = Cvar_Get( "sv_privateClients", "0", 0 );
-	Cvar_CheckRange( sv_privateClients, "0", va( "%i", MAX_CLIENTS-1 ), CV_INTEGER );
 	Cvar_SetDescription( sv_privateClients, "The number of spots, out of g_maxClients, reserved for players with the server password (sv_privatePassword)." );
 	sv_hostname = Cvar_Get ("sv_hostname", "OpenSandbox", CVAR_SERVERINFO | CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_hostname, "Sets the name of the server." );
 
 	sv_maxclientsPerIP = Cvar_Get( "sv_maxclientsPerIP", "3", CVAR_ARCHIVE );
-	Cvar_CheckRange( sv_maxclientsPerIP, "1", NULL, CV_INTEGER );
 	Cvar_SetDescription( sv_maxclientsPerIP, "Limits number of simultaneous connections from the same IP address." );
 
 	sv_minRate = Cvar_Get( "sv_minRate", "0", CVAR_ARCHIVE_ND );
@@ -621,7 +616,6 @@ void SV_Init( void )
 	sv_maxRate = Cvar_Get( "sv_maxRate", "0", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( sv_maxRate, "Maximum server bandwidth (in bit per second) a client can use." );
 	sv_dlRate = Cvar_Get( "sv_dlRate", "100", CVAR_ARCHIVE );
-	Cvar_CheckRange( sv_dlRate, "0", "500", CV_INTEGER );
 	Cvar_SetDescription( sv_dlRate, "Bandwidth allotted to PK3 file downloads via UDP, in kbyte/s." );
 	sv_floodProtect = Cvar_Get( "sv_floodProtect", "1", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	Cvar_SetDescription( sv_floodProtect, "Toggle server flood protection to keep players from bringing the server down." );
@@ -638,13 +632,10 @@ void SV_Init( void )
 	sv_privatePassword = Cvar_Get ("sv_privatePassword", "", CVAR_TEMP );
 	Cvar_SetDescription( sv_privatePassword, "Set password for private clients to login with." );
 	sv_fps = Cvar_Get ("sv_fps", "60", CVAR_TEMP );
-	Cvar_CheckRange( sv_fps, "30", "999", CV_INTEGER );
 	Cvar_SetDescription( sv_fps, "Set the max frames per second the server sends the client." );
 	sv_timeout = Cvar_Get( "sv_timeout", "999999", CVAR_TEMP );
-	Cvar_CheckRange( sv_timeout, "4", NULL, CV_INTEGER );
 	Cvar_SetDescription( sv_timeout, "Seconds without any message before automatic client disconnect." );
 	sv_zombietime = Cvar_Get( "sv_zombietime", "2", CVAR_TEMP );
-	Cvar_CheckRange( sv_zombietime, "1", NULL, CV_INTEGER );
 	Cvar_SetDescription( sv_zombietime, "Seconds to sink messages after disconnect." );
 	Cvar_Get ("nextmap", "", CVAR_TEMP );
 
@@ -656,7 +647,6 @@ void SV_Init( void )
 		sv_master[ index ] = Cvar_Get( va( "sv_master%d", index + 1 ), "", CVAR_ARCHIVE_ND );
 
 	sv_reconnectlimit = Cvar_Get( "sv_reconnectlimit", "3", 0 );
-	Cvar_CheckRange( sv_reconnectlimit, "0", "12", CV_INTEGER );
 	Cvar_SetDescription( sv_reconnectlimit, "Number of seconds a disconnected client should wait before next reconnect." );
 
 	sv_padPackets = Cvar_Get( "sv_padPackets", "0", CVAR_DEVELOPER );
@@ -771,9 +761,6 @@ void SV_Shutdown( const char *finalmsg ) {
 	sv.time = 0;
 
 	Cvar_Set( "sv_running", "0" );
-
-	// allow setting timescale 0 for demo playback
-	Cvar_CheckRange( com_timescale, "0", NULL, CV_FLOAT );
 
 #ifndef DEDICATED
 	Cvar_Set( "ui_singlePlayerActive", "0" );
