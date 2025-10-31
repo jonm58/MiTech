@@ -958,7 +958,7 @@ void Cvar_WriteVariables(fileHandle_t f) {
 			if((var->flags & CVAR_NODEFAULT) && !strcmp(value, var->resetString)) {
 				continue;
 			}
-			len = Com_sprintf(buffer, sizeof(buffer), "seta %s \"%s\"" Q_NEWLINE, var->name, value);
+			len = Com_sprintf(buffer, sizeof(buffer), "%s - \"%s\"" Q_NEWLINE, var->name, value);
 
 			FS_Write(buffer, len, f);
 		}

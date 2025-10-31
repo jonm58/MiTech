@@ -657,11 +657,11 @@ typedef enum {
 #define	MAX_FOUND_FILES		0x5000
 
 #ifdef DEDICATED
-#define Q3CONFIG_CFG "q3config_server.cfg"
-#define CONSOLE_HISTORY_FILE "q3history_server"
+#define Q3CONFIG_CFG "sandbox_server.cfg"
+#define CONSOLE_HISTORY_FILE "history_server"
 #else
-#define Q3CONFIG_CFG "q3config.cfg"
-#define CONSOLE_HISTORY_FILE "q3history"
+#define Q3CONFIG_CFG "sandbox.cfg"
+#define CONSOLE_HISTORY_FILE "history"
 #endif
 
 typedef	time_t fileTime_t;
