@@ -2642,7 +2642,6 @@ static void CL_InitRef( void ) {
 	rimp.Cvar_Get = Cvar_Get;
 	rimp.Cvar_Set = Cvar_Set;
 	rimp.Cvar_SetValue = Cvar_SetValue;
-	rimp.Cvar_CheckRange = Cvar_CheckRange;
 	rimp.Cvar_SetDescription = Cvar_SetDescription;
 	rimp.Cvar_VariableStringBuffer = Cvar_VariableStringBuffer;
 	rimp.Cvar_VariableString = Cvar_VariableString;
@@ -3382,7 +3381,6 @@ void CL_Init( void ) {
 	Cvar_SetDescription( cl_noprint, "Disable printing of information in the console." );
 
 	cl_timeout = Cvar_Get( "cl_timeout", "200", 0 );
-	Cvar_CheckRange( cl_timeout, "5", NULL, CV_INTEGER );
 	Cvar_SetDescription( cl_timeout, "Duration of receiving nothing from server for client to decide it must be disconnected (in seconds)." );
 
 	cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
@@ -3393,7 +3391,6 @@ void CL_Init( void ) {
 	Cvar_SetDescription( cl_activeAction, "Contents of this variable will be executed upon first frame of play.\nNote: It is cleared every time it is executed." );
 
 	cl_aviFrameRate = Cvar_Get ("cl_aviFrameRate", "25", CVAR_ARCHIVE);
-	Cvar_CheckRange( cl_aviFrameRate, "1", "1000", CV_INTEGER );
 	Cvar_SetDescription( cl_aviFrameRate, "The framerate used for capturing video." );
 	cl_aviMotionJpeg = Cvar_Get ("cl_aviMotionJpeg", "1", CVAR_ARCHIVE);
 	Cvar_SetDescription( cl_aviMotionJpeg, "Enable/disable the MJPEG codec for avi output." );
@@ -3414,7 +3411,6 @@ void CL_Init( void ) {
 	Cvar_SetDescription( cl_serverStatusResendTime, "Time between re-sending server status requests if no response is received (in milliseconds)." );
 
 	cv = Cvar_Get( "cl_maxPing", "999", CVAR_ARCHIVE_ND );
-	Cvar_CheckRange( cv, "100", "999", CV_INTEGER );
 	Cvar_SetDescription( cv, "Specify the maximum allowed ping to a server." );
 
 	cl_lanForcePackets = Cvar_Get( "cl_lanForcePackets", "1", CVAR_ARCHIVE_ND );
