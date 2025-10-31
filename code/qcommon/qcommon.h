@@ -588,7 +588,7 @@ qboolean Cvar_Command( void );
 // was handled. (print or change)
 
 void 	Cvar_WriteVariables( fileHandle_t f );
-// writes lines containing "set variable value" for all variables
+// writes lines containing "variable = value" for all variables
 // with the archive flag set to true.
 
 void	Cvar_Init( void );
