@@ -433,14 +433,7 @@ qboolean CL_OpenAVIForWriting( const char *fileName, qboolean pipe, qboolean reo
 
 	afd.audioFrameSize = ceil( (float)(afd.a.rate * afd.a.sampleSize) / (float)afd.frameRate );
 
-	if ( Cvar_VariableIntegerValue( "s_initsound" ) == 0 )
-	{
-		afd.audio = qfalse;
-	}
-	else
-	{
-		afd.audio = qtrue;
-	}
+	afd.audio = qtrue;
 
 	// This doesn't write a real header, but allocates the
 	// correct amount of space at the beginning of the file

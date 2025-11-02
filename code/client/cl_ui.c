@@ -247,14 +247,6 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		Cvar_Set( VMA(1), VMA(2) );
 		return 0;
 
-	case UI_CVAR_VARIABLEVALUE:
-		return FloatAsInt( Cvar_VariableValue( VMA(1) ) );
-
-	case UI_CVAR_VARIABLESTRINGBUFFER:
-		VM_CHECKBOUNDS( uivm, args[2], args[3] );
-		Cvar_VariableStringBufferSafe( VMA(1), VMA(2), args[3], CVAR_PRIVATE );
-		return 0;
-
 	case UI_CVAR_SETVALUE:
 		Cvar_SetValue( VMA(1), VMF(2) );
 		return 0;

@@ -1464,7 +1464,7 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 		return qfalse;
 	}
 
-	s_khz = Cvar_Get( "s_khz", "44", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	s_khz = Cvar_Get( "s_khz", "44", CVAR_ARCHIVE | CVAR_LATCH );
 	Cvar_SetDescription( s_khz, "Specifies the sound sampling rate, (8, 11, 22, 44, 48) in kHz. Default value is 44." );
 
 	switch( s_khz->integer ) {
@@ -1482,10 +1482,10 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 			break;
 	}
 
-	s_mixahead = Cvar_Get( "s_mixAhead", "0.2", CVAR_ARCHIVE_ND );
+	s_mixahead = Cvar_Get( "s_mixAhead", "0.2", CVAR_ARCHIVE );
 	Cvar_SetDescription( s_mixahead, "Amount of time to pre-mix sound data to avoid potential skips/stuttering in case of unstable framerate. Higher values add more CPU usage." );
 
-	s_mixOffset = Cvar_Get( "s_mixOffset", "0", CVAR_ARCHIVE_ND | CVAR_DEVELOPER );
+	s_mixOffset = Cvar_Get( "s_mixOffset", "0", CVAR_ARCHIVE | CVAR_DEVELOPER );
 
 	s_show = Cvar_Get( "s_show", "0", CVAR_CHEAT );
 	Cvar_SetDescription( s_show, "Debugging output (used sound files)." );

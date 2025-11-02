@@ -92,8 +92,6 @@ static void CL_InitRef( void );
 static void CL_ShutdownRef( refShutdownCode_t code );
 static void CL_InitGLimp_Cvars( void );
 
-static void CL_NextDemo( void );
-
 /*
 =======================================================================
 
@@ -564,7 +562,6 @@ CL_DemoCompleted
 */
 static void CL_DemoCompleted( void ) {
 	CL_Disconnect( qtrue );
-	CL_NextDemo();
 }
 
 /*
@@ -713,31 +710,6 @@ static void CL_PlayDemo_f( void ) {
 	// time from the gamestate load from messing causing a time skip
 	clc.firstDemoFrameSkipped = qfalse;
 }
-
-/*
-==================
-CL_NextDemo
-
-Called when a demo or cinematic finishes
-If the "nextdemo" cvar is set, that command will be issued
-==================
-*/
-static void CL_NextDemo( void ) {
-	char v[ MAX_CVAR_VALUE_STRING ];
-
-	Cvar_VariableStringBuffer( "nextdemo", v, sizeof( v ) );
-	Com_DPrintf( "CL_NextDemo: %s\n", v );
-	if ( !v[0] ) {
-		return;
-	}
-
-	Cvar_Set( "nextdemo", "" );
-	Cbuf_AddText( v );
-	Cbuf_AddText( "\n" );
-	Cbuf_Execute();
-}
-
-//======================================================================
 
 /*
 =====================
@@ -2603,7 +2575,6 @@ static void CL_InitRef( void ) {
 	rimp.Cvar_Set = Cvar_Set;
 	rimp.Cvar_SetValue = Cvar_SetValue;
 	rimp.Cvar_SetDescription = Cvar_SetDescription;
-	rimp.Cvar_VariableStringBuffer = Cvar_VariableStringBuffer;
 	rimp.Cvar_VariableString = Cvar_VariableString;
 	rimp.Cvar_VariableIntegerValue = Cvar_VariableIntegerValue;
 
@@ -2661,28 +2632,6 @@ static void CL_InitRef( void ) {
 	// unpause so the cgame definitely gets a snapshot and renders a frame
 	Cvar_Set( "cl_paused", "0" );
 }
-
-
-//===========================================================================================
-
-
-static void CL_SetModel_f( void ) {
-	const char *arg;
-	char name[ MAX_CVAR_VALUE_STRING ];
-
-	arg = Cmd_Argv( 1 );
-	if ( arg[0] ) {
-		Cvar_Set( "model", arg );
-		Cvar_Set( "headmodel", arg );
-	} else {
-		Cvar_VariableStringBuffer( "model", name, sizeof( name ) );
-		Com_Printf( "model is set to %s\n", name );
-	}
-}
-
-
-//===========================================================================================
-
 
 /*
 ===============
@@ -3418,7 +3367,6 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("serverstatus", CL_ServerStatus_f );
 	Cmd_AddCommand ("showip", CL_ShowIP_f );
 	Cmd_AddCommand ("fs_openedList", CL_OpenedPK3List_f );
-	Cmd_AddCommand ("model", CL_SetModel_f );
 	Cmd_AddCommand ("video", CL_Video_f );
 	Cmd_AddCommand ("video-pipe", CL_Video_f );
 	Cmd_SetCommandCompletionFunc( "video", CL_CompleteVideoName );

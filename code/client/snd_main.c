@@ -400,7 +400,7 @@ void S_Init( void )
 	Cvar_SetDescription( s_volume, "Sets master volume for all game audio." );
 	s_musicVolume = Cvar_Get( "s_musicVolume", "0.4", CVAR_ARCHIVE );
 	Cvar_SetDescription( s_musicVolume, "Sets volume for in-game music only." );
-	s_doppler = Cvar_Get( "s_doppler", "1", CVAR_ARCHIVE_ND );
+	s_doppler = Cvar_Get( "s_doppler", "1", CVAR_ARCHIVE );
 	Cvar_SetDescription( s_doppler, "Enables doppler effect on moving projectiles." );
 	s_muteWhenUnfocused = Cvar_Get( "s_muteWhenUnfocused", "1", CVAR_ARCHIVE );
 	Cvar_SetDescription( s_muteWhenUnfocused, "Mutes all audio while game window is unfocused." );

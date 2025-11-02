@@ -545,15 +545,6 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		anykeydown++;
 	}
 
-#ifndef _WIN32
-	if ( keys[K_ALT].down && key == K_ENTER )
-	{
-		Cvar_SetValue( "r_fullscreen", !Cvar_VariableIntegerValue( "r_fullscreen" ) );
-		Cbuf_ExecuteText( EXEC_APPEND, "vid_restart\n" );
-		return;
-	}
-#endif
-
 	// console key is hardcoded, so the user can never unbind it
 	if ( key == K_CONSOLE || ( keys[K_SHIFT].down && key == K_ESCAPE ) ) {
 		Con_ToggleConsole_f();
@@ -572,12 +563,7 @@ static void CL_KeyDownEvent( int key, unsigned time )
 	}
 
 	// keys can still be used for bound actions
-	if ( ( key < 128 || key == K_MOUSE1 ) && cls.state == CA_CINEMATIC && Key_GetCatcher() == 0 ) {
-		if ( Cvar_VariableIntegerValue( "com_cameraMode" ) == 0 ) {
-			Cvar_Set ("nextdemo","");
-			key = K_ESCAPE;
-		}
-	}
+	if ( ( key < 128 || key == K_MOUSE1 ) && cls.state == CA_CINEMATIC && Key_GetCatcher() == 0 ) key = K_ESCAPE;
 
 	// escape is always handled special
 	if ( key == K_ESCAPE ) {
