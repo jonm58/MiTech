@@ -208,8 +208,6 @@ struct vm_s {
 	uint32_t	crc32sum;
 
 	qboolean	forceDataMask;
-
-	int			privateFlag;
 };
 
 qboolean VM_Compile( vm_t *vm, vmHeader_t *header );

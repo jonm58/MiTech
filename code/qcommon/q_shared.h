@@ -946,14 +946,6 @@ default values.
 #define CVAR_NONEXISTENT	0x80000000	// Cvar doesn't exist.
 
 typedef enum {
-	CV_NONE = 0,
-	CV_FLOAT,
-	CV_INTEGER,
-	CV_FSPATH,
-	CV_MAX,
-} cvarValidator_t;
-
-typedef enum {
 	CVG_NONE = 0,
 	CVG_RENDERER,
 	CVG_SERVER,
@@ -970,12 +962,8 @@ struct cvar_s {
 	char		*latchedString;		// for CVAR_LATCH vars
 	int			flags;
 	qboolean	modified;			// set each time the cvar is changed
-	int			modificationCount;	// incremented each time the cvar is changed
 	float		value;				// Q_atof( string )
 	int			integer;			// atoi( string )
-	cvarValidator_t validator;
-	char		*mins;
-	char		*maxs;
 	char		*description;
 
 	cvar_t		*next;
@@ -993,8 +981,6 @@ typedef int	cvarHandle_t;
 // the modules that run in the virtual machine can't access the cvar_t directly,
 // so they must ask for structured updates
 typedef struct {
-	cvarHandle_t	handle;
-	int			modificationCount;
 	float		value;
 	int			integer;
 	char		string[MAX_CVAR_VALUE_STRING];
@@ -1126,7 +1112,8 @@ typedef enum {
 #define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
 
 #define	MAX_CONFIGSTRINGS	1600
-#define	MAX_GAMESTATE_CHARS	32000
+#define	MAX_GAMESTATE_CHARS	65535
+#define MAX_CVARS           65535
 
 // these are the only configstrings that the system reserves, all the
 // other ones are strictly for servergame to clientgame communication

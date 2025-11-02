@@ -451,29 +451,6 @@ static void Com_ParseCommandLine( char *commandLine ) {
 }
 
 /*
-===================
-Com_SafeMode
-
-Check for "safe" on the command line, which will
-skip loading of q3config.cfg
-===================
-*/
-qboolean Com_SafeMode( void ) {
-	int		i;
-
-	for ( i = 0 ; i < com_numConsoleLines ; i++ ) {
-		Cmd_TokenizeString( com_consoleLines[i] );
-		if ( !Q_stricmp( Cmd_Argv(0), "safe" )
-			|| !Q_stricmp( Cmd_Argv(0), "cvar_restart" ) ) {
-			com_consoleLines[i][0] = '\0';
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
-
-
-/*
 ===============
 Com_StartupVariable
 
@@ -490,11 +467,11 @@ void Com_StartupVariable( const char *match ) {
 
 	for ( i = 0; i < com_numConsoleLines; i++ ) {
 		Cmd_TokenizeString( com_consoleLines[i] );
-		if ( Q_stricmp( Cmd_Argv( 0 ), "set" ) ) {
+		if ( Q_stricmp( Cmd_Argv( 1 ), "=" ) ) {
 			continue;
 		}
 
-		name = Cmd_Argv( 1 );
+		name = Cmd_Argv( 0 );
 		if ( !match || Q_stricmp( name, match ) == 0 ) {
 			if ( Cvar_Flags( name ) == CVAR_NONEXISTENT )
 				Cvar_Get( name, Cmd_ArgsFrom( 2 ), CVAR_USER_CREATED );
@@ -2710,14 +2687,10 @@ static void Com_ExecuteCfg( void )
 	Cbuf_ExecuteText(EXEC_NOW, "exec default.cfg\n");
 	Cbuf_Execute(); // Always execute after exec to prevent text buffer overflowing
 
-	if (!Com_SafeMode())
-	{
-		// skip the q3config.cfg and autoexec.cfg if "safe" is on the command line
-		Cbuf_ExecuteText(EXEC_NOW, "exec " Q3CONFIG_CFG "\n");
-		Cbuf_Execute();
-		Cbuf_ExecuteText(EXEC_NOW, "exec autoexec.cfg\n");
-		Cbuf_Execute();
-	}
+	Cbuf_ExecuteText(EXEC_NOW, "exec " CONFIG_CFG "\n");
+	Cbuf_Execute();
+	Cbuf_ExecuteText(EXEC_NOW, "exec autoexec.cfg\n");
+	Cbuf_Execute();
 }
 
 
@@ -2785,12 +2758,7 @@ Com_GameRestart_f
 Expose possibility to change current running mod to the user
 ==================
 */
-static void Com_GameRestart_f( void )
-{
-	Cvar_Set( "fs_game", Cmd_Argv( 1 ) );
-
-	Com_GameRestart( 0, qtrue );
-}
+static void Com_GameRestart_f( void ) {	Com_GameRestart( 0, qtrue ); }
 
 /*
 ** --------------------------------------------------------------------------------
@@ -3184,10 +3152,6 @@ void Com_Init( char *commandLine ) {
 	com_noErrorInterrupt = Cvar_Get( "com_noErrorInterrupt", "0", 0 );
 #endif
 
-#ifdef DEFAULT_GAME
-	Cvar_Set( "fs_game", DEFAULT_GAME );
-#endif
-
 	// prepare enough of the subsystems to handle
 	// cvar and command buffer management
 	Com_ParseCommandLine( commandLine );
@@ -3204,18 +3168,15 @@ void Com_Init( char *commandLine ) {
 	// get the developer cvar set as early as possible
 	Com_StartupVariable( "developer" );
 	com_developer = Cvar_Get( "developer", "0", CVAR_TEMP );
-	Cvar_CheckRange( com_developer, NULL, NULL, CV_INTEGER );
 
 	Com_StartupVariable( "vm_rtChecks" );
 	vm_rtChecks = Cvar_Get( "vm_rtChecks", "15", CVAR_INIT | CVAR_PROTECTED );
-	Cvar_CheckRange( vm_rtChecks, "0", "15", CV_INTEGER );
 	Cvar_SetDescription( vm_rtChecks,
 		"Runtime checks in compiled vm code, bitmask:\n 1 - program stack overflow\n" \
 		" 2 - opcode stack overflow\n 4 - jump target range\n 8 - data read/write range" );
 
 	Com_StartupVariable( "journal" );
 	com_journal = Cvar_Get( "journal", "0", CVAR_INIT | CVAR_PROTECTED );
-	Cvar_CheckRange( com_journal, "0", "2", CV_INTEGER );
 	Cvar_SetDescription( com_journal, "When enabled, writes events and its data to 'journal.dat' and 'journaldata.dat'.");
 
 	Com_StartupVariable( "sv_master1" );
@@ -3257,7 +3218,6 @@ void Com_Init( char *commandLine ) {
 	FS_InitFilesystem();
 
 	com_logfile = Cvar_Get( "logfile", "0", CVAR_TEMP );
-	Cvar_CheckRange( com_logfile, "0", "4", CV_INTEGER );
 	Cvar_SetDescription( com_logfile, "System console logging:\n"
 		" 0 - disabled\n"
 		" 1 - overwrite mode, buffered\n"
@@ -3275,10 +3235,8 @@ void Com_Init( char *commandLine ) {
 	// get dedicated here for proper hunk megs initialization
 #ifdef DEDICATED
 	com_dedicated = Cvar_Get( "dedicated", "1", CVAR_INIT );
-	Cvar_CheckRange( com_dedicated, "1", "2", CV_INTEGER );
 #else
 	com_dedicated = Cvar_Get( "dedicated", "0", CVAR_LATCH );
-	Cvar_CheckRange( com_dedicated, "0", "2", CV_INTEGER );
 #endif
 	Cvar_SetDescription( com_dedicated, "Enables dedicated server mode.\n 0: Listen server\n 1: Unlisted dedicated server \n 2: Listed dedicated server" );
 	// allocate the stack based hunk allocator
@@ -3293,13 +3251,10 @@ void Com_Init( char *commandLine ) {
 	//
 #ifndef DEDICATED
 	com_maxfps = Cvar_Get( "com_maxfps", "60", 0 ); // try to force that in some light way
-	Cvar_CheckRange( com_maxfps, "0", "1000", CV_INTEGER );
 	Cvar_SetDescription( com_maxfps, "Sets maximum frames per second." );
 	com_maxfpsUnfocused = Cvar_Get( "com_maxfpsUnfocused", "60", CVAR_ARCHIVE_ND );
-	Cvar_CheckRange( com_maxfpsUnfocused, "0", "1000", CV_INTEGER );
 	Cvar_SetDescription( com_maxfpsUnfocused, "Sets maximum frames per second in unfocused game window." );
 	com_yieldCPU = Cvar_Get( "com_yieldCPU", "1", CVAR_ARCHIVE_ND );
-	Cvar_CheckRange( com_yieldCPU, "0", "16", CV_INTEGER );
 	Cvar_SetDescription( com_yieldCPU, "Attempt to sleep specified amount of time between rendered frames when game is active, this will greatly reduce CPU load. Use 0 only if you're experiencing some lag." );
 #endif
 
@@ -3309,7 +3264,6 @@ void Com_Init( char *commandLine ) {
 	com_affinityMask->modified = qfalse;
 #endif
 	com_timescale = Cvar_Get( "timescale", "1", CVAR_CHEAT | CVAR_SYSTEMINFO );
-	Cvar_CheckRange( com_timescale, "0", NULL, CV_FLOAT );
 	Cvar_SetDescription( com_timescale, "System timing factor:\n < 1: Slows the game down\n = 1: Regular speed\n > 1: Speeds the game up" );
 	com_fixedtime = Cvar_Get( "fixedtime", "0", CVAR_CHEAT );
 	Cvar_SetDescription( com_fixedtime, "Toggle the rendering of every frame the game will wait until each frame is completely rendered before sending the next frame." );
@@ -3471,7 +3425,7 @@ void Com_WriteConfiguration( void ) {
 	}
 	cvar_modifiedFlags &= ~CVAR_ARCHIVE;
 
-	Com_WriteConfigToFile( Q3CONFIG_CFG );
+	Com_WriteConfigToFile( CONFIG_CFG );
 }
 
 

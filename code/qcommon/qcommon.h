@@ -535,10 +535,10 @@ cvar_t *Cvar_Get( const char *var_name, const char *value, int flags );
 // that allows variables to be unarchived without needing bitflags
 // if value is "", the value will not override a previously set value.
 
-void	Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags, int privateFlag );
+void	Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
 // basically a slightly modified Cvar_Get for the interpreted modules
 
-void	Cvar_Update( vmCvar_t *vmCvar, int privateFlag );
+void	Cvar_Update( vmCvar_t *vmCvar, int cvarID );
 // updates an interpreted modules' version of a cvar
 
 void 	Cvar_Set( const char *var_name, const char *value );
@@ -547,16 +547,11 @@ void 	Cvar_Set( const char *var_name, const char *value );
 cvar_t	*Cvar_Set2(const char *var_name, const char *value, qboolean force);
 // same as Cvar_Set, but allows more control over setting of cvar
 
-void	Cvar_SetSafe( const char *var_name, const char *value );
-// sometimes we set variables from an untrusted source: fail if flags & CVAR_PROTECTED
-
 void	Cvar_SetLatched( const char *var_name, const char *value);
 // don't set the cvar immediately
 
 void	Cvar_SetValue( const char *var_name, float value );
 void	Cvar_SetIntegerValue( const char *var_name, int value );
-void	Cvar_SetValueSafe( const char *var_name, float value );
-// expands value to a string and calls Cvar_Set/Cvar_SetSafe
 
 qboolean Cvar_SetModified( const char *var_name, qboolean modified );
 
@@ -588,7 +583,7 @@ qboolean Cvar_Command( void );
 // was handled. (print or change)
 
 void 	Cvar_WriteVariables( fileHandle_t f );
-// writes lines containing "set variable value" for all variables
+// writes lines containing "variable = value" for all variables
 // with the archive flag set to true.
 
 void	Cvar_Init( void );
@@ -598,7 +593,6 @@ const char *Cvar_InfoString_Big( int bit, qboolean *truncated );
 // returns an info string containing all the cvars that have the given bit set
 // in their flags ( CVAR_USERINFO, CVAR_SERVERINFO, CVAR_SYSTEMINFO, etc )
 void	Cvar_InfoStringBuffer( int bit, char *buff, int buffsize );
-void	Cvar_CheckRange( cvar_t *cv, const char *minVal, const char *maxVal, cvarValidator_t type );
 void	Cvar_SetDescription( cvar_t *var, const char *var_description );
 
 void	Cvar_SetGroup( cvar_t *var, cvarGroup_t group );
@@ -657,11 +651,11 @@ typedef enum {
 #define	MAX_FOUND_FILES		0x5000
 
 #ifdef DEDICATED
-#define Q3CONFIG_CFG "q3config_server.cfg"
-#define CONSOLE_HISTORY_FILE "q3history_server"
+#define CONFIG_CFG "sandbox_server.cfg"
+#define CONSOLE_HISTORY_FILE "history_server"
 #else
-#define Q3CONFIG_CFG "q3config.cfg"
-#define CONSOLE_HISTORY_FILE "q3history"
+#define CONFIG_CFG "sandbox.cfg"
+#define CONSOLE_HISTORY_FILE "history"
 #endif
 
 typedef	time_t fileTime_t;
@@ -802,7 +796,6 @@ void FS_VM_WriteFile( void *buffer, int len, fileHandle_t f, handleOwner_t owner
 void FS_VM_CloseFile( fileHandle_t f, handleOwner_t owner );
 void FS_VM_CloseFiles( handleOwner_t owner );
 
-const char *FS_GetCurrentGameDir( void );
 const char *FS_GetBaseGameDir( void );
 
 const char *FS_GetHomePath( void );
@@ -913,7 +906,6 @@ qboolean	Com_FilterExt( const char *filter, const char *name );
 qboolean	Com_HasPatterns( const char *str );
 int			Com_FilterPath( const char *filter, const char *name );
 int			Com_RealTime(qtime_t *qtime);
-qboolean	Com_SafeMode( void );
 void		Com_RunAndTimeServerPacket( const netadr_t *evFrom, msg_t *buf );
 
 void		Com_StartupVariable( const char *match );

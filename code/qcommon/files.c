@@ -19,190 +19,10 @@ along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
-/*****************************************************************************
- * name:		files.c
- *
- * desc:		handle based filesystem for Quake III Arena 
- *
- * $Archive: /MissionPack/code/qcommon/files.c $
- *
- *****************************************************************************/
-
 
 #include "q_shared.h"
 #include "qcommon.h"
 #include "unzip.h"
-
-/*
-=============================================================================
-
-QUAKE3 FILESYSTEM
-
-All of Quake's data access is through a hierarchical file system, but the contents of 
-the file system can be transparently merged from several sources.
-
-A "qpath" is a reference to game file data.  MAX_ZPATH is 256 characters, which must include
-a terminating zero. "..", "\\", and ":" are explicitly illegal in qpaths to prevent any
-references outside the quake directory system.
-
-The "base path" is the path to the directory holding all the game directories and usually
-the executable.  It defaults to ".", but can be overridden with a "+set fs_basepath c:\quake3"
-command line to allow code debugging in a different directory.  Basepath cannot
-be modified at all after startup.  Any files that are created (demos, screenshots,
-etc) will be created relative to the base path, so base path should usually be writable.
-
-The "cd path" is the path to an alternate hierarchy that will be searched if a file
-is not located in the base path.  A user can do a partial install that copies some
-data to a base path created on their hard drive and leave the rest on the cd.  Files
-are never written to the cd path.  It defaults to a value set by the installer, like
-"e:\quake3", but it can be overridden with "+set fs_cdpath g:\quake3".
-
-If a user runs the game directly from a CD, the base path would be on the CD.  This
-should still function correctly, but all file writes will fail (harmlessly).
-
-The "home path" is the path used for all write access. On win32 systems we have "base path"
-== "home path", but on *nix systems the base installation is usually read-only, and
-"home path" points to ~/.q3a or similar
-
-The user can also install custom mods and content in "home path", so it should be searched
-along with "home path" and "cd path" for game content.
-
-
-The "base game" is the directory under the paths where data comes from by default, and
-can be either "baseq3" or "demoq3".
-
-The "current game" may be the same as the base game, or it may be the name of another
-directory under the paths that should be searched for files before looking in the base game.
-This is the basis for addons.
-
-Clients automatically set the game directory after receiving a gamestate from a server,
-so only servers need to worry about +set fs_game.
-
-No other directories outside of the base game and current game will ever be referenced by
-filesystem functions.
-
-To save disk space and speed loading, directory trees can be collapsed into zip files.
-The files use a ".pk3" extension to prevent users from unzipping them accidentally, but
-otherwise the are simply normal uncompressed zip files.  A game directory can have multiple
-zip files of the form "pak0.pk3", "pak1.pk3", etc.  Zip files are searched in decending order
-from the highest number to the lowest, and will always take precedence over the filesystem.
-This allows a pk3 distributed as a patch to override all existing data.
-
-Because we will have updated executables freely available online, there is no point to
-trying to restrict demo / oem versions of the game with code changes.  Demo / oem versions
-should be exactly the same executables as release versions, but with different data that
-automatically restricts where game media can come from to prevent add-ons from working.
-
-After the paths are initialized, quake will look for the product.txt file.  If not
-found and verified, the game will run in restricted mode.  In restricted mode, only 
-files contained in demoq3/pak0.pk3 will be available for loading, and only if the zip header is
-verified to not have been modified.  A single exception is made for q3config.cfg.  Files
-can still be written out in restricted mode, so screenshots and demos are allowed.
-Restricted mode can be tested by setting "+set fs_restrict 1" on the command line, even
-if there is a valid product.txt under the basepath or cdpath.
-
-If not running in restricted mode, and a file is not found in any local filesystem,
-an attempt will be made to download it and save it under the base path.
-
-If the "fs_copyfiles" cvar is set to 1, then every time a file is sourced from the cd
-path, it will be copied over to the base path.  This is a development aid to help build
-test releases and to copy working sets over slow network links.
-
-File search order: when FS_FOpenFileRead gets called it will go through the fs_searchpaths
-structure and stop on the first successful hit. fs_searchpaths is built with successive
-calls to FS_AddGameDirectory
-
-Additionally, we search in several subdirectories:
-current game is the current mode
-base game is a variable to allow mods based on other mods
-(such as baseq3 + missionpack content combination in a mod for instance)
-BASEGAME is the hardcoded base game ("baseq3")
-
-e.g. the qpath "sound/newstuff/test.wav" would be searched for in the following places:
-
-home path + current game's zip files
-home path + current game's directory
-base path + current game's zip files
-base path + current game's directory
-cd path + current game's zip files
-cd path + current game's directory
-
-home path + base game's zip file
-home path + base game's directory
-base path + base game's zip file
-base path + base game's directory
-cd path + base game's zip file
-cd path + base game's directory
-
-home path + BASEGAME's zip file
-home path + BASEGAME's directory
-base path + BASEGAME's zip file
-base path + BASEGAME's directory
-cd path + BASEGAME's zip file
-cd path + BASEGAME's directory
-
-server download, to be written to home path + current game's directory
-
-
-The filesystem can be safely shutdown and reinitialized with different
-basedir / cddir / game combinations, but all other subsystems that rely on it
-(sound, video) must also be forced to restart.
-
-Because the same files are loaded by both the clip model (CM_) and renderer (TR_)
-subsystems, a simple single-file caching scheme is used.  The CM_ subsystems will
-load the file with a request to cache.  Only one file will be kept cached at a time,
-so any models that are going to be referenced by both subsystems should alternate
-between the CM_ load function and the ref load function.
-
-TODO: A qpath that starts with a leading slash will always refer to the base game, even if another
-game is currently active.  This allows character models, skins, and sounds to be downloaded
-to a common directory no matter which game is active.
-
-How to prevent downloading zip files?
-Pass pk3 file names in systeminfo, and download before FS_Restart()?
-
-Aborting a download disconnects the client from the server.
-
-How to mark files as downloadable?  Commercial add-ons won't be downloadable.
-
-Non-commercial downloads will want to download the entire zip file.
-the game would have to be reset to actually read the zip in
-
-Auto-update information
-
-Path separators
-
-Casing
-
-  separate server gamedir and client gamedir, so if the user starts
-  a local game after having connected to a network game, it won't stick
-  with the network game.
-
-  allow menu options for game selection?
-
-Read / write config to floppy option.
-
-Different version coexistence?
-
-When building a pak file, make sure a q3config.cfg isn't present in it,
-or configs will never get loaded from disk!
-
-  todo:
-
-  downloading (outside fs?)
-  game directory passing and restarting
-
-=============================================================================
-
-*/
-
-// if this is defined, the executable positively won't work with any paks other
-// than the demo pak, even if productid is present.  This is only used for our
-// last demo release to prevent the mac and linux users from using the demo
-// executable with the production windows pak before the mac/linux products
-// hit the shelves a little later
-// NOW defined in build files
-//#define PRE_RELEASE_TADEMO
 
 #define USE_PK3_CACHE
 #define USE_PK3_CACHE_FILE
@@ -274,11 +94,6 @@ typedef struct searchpath_s {
 	dirPolicy_t	policy;
 } searchpath_t;
 
-#define MAX_BASEGAMES 4
-static  char		basegame_str[MAX_OSPATH], *basegames[MAX_BASEGAMES];
-static  int			basegame_cnt;
-static  const char  *basegame = ""; /* last value in array */
-
 static	char		fs_gamedir[MAX_OSPATH];	// this will be a single file name with no separators
 static	cvar_t		*fs_debug;
 static	cvar_t		*fs_homepath;
@@ -291,7 +106,6 @@ static  cvar_t          *fs_apppath;
 static	cvar_t		*fs_basepath;
 static	cvar_t		*fs_basegame;
 static	cvar_t		*fs_copyfiles;
-static	cvar_t		*fs_gamedirvar;
 #ifndef USE_HANDLE_CACHE
 static	cvar_t		*fs_locked;
 #endif
@@ -2146,7 +1960,7 @@ Check if file should NOT be added to hash search table
 */
 static qboolean FS_BannedPakFile( const char *filename )
 {
-	if ( !strcmp( filename, "autoexec.cfg" ) || !strcmp( filename, Q3CONFIG_CFG ) )
+	if ( !strcmp( filename, "autoexec.cfg" ) || !strcmp( filename, CONFIG_CFG ) )
 		return qtrue;
 	else
 		return qfalse;
@@ -3450,19 +3264,11 @@ static void FS_GetModDescription( const char *modDir, char *description, int des
 FS_IsBaseGame
 ================
 */
-static qboolean FS_IsBaseGame( const char *game )
-{
-	int i;
+static qboolean FS_IsBaseGame( const char *game ) {
 
-	if ( game == NULL || *game == '\0' ) {
-		return qtrue;
-	}
+	if ( game == NULL || *game == '\0' ) return qtrue;
 
-	for ( i = 0; i < basegame_cnt; i++ ) {
-		if ( Q_stricmp( basegames[i], game ) == 0 ) {
-			return qtrue;
-		}
-	}
+	if ( Q_stricmp( fs_basegame->string, game ) == 0 ) return qtrue;
 
 	return qfalse;
 }
@@ -4328,25 +4134,9 @@ static void FS_Startup( void ) {
 	fs_basepath = Cvar_Get( "fs_basepath", Sys_DefaultBasePath(), CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
 	Cvar_SetDescription( fs_basepath, "Write-protected CVAR specifying the path to the installation folder of the game." );
 	fs_basegame = Cvar_Get( "fs_basegame", BASEGAME, CVAR_INIT | CVAR_PROTECTED );
-	Cvar_SetDescription( fs_basegame, "Write-protected CVAR specifying the path to the base game(s) folder(s), separated by '/'." );
-
-	/* parse fs_basegame cvar */
-	if ( basegame_cnt == 0 || Q_stricmp( basegame, fs_basegame->string ) ) {
-		Q_strncpyz( basegame_str, fs_basegame->string, sizeof( basegame_str ) );
-		basegame_cnt = Com_Split( basegame_str, basegames, ARRAY_LEN( basegames ), '/' );
-		/* set up basegame on last item from the list */
-		basegame = basegames[0];
-		for ( i = 1; i < basegame_cnt; i++ ) {
-			if ( *basegames[i] != '\0' ) {
-				basegame = basegames[i];
-			}
-		}
-		/* change fs_basegame cvar to last item */
-		Cvar_Set( "fs_basegame", basegame );
-	}
-
-	if ( fs_basegame->string[0] == '\0' || *basegame == '\0' || basegame_cnt == 0 )
-		Com_Error( ERR_FATAL, "* fs_basegame is not set *" );
+	Cvar_SetDescription( fs_basegame, "Write-protected CVAR specifying the path to the base game." );
+	
+	if ( fs_basegame->string[0] == '\0' ) Com_Error( ERR_FATAL, "* fs_basegame is not set *" );
 
 #ifndef USE_HANDLE_CACHE
 	fs_locked = Cvar_Get( "fs_locked", "0", CVAR_INIT );
@@ -4363,14 +4153,6 @@ static void FS_Startup( void ) {
 	fs_homepath = Cvar_Get( "fs_homepath", homePath, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
 	Cvar_SetDescription( fs_homepath, "Directory to store user configuration and downloaded files." );
 
-	fs_gamedirvar = Cvar_Get( "fs_game", "", CVAR_INIT | CVAR_SYSTEMINFO );
-	Cvar_CheckRange( fs_gamedirvar, NULL, NULL, CV_FSPATH );
-	Cvar_SetDescription( fs_gamedirvar, "Specify an alternate mod directory and run the game with this mod." );
-
-	if ( FS_IsBaseGame( fs_gamedirvar->string ) ) {
-		Cvar_ForceReset( "fs_game" );
-	}
-
 	fs_excludeReference = Cvar_Get( "fs_excludeReference", "", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( fs_excludeReference,
 		"Exclude specified pak files from download list on client side.\n"
@@ -4384,42 +4166,20 @@ static void FS_Startup( void ) {
 #endif
 #endif
 
-	if (fs_basepath->string[0]) {
-		// handle multiple basegames:
-		for (i = 0; i < basegame_cnt; i++) {
-			FS_AddGameDirectory( fs_basepath->string, basegames[i] );
-		}
-	}
+	if (fs_basepath->string[0])
+		FS_AddGameDirectory( fs_basepath->string, fs_basegame->string );
 
 #ifdef __APPLE__
 	fs_apppath = Cvar_Get( "fs_apppath", Sys_DefaultAppPath(), CVAR_INIT | CVAR_PROTECTED );
 	// Make MacOSX also include the base path included with the .app bundle
-	if ( fs_apppath->string[0] ) {
-		// handle multiple basegames:
-		for ( i = 0; i < basegame_cnt; i++ ) {
-			FS_AddGameDirectory( fs_apppath->string, basegames[i] );
-		}
-	}
+	if ( fs_apppath->string[0] )
+		FS_AddGameDirectory( fs_apppath->string, fs_basegame->string );
 #endif
 
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
 	// NOTE: same filtering below for mods and basegame
-	if ( fs_homepath->string[0] && Q_stricmp( fs_homepath->string, fs_basepath->string ) ) {
-		// handle multiple basegames:
-		for ( i = 0; i < basegame_cnt; i++ ) {
-			FS_AddGameDirectory( fs_homepath->string, basegames[i] );
-		}
-	}
-
-	// check for additional game folder for mods
-	if ( fs_gamedirvar->string[0] != '\0' && !FS_IsBaseGame( fs_gamedirvar->string ) ) {
-		if ( fs_basepath->string[0] != '\0' ) {
-			FS_AddGameDirectory( fs_basepath->string, fs_gamedirvar->string );
-		}
-		if ( fs_homepath->string[0] != '\0' && Q_stricmp( fs_homepath->string, fs_basepath->string ) ) {
-			FS_AddGameDirectory( fs_homepath->string, fs_gamedirvar->string );
-		}
-	}
+	if ( fs_homepath->string[0] && Q_stricmp( fs_homepath->string, fs_basepath->string ) )
+		FS_AddGameDirectory( fs_homepath->string, fs_basegame->string );
 
 	// reorder search paths to minimize further changes
 	FS_ReorderSearchPaths();
@@ -4442,8 +4202,6 @@ static void FS_Startup( void ) {
 
 	Com_Printf( "----------------------\n" );
 	Com_Printf( "%d files in %d pk3 files\n", fs_packFiles, fs_packCount );
-
-	fs_gamedirvar->modified = qfalse; // We just loaded, it's not modified
 
 #ifdef FS_MISSING
 	if (missingFiles == NULL) {
@@ -4553,7 +4311,7 @@ const char *FS_ReferencedPakNames( void ) {
 	const char *pakName;
 	info[0] = '\0';
 
-	// we want to return ALL pk3's from the fs_game path
+	// we want to return ALL pk3's from the base path
 	// and referenced one's from baseq3
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
@@ -4608,7 +4366,6 @@ void FS_InitFilesystem( void ) {
 	// has already been initialized
 	Com_StartupVariable( "fs_basepath" );
 	Com_StartupVariable( "fs_homepath" );
-	Com_StartupVariable( "fs_game" );
 	Com_StartupVariable( "fs_basegame" );
 	Com_StartupVariable( "fs_copyfiles" );
 	Com_StartupVariable( "fs_restrict" );
@@ -4632,9 +4389,8 @@ FS_Restart
 */
 void FS_Restart( int checksumFeed ) {
 
-	// last valid game folder used
+	// last valid base folder used
 	static char lastValidBase[MAX_OSPATH];
-	static char lastValidGame[MAX_OSPATH];
 
 	static qboolean execConfig = qfalse;
 
@@ -4653,9 +4409,7 @@ void FS_Restart( int checksumFeed ) {
 	if ( FS_ReadFile( "default.cfg", NULL ) <= 0 ) {
 		if (lastValidBase[0]) {
 			Cvar_Set( "fs_basepath", lastValidBase );
-			Cvar_Set( "fs_game", lastValidGame );
 			lastValidBase[0] = '\0';
-			lastValidGame[0] = '\0';
 			Cvar_Set( "fs_restrict", "0" );
 			execConfig = qtrue;
 			FS_Restart( checksumFeed );
@@ -4666,16 +4420,10 @@ void FS_Restart( int checksumFeed ) {
 	}
 
 	// new check before safeMode
-	if ( Q_stricmp(fs_gamedirvar->string, lastValidGame) && execConfig ) {
-		// skip the q3config.cfg if "safe" is on the command line
-		if ( !Com_SafeMode() ) {
-			Cbuf_AddText( "exec " Q3CONFIG_CFG "\n" );
-		}
-	}
+	if ( execConfig ) Cbuf_AddText( "exec " CONFIG_CFG "\n" );
 	execConfig = qfalse;
 
 	Q_strncpyz( lastValidBase, fs_basepath->string, sizeof( lastValidBase ) );
-	Q_strncpyz( lastValidGame, fs_gamedirvar->string, sizeof( lastValidGame ) );
 }
 
 
@@ -4698,13 +4446,7 @@ restart if necessary
 */
 qboolean FS_ConditionalRestart( int checksumFeed, qboolean clientRestart )
 {
-	if ( fs_gamedirvar->modified )
-	{
-		Com_GameRestart( checksumFeed, clientRestart );
-		return qtrue;
-	}
-	else if ( checksumFeed != fs_checksumFeed )
-	{
+	if ( checksumFeed != fs_checksumFeed ) {
 		FS_Restart( checksumFeed );
 		return qtrue;
 	}
@@ -4879,20 +4621,7 @@ void FS_VM_CloseFiles( handleOwner_t owner )
 	}
 }
 
-
-const char *FS_GetCurrentGameDir( void )
-{
-	if ( fs_gamedirvar->string[0] != '\0' )
-		return fs_gamedirvar->string;
-
-	return basegame; // last basegame
-}
-
-
-const char *FS_GetBaseGameDir( void )
-{
-	return basegame; // last basegame
-}
+const char *FS_GetBaseGameDir( void ) { return fs_basegame->string; }
 
 
 const char *FS_GetBasePath( void )
