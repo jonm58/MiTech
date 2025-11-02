@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TR_TYPES_H
 
 #define MAX_VIDEO_HANDLES	16
-#define	MAX_DLIGHTS			1024	// can't be increased, because bit flags are used on surfaces
+#define	MAX_DLIGHTS			512	// can't be increased, because bit flags are used on surfaces
 
 // renderfx flags
 #define	RF_THIRD_PERSON		1		// don't draw through eyes, only mirrors (player bodies, chat sprites)
@@ -36,7 +36,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // refdef flags
 #define RDF_NOWORLDMODEL	1		// used for player configuration screen
-#define RDF_HYPERSPACE		2		// teleportation effect
 
 typedef struct {
 	vec3_t		xyz;
