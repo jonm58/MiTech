@@ -1183,7 +1183,6 @@ SV_Restart
 */
 static void SV_Restart( const char *reason ) {
 	qboolean sv_shutdown = qfalse;
-	char mapName[ MAX_CVAR_VALUE_STRING ];
 	int i;
 
 	if ( svs.clients ) {
@@ -1199,13 +1198,11 @@ static void SV_Restart( const char *reason ) {
 	sv.time = 0; // force level time reset
 	sv.restartTime = 0;
 	
-	Cvar_VariableStringBuffer( "sv_mapname", mapName, sizeof( mapName ) );
-	
 	if ( sv_shutdown ) {
 		SV_Shutdown( reason );
 	}
 
-	Cbuf_AddText( va( "map %s\n", mapName ) );
+	Cbuf_AddText( va( "map %s\n", sv_mapname->string ) );
 }
 
 

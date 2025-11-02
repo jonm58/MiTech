@@ -375,7 +375,7 @@ void SV_BotInitBotLib(void) {
 	botlib_import_t	botlib_import;
 
 	if (debugpolygons) Z_Free(debugpolygons);
-	bot_maxdebugpolys = Cvar_VariableIntegerValue("bot_maxdebugpolys");
+	bot_maxdebugpolys = 2;
 	debugpolygons = Z_Malloc(sizeof(bot_debugpoly_t) * bot_maxdebugpolys);
 
 	botlib_import.Print = BotImport_Print;

@@ -293,65 +293,6 @@ static void SV_Startup( void ) {
 #endif
 }
 
-
-/*
-==================
-SV_ChangeMaxClients
-==================
-*/
-static void SV_ChangeMaxClients( void ) {
-	client_t *oldClients;
-	int		maxclients;
-	int		count;
-	int		i;
-
-	// get the highest client number in use
-	count = 0;
-	for ( i = 0; i < sv.maxclients; i++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			if ( i > count ) {
-				count = i;
-			}
-		}
-	}
-	count++;
-
-	// never go below the highest client number in use
-	maxclients = MAX_CLIENTS;
-
-	// if still the same
-	if ( maxclients == sv.maxclients ) {
-		return;
-	}
-
-	oldClients = Hunk_AllocateTempMemory( count * sizeof(client_t) );
-	// copy the clients to hunk memory
-	for ( i = 0; i < count; i++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			oldClients[i] = svs.clients[i];
-		} else {
-			Com_Memset(&oldClients[i], 0, sizeof(client_t));
-		}
-	}
-
-	// free old clients arrays
-	Z_Free( svs.clients );
-
-	// allocate new clients
-	SV_AllocClients( maxclients );
-
-	// copy the clients over
-	for ( i = 0; i < count; i++ ) {
-		if ( oldClients[i].state >= CS_CONNECTED ) {
-			svs.clients[i] = oldClients[i];
-		}
-	}
-
-	// free the old clients on the hunk
-	Hunk_FreeTempMemory( oldClients );
-}
-
-
 /*
 ================
 SV_ClearServer
@@ -408,15 +349,8 @@ void SV_SpawnServer( const char *mapname ) {
 	// clear collision map data
 	CM_ClearMap();
 
-	// Restart renderer?
-	// CL_StartHunkUsers( );
-
 	// init client structures and svs.numSnapshotEntities
-	if ( !Cvar_VariableIntegerValue( "sv_running" ) ) {
-		SV_Startup();
-	} else {
-		SV_ChangeMaxClients();
-	}
+	if ( !com_sv_running.integer ) SV_Startup();
 
 	// clear pak references
 	FS_ClearPakReferences( 0 );
@@ -559,7 +493,7 @@ void SV_SpawnServer( const char *mapname ) {
 	Cvar_Set( "sv_referencedPakNames", p );
 
 	// save systeminfo and serverinfo strings
-	SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO, NULL ) );
+	SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString( CVAR_SYSTEMINFO, NULL ) );
 	cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 
 	SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, NULL ) );
@@ -611,9 +545,9 @@ void SV_Init( void )
 	sv_maxclientsPerIP = Cvar_Get( "sv_maxclientsPerIP", "3", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_maxclientsPerIP, "Limits number of simultaneous connections from the same IP address." );
 
-	sv_minRate = Cvar_Get( "sv_minRate", "0", CVAR_ARCHIVE_ND );
+	sv_minRate = Cvar_Get( "sv_minRate", "0", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_minRate, "Minimum server bandwidth (in bit per second) a client can use." );
-	sv_maxRate = Cvar_Get( "sv_maxRate", "0", CVAR_ARCHIVE_ND );
+	sv_maxRate = Cvar_Get( "sv_maxRate", "0", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_maxRate, "Maximum server bandwidth (in bit per second) a client can use." );
 	sv_dlRate = Cvar_Get( "sv_dlRate", "100", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_dlRate, "Bandwidth allotted to PK3 file downloads via UDP, in kbyte/s." );
@@ -627,24 +561,24 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_referencedPakNames, "Variable holds a list of all the pk3 files the server loaded data from." );
 
 	// server vars
-	sv_rconPassword = Cvar_Get ("rconPassword", "", CVAR_TEMP );
+	sv_rconPassword = Cvar_Get ("rconPassword", "", 0 );
 	Cvar_SetDescription( sv_rconPassword, "Password for remote server commands." );
-	sv_privatePassword = Cvar_Get ("sv_privatePassword", "", CVAR_TEMP );
+	sv_privatePassword = Cvar_Get ("sv_privatePassword", "", 0 );
 	Cvar_SetDescription( sv_privatePassword, "Set password for private clients to login with." );
-	sv_fps = Cvar_Get ("sv_fps", "60", CVAR_TEMP );
+	sv_fps = Cvar_Get ("sv_fps", "60", 0 );
 	Cvar_SetDescription( sv_fps, "Set the max frames per second the server sends the client." );
-	sv_timeout = Cvar_Get( "sv_timeout", "999999", CVAR_TEMP );
+	sv_timeout = Cvar_Get( "sv_timeout", "999999", 0 );
 	Cvar_SetDescription( sv_timeout, "Seconds without any message before automatic client disconnect." );
-	sv_zombietime = Cvar_Get( "sv_zombietime", "2", CVAR_TEMP );
+	sv_zombietime = Cvar_Get( "sv_zombietime", "2", 0 );
 	Cvar_SetDescription( sv_zombietime, "Seconds to sink messages after disconnect." );
-	Cvar_Get ("nextmap", "", CVAR_TEMP );
+	Cvar_Get ("nextmap", "", 0 );
 
 	sv_allowDownload = Cvar_Get ("sv_allowDownload", "1", CVAR_SERVERINFO);
 	Cvar_SetDescription( sv_allowDownload, "Toggle the ability for clients to download files maps etc. from server." );
 	Cvar_Get ("sv_dlURL", "", CVAR_SERVERINFO | CVAR_ARCHIVE);
 
 	for ( index = 0; index < MAX_MASTER_SERVERS; index++ )
-		sv_master[ index ] = Cvar_Get( va( "sv_master%d", index + 1 ), "", CVAR_ARCHIVE_ND );
+		sv_master[ index ] = Cvar_Get( va( "sv_master%d", index + 1 ), "", CVAR_ARCHIVE );
 
 	sv_reconnectlimit = Cvar_Get( "sv_reconnectlimit", "3", 0 );
 	Cvar_SetDescription( sv_reconnectlimit, "Number of seconds a disconnected client should wait before next reconnect." );
@@ -653,7 +587,7 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_padPackets, "Adds padding bytes to network packets for rate debugging." );
 	sv_killserver = Cvar_Get( "sv_killserver", "0", 0 );
 	Cvar_SetDescription( sv_killserver, "Internal flag to manage server state." );
-	sv_lanForceRate = Cvar_Get( "sv_lanForceRate", "1", CVAR_ARCHIVE_ND );
+	sv_lanForceRate = Cvar_Get( "sv_lanForceRate", "1", CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_lanForceRate, "Forces LAN clients to the maximum rate instead of accepting client setting." );
 
 	sv_anticheatengine = Cvar_Get( "sv_anticheatengine", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
@@ -761,10 +695,6 @@ void SV_Shutdown( const char *finalmsg ) {
 	sv.time = 0;
 
 	Cvar_Set( "sv_running", "0" );
-
-#ifndef DEDICATED
-	Cvar_Set( "ui_singlePlayerActive", "0" );
-#endif
 
 	Com_Printf( "---------------------------\n" );
 
