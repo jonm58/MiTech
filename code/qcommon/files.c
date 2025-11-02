@@ -2146,7 +2146,7 @@ Check if file should NOT be added to hash search table
 */
 static qboolean FS_BannedPakFile( const char *filename )
 {
-	if ( !strcmp( filename, "autoexec.cfg" ) || !strcmp( filename, CONFIG_CFG ) )
+	if ( !strcmp( filename, "autoexec.cfg" ) || !strcmp( filename, Q3CONFIG_CFG ) )
 		return qtrue;
 	else
 		return qfalse;
@@ -4364,6 +4364,7 @@ static void FS_Startup( void ) {
 	Cvar_SetDescription( fs_homepath, "Directory to store user configuration and downloaded files." );
 
 	fs_gamedirvar = Cvar_Get( "fs_game", "", CVAR_INIT | CVAR_SYSTEMINFO );
+	Cvar_CheckRange( fs_gamedirvar, NULL, NULL, CV_FSPATH );
 	Cvar_SetDescription( fs_gamedirvar, "Specify an alternate mod directory and run the game with this mod." );
 
 	if ( FS_IsBaseGame( fs_gamedirvar->string ) ) {
@@ -4668,7 +4669,7 @@ void FS_Restart( int checksumFeed ) {
 	if ( Q_stricmp(fs_gamedirvar->string, lastValidGame) && execConfig ) {
 		// skip the q3config.cfg if "safe" is on the command line
 		if ( !Com_SafeMode() ) {
-			Cbuf_AddText( "exec " CONFIG_CFG "\n" );
+			Cbuf_AddText( "exec " Q3CONFIG_CFG "\n" );
 		}
 	}
 	execConfig = qfalse;

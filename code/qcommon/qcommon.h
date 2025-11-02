@@ -547,11 +547,16 @@ void 	Cvar_Set( const char *var_name, const char *value );
 cvar_t	*Cvar_Set2(const char *var_name, const char *value, qboolean force);
 // same as Cvar_Set, but allows more control over setting of cvar
 
+void	Cvar_SetSafe( const char *var_name, const char *value );
+// sometimes we set variables from an untrusted source: fail if flags & CVAR_PROTECTED
+
 void	Cvar_SetLatched( const char *var_name, const char *value);
 // don't set the cvar immediately
 
 void	Cvar_SetValue( const char *var_name, float value );
 void	Cvar_SetIntegerValue( const char *var_name, int value );
+void	Cvar_SetValueSafe( const char *var_name, float value );
+// expands value to a string and calls Cvar_Set/Cvar_SetSafe
 
 qboolean Cvar_SetModified( const char *var_name, qboolean modified );
 
@@ -583,7 +588,7 @@ qboolean Cvar_Command( void );
 // was handled. (print or change)
 
 void 	Cvar_WriteVariables( fileHandle_t f );
-// writes lines containing "variable = value" for all variables
+// writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
 
 void	Cvar_Init( void );
@@ -593,6 +598,7 @@ const char *Cvar_InfoString_Big( int bit, qboolean *truncated );
 // returns an info string containing all the cvars that have the given bit set
 // in their flags ( CVAR_USERINFO, CVAR_SERVERINFO, CVAR_SYSTEMINFO, etc )
 void	Cvar_InfoStringBuffer( int bit, char *buff, int buffsize );
+void	Cvar_CheckRange( cvar_t *cv, const char *minVal, const char *maxVal, cvarValidator_t type );
 void	Cvar_SetDescription( cvar_t *var, const char *var_description );
 
 void	Cvar_SetGroup( cvar_t *var, cvarGroup_t group );
@@ -651,11 +657,11 @@ typedef enum {
 #define	MAX_FOUND_FILES		0x5000
 
 #ifdef DEDICATED
-#define CONFIG_CFG "sandbox_server.cfg"
-#define CONSOLE_HISTORY_FILE "history_server"
+#define Q3CONFIG_CFG "q3config_server.cfg"
+#define CONSOLE_HISTORY_FILE "q3history_server"
 #else
-#define CONFIG_CFG "sandbox.cfg"
-#define CONSOLE_HISTORY_FILE "history"
+#define Q3CONFIG_CFG "q3config.cfg"
+#define CONSOLE_HISTORY_FILE "q3history"
 #endif
 
 typedef	time_t fileTime_t;

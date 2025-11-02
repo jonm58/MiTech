@@ -1305,17 +1305,19 @@ vm_t *VM_Create( vmIndex_t index, syscall_t systemCalls ) {
 
 	vm->compiled = qfalse;
 
-	Com_Printf( "Compiling qvm%i - %s\n", vm->index, vm->name );
+	#ifdef QVM_RUNTIME_COMPILE
 	if ( VM_Compile( vm, header ) ) {
 		vm->compiled = qtrue;
-		Com_Printf( "Compiling qvm%i - %s done\n", vm->index, vm->name );
 	}
+	#endif
 
 	// VM_Compile may have reset vm->compiled if compilation failed
 	if ( !vm->compiled ) {
-		Com_Printf( "Failed to compile qvm%i - %s. Using interpreter\n", vm->index, vm->name );
+		#ifdef QVM_RUNTIME_COMPILE
+		Com_Printf( "Failed to compile qvm. Trying interpreter.\n" );
+		#endif
 		if ( !VM_PrepareInterpreter( vm, header ) ) {
-			Com_Printf( "Failed to interpret qvm\n" );
+			Com_Printf( "Failed to interpret qvm.\n" );
 			FS_FreeFile( header );	// free the original file
 			VM_Free( vm );
 			return NULL;
@@ -1409,10 +1411,10 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... ) {
 
 	++vm->callLevel;
 #if id386 && !defined __clang__ // calling convention doesn't need conversion in some cases
+#ifdef QVM_RUNTIME_COMPILE
 	if ( vm->compiled )
 		r = VM_CallCompiled( vm, nargs+1, (int32_t*)&callnum );
-	else
-		r = VM_CallInterpreted( vm, nargs+1, (int32_t*)&callnum );
+#endif
 #else
 	int32_t args[MAX_VMMAIN_CALL_ARGS];
 	va_list ap;
@@ -1424,9 +1426,11 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... ) {
 	}
 	va_end(ap);
 
+#ifdef QVM_RUNTIME_COMPILE
 	if ( vm->compiled )
 		r = VM_CallCompiled( vm, nargs+1, &args[0] );
 	else
+#endif
 		r = VM_CallInterpreted( vm, nargs+1, &args[0] );
 #endif
 	--vm->callLevel;
