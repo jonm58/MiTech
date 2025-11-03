@@ -133,8 +133,8 @@ static intptr_t CL_UISystemCalls(intptr_t* args) {
 		case UI_LAN_GETSERVERCOUNT: return LAN_GetServerCount(args[1]);
 		case UI_LAN_GETSERVERADDRESSSTRING: LAN_GetServerAddressString(args[1], args[2], VMA(3), args[4]); return 0;
 
-#include "../qcommon/q_sharedsyscalls.inc"
-#include "../qcommon/q_sharedsyscalls_client.inc"
+#include "../q_sharedsyscalls.inc"
+#include "../q_sharedsyscalls_client.inc"
 
 		default: Com_Error(ERR_DROP, "Bad UI system trap: %ld", (long int)args[0]);
 	}
