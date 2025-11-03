@@ -36,8 +36,6 @@ static bot_debugpoly_t *debugpolygons;
 static int bot_maxdebugpolys;
 
 extern botlib_export_t	*botlib_export;
-int	bot_enable;
-
 
 /*
 ==================
@@ -291,8 +289,6 @@ SV_BotFrame
 ==================
 */
 void SV_BotFrame( int time ) {
-	if (!bot_enable) return;
-	//NOTE: maybe the game is already shutdown
 	if (!gvm) return;
 	VM_Call( gvm, 1, BOTAI_START_FRAME, time );
 }
@@ -303,10 +299,6 @@ SV_BotLibSetup
 ===============
 */
 int SV_BotLibSetup( void ) {
-	if (!bot_enable) {
-		return 0;
-	}
-
 	if ( !botlib_export ) {
 		Com_Printf( S_COLOR_RED "Error: SV_BotLibSetup without SV_BotInitBotLib\n" );
 		return -1;
