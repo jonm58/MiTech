@@ -2,8 +2,8 @@
 // Copyright (C) 2023-2025 Noire.dev
 // SourceTech — GPLv2; see LICENSE for details.
 
-#include "../botlib/botlib.h"
 #include "client.h"
+#include "../botlib/botlib.h"
 
 extern botlib_export_t* botlib_export;
 
