@@ -23,4 +23,4 @@ case TRAP_FS_CLOSE: FS_VM_CloseFile(args[1]); return 0;
 case TRAP_FS_LIST: return FS_GetFileList(VMA(1), VMA(2), VMA(3), args[4]);
 case TRAP_CMD: Cbuf_ExecuteText(args[1], VMA(2)); return 0;
 case TRAP_REAL_TIME: return Com_RealTime(VMA(1));
-case UI_SYSTEM: Sys_Cmd((const char*)VMA(1)); return 0;
+case TRAP_SYSTEM: Sys_Cmd((const char*)VMA(1)); return 0;
