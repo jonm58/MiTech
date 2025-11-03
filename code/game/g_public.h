@@ -1,24 +1,6 @@
-/*
-===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
-
-This file is part of Quake III Arena source code.
-
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
-
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-===========================================================================
-*/
+// Copyright (C) 1999-2005 ID Software, Inc.
+// Copyright (C) 2023-2025 Noire.dev
+// SourceTech — GPLv2; see LICENSE for details.
 
 #define	SVF_NOCLIENT			0x00000001	// don't send entity to clients, even if it has effects
 #define SVF_BOT					0x00000002	// set if the entity is a bot
@@ -70,42 +52,26 @@ typedef struct {
 } sharedEntity_t;
 
 typedef enum {
-	G_PRINT,
-	G_ERROR,
-	G_MILLISECONDS,
-	G_CVAR_REGISTER,
-	G_CVAR_UPDATE,
-	G_CVAR_SET,
-	G_ARGC,
-	G_ARGV,
-	G_FS_FOPEN_FILE,
-	G_FS_READ,
-	G_FS_WRITE,
-	G_FS_FCLOSE_FILE,
-	G_SEND_CONSOLE_COMMAND,
 	G_LOCATE_GAME_DATA,
-	G_DROP_CLIENT,
-	G_SEND_SERVER_COMMAND,
-	G_SET_CONFIGSTRING,
-	G_GET_CONFIGSTRING,
-	G_GET_USERINFO,
-	G_SET_USERINFO,
-	G_GET_SERVERINFO,
-	G_SET_BRUSH_MODEL,
-	G_TRACE,
-	G_POINT_CONTENTS,
-	G_IN_PVS,
-	G_ADJUST_AREA_PORTAL_STATE,
-	G_LINKENTITY,
-	G_UNLINKENTITY,
-	G_ENTITIES_IN_BOX,
-	G_ENTITY_CONTACT,
-	G_BOT_ALLOCATE_CLIENT,
-	G_GET_USERCMD,
-	G_GET_ENTITY_TOKEN,
-	G_FS_GETFILELIST,
-	G_REAL_TIME,
-	G_SYSTEM,
+    G_DROP_CLIENT,
+    G_SEND_SERVER_COMMAND,
+    G_LINKENTITY,
+    G_UNLINKENTITY,
+    G_ENTITIES_IN_BOX,
+    G_ENTITY_CONTACT,
+    G_TRACE,
+    G_POINT_CONTENTS,
+    G_SET_BRUSH_MODEL,
+    G_IN_PVS,
+    G_SET_CONFIGSTRING,
+    G_GET_CONFIGSTRING,
+    G_SET_USERINFO,
+    G_GET_USERINFO,
+    G_GET_SERVERINFO,
+    G_ADJUST_AREA_PORTAL_STATE,
+    G_BOT_ALLOCATE_CLIENT,
+    G_GET_USERCMD,
+    G_GET_ENTITY_TOKEN,
 
 	BOTLIB_SETUP = 2000,
 	BOTLIB_SHUTDOWN,
