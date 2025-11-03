@@ -177,16 +177,6 @@ cvar_t* Cvar_Set(const char* var_name, const char* value) {
 		return Cvar_Get(var_name, value, 0);  // create it
 	}
 
-	if(var->flags & CVAR_ROM) {
-		Com_Printf("%s is read only.\n", var_name);
-		return var;
-	}
-
-	if(var->flags & CVAR_INIT) {
-		Com_Printf("%s is write protected.\n", var_name);
-		return var;
-	}
-
 	if((var->flags & CVAR_CHEAT) && !cvar_cheats->integer) {
 		Com_Printf("%s is cheat protected.\n", var_name);
 		return var;
