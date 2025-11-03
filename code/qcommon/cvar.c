@@ -8,6 +8,7 @@
 static cvar_t* cvar_vars = NULL;
 static cvar_t* cvar_cheats;
 static cvar_t* cvar_developer;
+int cvar_modifiedFlags;
 
 static cvar_t cvar_indexes[MAX_CVARS];
 static int cvar_numIndexes;
@@ -102,6 +103,7 @@ cvar_t* Cvar_Get(const char* var_name, const char* var_value, int flags) {
 
 	if(var) {
 		var->flags = flags;
+		cvar_modifiedFlags |= flags;
 		return var;
 	}
 
@@ -137,6 +139,7 @@ cvar_t* Cvar_Get(const char* var_name, const char* var_value, int flags) {
 	cvar_vars = var;
 
 	var->flags = flags;
+	cvar_modifiedFlags |= var->flags;
 
 	hash = generateHashValue(var_name);
 	var->hashIndex = hash;
@@ -204,8 +207,9 @@ cvar_t* Cvar_Set(const char* var_name, const char* value) {
 		}
 
 		if(strcmp(value, var->latchedString) == 0) return var;
-	} else if(strcmp(value, var->string) == 0)
-		return var;
+	} else if(strcmp(value, var->string) == 0) return var;
+		
+	cvar_modifiedFlags |= var->flags;
 
 	if(var->flags & CVAR_LATCH) {
 		if(var->latchedString) {
@@ -254,6 +258,14 @@ void Cvar_SetIntegerValue(const char* var_name, int value) {
 	Cvar_Set(var_name, val);
 }
 
+int Cvar_VariableIntegerValue(const char* var_name) {
+	cvar_t* var;
+
+	var = Cvar_FindVar(var_name);
+	if(!var) return 0;
+	return var->integer;
+}
+
 void Cvar_Reset(const char* var_name) { Cvar_Set(var_name, NULL); }
 
 void Cvar_SetCheatState(void) {
@@ -278,6 +290,8 @@ typedef enum {
 	FT_CREATE,
 	FT_SAVE,
 	FT_UNSAVE,
+	FT_SHARE,
+	FT_UNSHARE,
 	FT_RESET,
 	FT_UNSET,
 	FT_ADD,
@@ -296,6 +310,8 @@ static funcType_t GetFuncType(void) {
 	if(!Q_stricmp(cmd, "=")) return FT_CREATE;
 	if(!Q_stricmp(cmd, "-")) return FT_SAVE;
 	if(!Q_stricmp(cmd, "--")) return FT_UNSAVE;
+	if(!Q_stricmp(cmd, "+")) return FT_SHARE;
+	if(!Q_stricmp(cmd, "++")) return FT_UNSHARE;
 	if(!Q_stricmp(cmd, "*")) return FT_RESET;
 	if(!Q_stricmp(cmd, "**")) return FT_UNSET;
 	if(!Q_stricmp(cmd, "+=")) return FT_ADD;
@@ -379,6 +395,8 @@ static void Cvar_Rand(float* val) {
 
 static cvar_t* Cvar_Unset(cvar_t* cv) {
 	cvar_t* next = cv->next;
+	
+	cvar_modifiedFlags |= cv->flags;
 
 	if(cv->name) Z_Free(cv->name);
 	if(cv->string) Z_Free(cv->string);
@@ -423,12 +441,28 @@ qboolean Cvar_Command(void) {
 			v = Cvar_Set(Cmd_Argv(0), Cmd_ArgsFrom(2));
 			if(v && !(v->flags & CVAR_ARCHIVE)) {
 				v->flags |= CVAR_ARCHIVE;
+				cvar_modifiedFlags |= CVAR_ARCHIVE;
 			}
 			return qtrue;
 		} else if(ftype == FT_UNSAVE) {
 			v = Cvar_Set(Cmd_Argv(0), Cmd_ArgsFrom(2));
 			if(v && (v->flags & CVAR_ARCHIVE)) {
 				v->flags &= ~CVAR_ARCHIVE;
+				cvar_modifiedFlags &= ~CVAR_ARCHIVE;
+			}
+			return qtrue;
+		} else if(ftype == FT_SHARE) {
+			v = Cvar_Set(Cmd_Argv(0), Cmd_ArgsFrom(2));
+			if(v && !(v->flags & CVAR_SYSTEMINFO)) {
+				v->flags |= CVAR_SYSTEMINFO;
+				cvar_modifiedFlags |= CVAR_SYSTEMINFO;
+			}
+			return qtrue;
+		} else if(ftype == FT_UNSHARE) {
+			v = Cvar_Set(Cmd_Argv(0), Cmd_ArgsFrom(2));
+			if(v && (v->flags & CVAR_SYSTEMINFO)) {
+				v->flags &= ~CVAR_SYSTEMINFO;
+				cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 			}
 			return qtrue;
 		} else if(ftype == FT_RESET && v) {
@@ -472,7 +506,7 @@ static void Cvar_Toggle_f(void) {
 	}
 
 	if(c == 2) {
-		Cvar_Set(Cmd_Argv(1), va("%d", !Cvar_VariableValue(Cmd_Argv(1))));
+		Cvar_Set(Cmd_Argv(1), va("%i", !Cvar_VariableIntegerValue(Cmd_Argv(1))));
 		return;
 	}
 

@@ -1286,7 +1286,7 @@ void SV_Frame( int msec ) {
 		cvar_modifiedFlags &= ~CVAR_SERVERINFO;
 	}
 	if ( cvar_modifiedFlags & CVAR_SYSTEMINFO ) {
-		SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO, NULL ) );
+		SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString( CVAR_SYSTEMINFO, NULL ) );
 		cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 	}
 

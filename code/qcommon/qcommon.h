@@ -563,9 +563,6 @@ cvar_t *Cvar_Get( const char *var_name, const char *value, int flags );
 // that allows variables to be unarchived without needing bitflags
 // if value is "", the value will not override a previously set value.
 
-void	Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
-// basically a slightly modified Cvar_Get for the interpreted modules
-
 void	Cvar_Update( vmCvar_t *vmCvar, int cvarID );
 // updates an interpreted modules' version of a cvar
 
@@ -581,7 +578,6 @@ void	Cvar_SetIntegerValue( const char *var_name, int value );
 qboolean Cvar_SetModified( const char *var_name, qboolean modified );
 
 cvar_t *Cvar_FindVar( const char *var_name );
-float	Cvar_VariableValue( const char *var_name );
 int		Cvar_VariableIntegerValue( const char *var_name );
 // returns 0 if not defined or non numeric
 
@@ -607,7 +603,6 @@ void 	Cvar_WriteVariables( fileHandle_t f );
 void	Cvar_Init( void );
 
 const char *Cvar_InfoString( int bit, qboolean *truncated );
-const char *Cvar_InfoString_Big( int bit, qboolean *truncated );
 // returns an info string containing all the cvars that have the given bit set
 // in their flags ( CVAR_USERINFO, CVAR_SERVERINFO, CVAR_SYSTEMINFO, etc )
 void	Cvar_InfoStringBuffer( int bit, char *buff, int buffsize );
