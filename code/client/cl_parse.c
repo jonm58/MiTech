@@ -362,7 +362,6 @@ void CL_SystemInfoChanged( qboolean onlyGame ) {
 	// scan through all the variables in the systeminfo and locally set cvars to match
 	s = systemInfo;
 	do {
-		int cvar_flags;
 
 		s = Info_NextPair( s, key, value );
 		if ( key[0] == '\0' ) break;

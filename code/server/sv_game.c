@@ -378,7 +378,6 @@ void SV_RestartGameProgs(void) {
 }
 
 void SV_InitGameProgs(void) {
-	cvar_t* var;
 
 	// load the bytecode
 	gvm = VM_Create(VM_GAME, SV_GameSystemCalls);

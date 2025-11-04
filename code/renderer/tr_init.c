@@ -1125,29 +1125,6 @@ static void RE_SyncRender( void )
 	}
 }
 
-
-/*
-================
-R_PrintLongString
-
-Workaround for ri.Printf's 1024 characters buffer limit.
-================
-*/
-static void R_PrintLongString(const char *string) {
-	char buffer[1024];
-	const char *p;
-	int size = strlen(string);
-
-	p = string;
-	while(size > 0)
-	{
-		Q_strncpyz(buffer, p, sizeof (buffer) );
-		ri.Printf( PRINT_DEVELOPER, "%s", buffer );
-		p += 1023;
-		size -= 1023;
-	}
-}
-
 /*
 ===============
 R_Register

@@ -1417,13 +1417,12 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 	const drawVert_t *dv;
 	int			*indexes;
 	int			count;
-	int			numFaces, numMeshes, numTriSurfs, numFlares;
+	int			numFaces, numMeshes, numTriSurfs;
 	int			i;
 
 	numFaces = 0;
 	numMeshes = 0;
 	numTriSurfs = 0;
-	numFlares = 0;
 
 	in = (void *)(fileBase + surfs->fileofs);
 	if (surfs->filelen % sizeof(*in))
@@ -1459,7 +1458,6 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 			break;
 		case MST_FLARE:
 			ParseFlare( in, dv, out, indexes );
-			numFlares++;
 			break;
 		default:
 			ri.Error( ERR_DROP, "Bad surfaceType %i", LittleLong( in->surfaceType ) );

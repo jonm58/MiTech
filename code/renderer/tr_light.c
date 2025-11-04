@@ -79,7 +79,6 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 	float	frac[3];
 	int		gridStep[3];
 	vec3_t	direction;
-	float	totalFactor;
 
 	if ( ent->e.renderfx & RF_LIGHTING_ORIGIN ) {
 		// separate lightOrigins are needed so an object that is
@@ -114,10 +113,8 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 	gridStep[0] = 8;
 	gridStep[1] = 8 * tr.world->lightGridBounds[0];
 	gridStep[2] = 8 * tr.world->lightGridBounds[0] * tr.world->lightGridBounds[1];
-	gridData = tr.world->lightGridData + pos[0] * gridStep[0]
-		+ pos[1] * gridStep[1] + pos[2] * gridStep[2];
+	gridData = tr.world->lightGridData + pos[0] * gridStep[0] + pos[1] * gridStep[1] + pos[2] * gridStep[2];
 
-	totalFactor = 0;
 	for ( i = 0 ; i < 8 ; i++ ) {
 		float	factor;
 		byte	*data;
@@ -144,7 +141,6 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 		if ( !(data[0]+data[1]+data[2]) ) {
 			continue;	// ignore samples in walls
 		}
-		totalFactor += factor;
 
 		ent->ambientLight[0] += factor * data[0];
 		ent->ambientLight[1] += factor * data[1];

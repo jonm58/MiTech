@@ -4109,7 +4109,7 @@ FS_Startup
 */
 static void FS_Startup( void ) {
 	const char *homePath;
-	int i, start, end;
+	int start, end;
 
 	Com_Printf( "----- FS_Startup -----\n" );
 
