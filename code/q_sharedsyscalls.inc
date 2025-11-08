@@ -12,6 +12,7 @@ case TRAP_MILLISECONDS: return Sys_Milliseconds();
 case TRAP_CVAR_REGISTER: Cvar_Get(VMA(1), VMA(2), args[3]); return 0;
 case TRAP_CVAR_ID: return Cvar_ID(VMA(1));
 case TRAP_CVAR_UPDATE: Cvar_Update(VMA(1), args[2]); return 0;
+case TRAP_CVAR_RELOAD: Cvar_Reload(); return 0;
 case TRAP_CVAR_SET: Cvar_Set(VMA(1), VMA(2)); return 0;
 case TRAP_CVAR_SETVALUE: Cvar_SetValue(VMA(1), VMF(2)); return 0;
 case TRAP_ARGC: return Cmd_Argc();

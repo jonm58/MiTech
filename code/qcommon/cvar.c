@@ -632,6 +632,14 @@ void Cvar_Update(vmCvar_t* vmCvar, int cvarID) {
 	vmCvar->integer = cv->integer;
 }
 
+void Cvar_Reload(void) {
+    cvar_t* var;
+    
+    for(var = cvar_vars; var; var = var->next) {
+        var->modified = qtrue;  
+    }
+}
+
 int Cvar_ID(const char* name) {
     cvar_t* cv = Cvar_FindVar(name);
     return cv ? cv - cvar_indexes : -1;
