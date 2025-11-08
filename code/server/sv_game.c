@@ -29,7 +29,7 @@ playerState_t* SV_GameClientNum(int num) {
 }
 
 svEntity_t* SV_SvEntityForGentity(sharedEntity_t* gEnt) {
-	if(!gEnt || gEnt->s.number < 0 || gEnt->s.number >= MAX_GENTITIES) Com_Error(ERR_DROP, "SV_SvEntityForGentity: bad gEnt");
+	if(!gEnt || gEnt->s.number < 0 || gEnt->s.number >= MAX_GENTITIES) return NULL; //Com_Error(ERR_DROP, "SV_SvEntityForGentity: bad gEnt");
 
 	return &sv.svEntities[gEnt->s.number];
 }
