@@ -972,8 +972,6 @@ extern	cvar_t	*com_cl_running;
 extern	cvar_t	*com_yieldCPU;
 #endif
 
-extern        cvar_t        *vm_rtChecks;
-
 #ifdef USE_AFFINITY_MASK
 extern	cvar_t	*com_affinityMask;
 #endif

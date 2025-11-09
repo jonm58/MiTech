@@ -191,8 +191,6 @@ const char *opname[ 256 ] = {
 	"OP_CVFI"
 };
 
-cvar_t        *vm_rtChecks;
-
 // used by Com_Error to get rid of running vm's before longjmp
 static int forced_unload;
 

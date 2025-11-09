@@ -83,7 +83,7 @@ void Cvar_CommandCompletion(void (*callback)(const char* s)) {
 	const cvar_t* cvar;
 
 	for(cvar = cvar_vars; cvar; cvar = cvar->next) {
-		if(cvar->name) callback(va("%s%s = %s (%s)%s", cvar->name, (strcmp(cvar->string, cvar->resetString) ? "*" : ""), cvar->string, cvar->resetString, (cvar->flags & CVAR_ARCHIVE ? "   [Saved]" : "")));
+		if(cvar->name) callback(va("%s = %s", cvar->name, cvar->string));
 	}
 }
 

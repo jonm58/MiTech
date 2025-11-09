@@ -144,10 +144,6 @@ void SV_UnlinkEntity( sharedEntity_t *gEnt ) {
 	worldSector_t	*ws;
 
 	ent = SV_SvEntityForGentity( gEnt );
-	if(!ent){
-	    Com_Printf("SV_UnlinkEntity: bad gEnt");
-	    return;
-	}
 
 	gEnt->r.linked = qfalse;
 
@@ -192,10 +188,6 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	svEntity_t	*ent;
 
 	ent = SV_SvEntityForGentity( gEnt );
-	if(!ent){
-	    Com_Printf("SV_LinkEntity: bad gEnt");
-	    return;
-	}
 
 	if ( ent->worldSector ) {
 		SV_UnlinkEntity( gEnt );	// unlink from old position

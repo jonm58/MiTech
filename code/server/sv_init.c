@@ -260,6 +260,7 @@ static void SV_AllocClients( int count )
 	SV_SetSnapshotParams();
 }
 
+
 /*
 ===============
 SV_Startup
