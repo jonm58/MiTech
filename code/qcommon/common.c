@@ -3166,7 +3166,7 @@ void Com_Init( char *commandLine ) {
 	com_developer = Cvar_Get( "developer", "0", 0 );
 
     Com_StartupVariable( "vm_rtChecks" );
-    vm_rtChecks = Cvar_Get( "vm_rtChecks", "15", CVAR_INIT | CVAR_PROTECTED );
+    vm_rtChecks = Cvar_Get( "vm_rtChecks", "15", CVAR_INIT );
 
 	Com_StartupVariable( "journal" );
 	com_journal = Cvar_Get( "journal", "0", CVAR_INIT );
