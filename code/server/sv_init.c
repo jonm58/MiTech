@@ -406,7 +406,7 @@ void SV_SpawnServer( const char *mapname ) {
 	CM_ClearMap();
 
 	// init client structures and svs.numSnapshotEntities
-	if ( !sv_running->integer ) {
+	if ( !com_sv_running->integer ) {
 		SV_Startup();
 	} else {
 		SV_ChangeMaxClients();
