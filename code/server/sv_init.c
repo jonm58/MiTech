@@ -261,63 +261,6 @@ static void SV_AllocClients( int count )
 }
 
 /*
-==================
-SV_ChangeMaxClients
-==================
-*/
-static void SV_ChangeMaxClients( void ) {
-	client_t *oldClients;
-	int		maxclients;
-	int		count;
-	int		i;
-
-	// get the highest client number in use
-	count = 0;
-	for ( i = 0; i < sv.maxclients; i++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			if ( i > count ) {
-				count = i;
-			}
-		}
-	}
-	count++;
-
-	// never go below the highest client number in use
-	maxclients = MAX_CLIENTS;
-
-	// if still the same
-	if ( maxclients == sv.maxclients ) {
-		return;
-	}
-
-	oldClients = Hunk_AllocateTempMemory( count * sizeof(client_t) );
-	// copy the clients to hunk memory
-	for ( i = 0; i < count; i++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			oldClients[i] = svs.clients[i];
-		} else {
-			Com_Memset(&oldClients[i], 0, sizeof(client_t));
-		}
-	}
-
-	// free old clients arrays
-	Z_Free( svs.clients );
-
-	// allocate new clients
-	SV_AllocClients( maxclients );
-
-	// copy the clients over
-	for ( i = 0; i < count; i++ ) {
-		if ( oldClients[i].state >= CS_CONNECTED ) {
-			svs.clients[i] = oldClients[i];
-		}
-	}
-
-	// free the old clients on the hunk
-	Hunk_FreeTempMemory( oldClients );
-}
-
-/*
 ===============
 SV_Startup
 
@@ -406,11 +349,7 @@ void SV_SpawnServer( const char *mapname ) {
 	CM_ClearMap();
 
 	// init client structures and svs.numSnapshotEntities
-	if ( !com_sv_running->integer ) {
-		SV_Startup();
-	} else {
-		SV_ChangeMaxClients();
-	}
+	if ( !com_sv_running->integer ) SV_Startup();
 
 	// clear pak references
 	FS_ClearPakReferences( 0 );
