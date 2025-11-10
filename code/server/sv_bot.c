@@ -300,7 +300,7 @@ void SV_BotFrame( int time ) {
 SV_BotLibSetup
 ===============
 */
-int SV_BotLibSetup( void ) 
+int SV_BotLibSetup( void ) {
     if (!bot_enable) return 0;
 	if ( !botlib_export ) {
 		Com_Printf( S_COLOR_RED "Error: SV_BotLibSetup without SV_BotInitBotLib\n" );
