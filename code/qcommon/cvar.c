@@ -15,7 +15,7 @@ static int cvar_numIndexes;
 
 static int cvar_group[CVG_MAX];
 
-#define FILE_HASH_SIZE 256
+#define FILE_HASH_SIZE 4096
 static cvar_t* hashTable[FILE_HASH_SIZE];
 
 static long generateHashValue(const char* fname) {
@@ -110,8 +110,8 @@ cvar_t* Cvar_Get(const char* var_name, const char* var_value, int flags) {
 	        var->modified = qtrue;
 	        var->value = Q_atof(var->string);
 	        var->integer = atoi(var->string);
-	        var->resetString = CopyString(var_value);
 	    }
+	    var->resetString = CopyString(var_value);
 		return var;
 	}
 
@@ -162,9 +162,9 @@ cvar_t* Cvar_Get(const char* var_name, const char* var_value, int flags) {
 }
 
 static void Cvar_Print(const cvar_t* v) {
-	Com_Printf("\"%s\" \"%s" S_COLOR_WHITE "\"", v->name, v->string);
+	Com_Printf("\"%s\" = \"%s" S_COLOR_WHITE "\"\n", v->name, v->string);
 
-	if(!(v->flags & CVAR_ROM)) Com_Printf(" default:\"%s" S_COLOR_WHITE "\"\n", v->resetString);
+	if(!(v->flags & CVAR_ROM)) Com_Printf("default:\"%s" S_COLOR_WHITE "\"\n", v->resetString);
 
 	if(v->latchedString) Com_Printf("latched: \"%s\"\n", v->latchedString);
 
@@ -255,8 +255,6 @@ void Cvar_SetCheatState(void) {
 	// set all default vars to the safe value
 	for(var = cvar_vars; var; var = var->next) {
 		if(var->flags & CVAR_CHEAT) {
-			// the CVAR_LATCHED|CVAR_CHEAT vars might escape the reset here
-			// because of a different var->latchedString
 			if(var->latchedString) {
 				Z_Free(var->latchedString);
 				var->latchedString = NULL;
@@ -525,7 +523,7 @@ void Cvar_WriteVariables(fileHandle_t f) {
 				Com_Printf(S_COLOR_YELLOW "WARNING: %svalue of variable \"%s\" too long to write to file\n", value == var->latchedString ? "latched " : "", var->name);
 				continue;
 			}
-			if(!strcmp(value, var->resetString)) continue;
+			if(var->resetString && !strcmp(value, var->resetString)) continue;
 			len = Com_sprintf(buffer, sizeof(buffer), "%s - \"%s\"" Q_NEWLINE, var->name, value);
 
 			FS_Write(buffer, len, f);
