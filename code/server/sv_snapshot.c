@@ -307,8 +307,7 @@ qboolean IsEntityVisibleType(sharedEntity_t *ent) {
 SV_AddEntitiesVisibleFromPoint
 ===============
 */
-static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_t *frame,
-									snapshotEntityNumbers_t *eNums, qboolean portal, int viewDistance ) {
+static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_t *frame, snapshotEntityNumbers_t *eNums, qboolean portal, int viewDistance ) {
 	int		e, i;
 	sharedEntity_t *ent;
 	svEntity_t	*svEnt;
@@ -322,47 +321,28 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 	float distanceSquared;
 	float maxViewDistanceSquared;
 
-	// during an error shutdown message we may need to transmit
-	// the shutdown message after the server has shutdown, so
-	// specifically check for it
-	if ( sv.state == SS_DEAD ) {
-		return;
-	}
+	if ( sv.state == SS_DEAD ) return;
 
+    // 1. Q3 PVS stage
 	leafnum = CM_PointLeafnum (origin);
 	clientarea = CM_LeafArea (leafnum);
 	clientcluster = CM_LeafCluster (leafnum);
 
 	// calculate the visible areas
 	frame->areabytes = CM_WriteAreaBits( frame->areabits, clientarea );
-
 	clientpvs = CM_ClusterPVS (clientcluster);
-
-	maxViewDistanceSquared = (viewDistance*SNAPSHOT_RECOVER_STEP) * (viewDistance*SNAPSHOT_RECOVER_STEP);
 
 	for ( e = 0 ; e < svs.currFrame->count; e++ ) {
 		es = svs.currFrame->ents[ e ];
 		ent = SV_GentityNum( es->number );
 
-		// entities can be flagged to be sent to only one client
-		if ( ent->r.svFlags & SVF_SINGLECLIENT ) {
-			if ( ent->r.singleClient != frame->ps.clientNum ) {
-				continue;
-			}
-		}
-		// entities can be flagged to be sent to everyone but one client
-		if ( ent->r.svFlags & SVF_NOTSINGLECLIENT ) {
-			if ( ent->r.singleClient == frame->ps.clientNum ) {
-				continue;
-			}
-		}
+		// ent for send everyone except one client
+		if ( ent->r.singleClient-1 == frame->ps.clientNum ) continue;
 
 		svEnt = &sv.svEntities[ es->number ];
 
 		// don't double add an entity through portals
-		if ( svEnt->snapshotCounter == sv.snapshotCounter ) {
-			continue;
-		}
+		if ( svEnt->snapshotCounter == sv.snapshotCounter ) continue;
 
 		// broadcast entities are always sent
 		if ( ent->r.svFlags & SVF_BROADCAST ) {
@@ -370,22 +350,15 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 			continue;
 		}
 
-		// ignore if not touching a PV leaf
-		// check area
+		// doors portals
 		if ( !CM_AreasConnected( clientarea, svEnt->areanum ) ) {
-			// doors can legally straddle two areas, so
-			// we may need to check another one
-			if ( !CM_AreasConnected( clientarea, svEnt->areanum2 ) ) {
-				continue;		// blocked by a door
-			}
+			if ( !CM_AreasConnected( clientarea, svEnt->areanum2 ) ) continue; // blocked by a door
 		}
 
 		bitvector = clientpvs;
 
 		// check individual leafs
-		if ( !svEnt->numClusters ) {
-			continue;
-		}
+		if ( !svEnt->numClusters ) continue;
 		l = 0;
 		for ( i=0 ; i < svEnt->numClusters ; i++ ) {
 			l = svEnt->clusternums[i];
@@ -403,26 +376,35 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 						break;
 					}
 				}
-				if ( l == svEnt->lastCluster ) {
-					continue;	// not visible
-				}
+				if ( l == svEnt->lastCluster ) continue;	// not visible
 			} else {
 				continue;
 			}
 		}
 
-		// calculate distance from the entity to the client
+        // 2. SourceTech Draw Distance stage
+		maxViewDistanceSquared = (viewDistance*SNAPSHOT_RECOVER_STEP) * (viewDistance*SNAPSHOT_RECOVER_STEP);
 		VectorSubtract(ent->r.currentOrigin, origin, dir);
 		distanceSquared = VectorLengthSquared(dir);
 
-		// check if the entity is within the max view distance
 		if (distanceSquared > maxViewDistanceSquared) {
 			if (ent->s.eType != ET_MOVER) {
 				continue;
 			}
 		}
+		
+		// 3. SourceTech Vector stage
+        VectorSubtract(ent->r.currentOrigin, origin, dir);
+        VectorNormalize(dir);
 
-		// Anticheat engine: Trace to check if the entity is visible from the player's POV
+        // Get player view vector
+        vec3_t viewForward;
+        AngleVectors(frame->ps.viewangles, viewForward, NULL, NULL);
+
+        float dotProduct = DotProduct(viewForward, dir);
+        if (dotProduct < 0.342f) continue; //140 fov (max in cgame)
+
+		// 4. SourceTech Trace stage
 		if (sv_anticheatengine->integer && IsEntityVisibleType(ent)) {
 			trace_t trace;
 			vec3_t corners[8];
