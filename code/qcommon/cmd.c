@@ -282,11 +282,7 @@ static void Cmd_Exec_f(void) {
 
 	Cbuf_InsertText(f.c);
 
-#ifdef DELAY_WRITECONFIG
-	if(!Q_stricmp(filename, CONFIG_CFG)) {
-		Com_WriteConfiguration();  // to avoid loading outdated values
-	}
-#endif
+	if(!Q_stricmp(filename, CONFIG_CFG)) Com_WriteConfiguration();  // to avoid loading outdated values
 
 	FS_FreeFile(f.v);
 }

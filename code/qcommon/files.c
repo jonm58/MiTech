@@ -3996,12 +3996,7 @@ void FS_Shutdown( qboolean closemfp )
 		}
 	}
 
-#ifdef DELAY_WRITECONFIG
-	if ( fs_searchpaths )
-	{
-		Com_WriteConfiguration();
-	}
-#endif
+	if ( fs_searchpaths ) Com_WriteConfiguration();
 
 #ifdef USE_PK3_CACHE
 	FS_ResetCacheReferences();

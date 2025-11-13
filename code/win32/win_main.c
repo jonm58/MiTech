@@ -96,59 +96,14 @@ void NORETURN Sys_Quit( void ) {
 Sys_Print
 ==============
 */
-void Sys_Print( const char *msg ) {
-	printf( msg );
-	return;
-}
+void Sys_Print( const char *msg ) { return; }
 
 /*
 ==============
 Sys_ConsoleInput
 ==============
 */
-char *Sys_ConsoleInput( void ) {
-	static char inputBuffer[1024];
-	static int index = 0;
-
-	DWORD numRead;
-	INPUT_RECORD inputRecord;
-	HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
-
-	while (1) {
-		if (!PeekConsoleInput(hInput, &inputRecord, 1, &numRead) || numRead == 0)
-			return NULL;
-
-		ReadConsoleInput(hInput, &inputRecord, 1, &numRead);
-
-		if (inputRecord.EventType != KEY_EVENT)
-			continue;
-
-		KEY_EVENT_RECORD key = inputRecord.Event.KeyEvent;
-
-		if (!key.bKeyDown)
-			continue;
-
-		if (key.uChar.AsciiChar == '\r') {
-			printf("\n");
-			inputBuffer[index] = '\0';
-			index = 0;
-			return inputBuffer;
-		}
-
-		if (key.uChar.AsciiChar == '\b' && index > 0) {
-			index--;
-			printf("\b \b");
-			continue;
-		}
-
-		if ((key.uChar.AsciiChar == '\t' || isprint(key.uChar.AsciiChar)) && index < sizeof(inputBuffer) - 1) {
-			putchar(key.uChar.AsciiChar);
-			inputBuffer[index++] = key.uChar.AsciiChar;
-		}
-	}
-
-	return NULL;
-}
+char *Sys_ConsoleInput( void ) { return NULL; }
 
 /*
 ==============
@@ -522,38 +477,7 @@ void Sys_Init( void ) {
 	// make sure the timer is high precision, otherwise
 	// NT gets 18ms resolution
 	timeBeginPeriod( 1 );
-
 	SetTimerResolution();
-
-	AllocConsole();
-
-	FILE* dummy;
-	freopen_s(&dummy, "CONOUT$", "w", stdout);
-	freopen_s(&dummy, "CONOUT$", "w", stderr);
-
-	HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-	int hCrt = _open_osfhandle((intptr_t)hStdout, _O_TEXT);
-	FILE* fp = _fdopen(hCrt, "w");
-	*stdout = *fp;
-	setvbuf(stdout, NULL, _IONBF, 0);
-
-	HANDLE hStdin = CreateFileA("CONIN$", GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-	if (hStdin != INVALID_HANDLE_VALUE) {
-	    SetStdHandle(STD_INPUT_HANDLE, hStdin);
-	    hCrt = _open_osfhandle((intptr_t)hStdin, _O_TEXT);
-	    fp = _fdopen(hCrt, "r");
-	    *stdin = *fp;
-	    setvbuf(stdin, NULL, _IONBF, 0);
-	} else {
-	    printf("Failed to open CONIN$\n");
-	}
-
-	HANDLE hStderr = GetStdHandle(STD_ERROR_HANDLE);
-	hCrt = _open_osfhandle((intptr_t)hStderr, _O_TEXT);
-	fp = _fdopen(hCrt, "w");
-	*stderr = *fp;
-	setvbuf(stderr, NULL, _IONBF, 0);
-
 	Cvar_Set( "arch", "winnt" );
 }
 
