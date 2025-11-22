@@ -30,13 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
-#include "l_memory.h"
-#include "l_libvar.h"
-#include "l_utils.h"
-#include "l_script.h"
-#include "l_precomp.h"
-#include "l_struct.h"
-#include "l_log.h"
 #include "aasfile.h"
 #include "botlib.h"
 #include "be_aas.h"
@@ -46,7 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 aas_t aasworld;
 
-libvar_t *saveroutingcache;
+int saveroutingcache;
 
 //===========================================================================
 //
@@ -119,10 +112,8 @@ void AAS_ContinueInit(float time)
 	AAS_InitClustering();
 	//if reachability has been calculated and an AAS file should be written
 	//or there is a forced data optimization
-	if (aasworld.savefile || ((int)LibVarGetValue("forcewrite")))
+	if (aasworld.savefile)
 	{
-		//optimize the AAS data
-		if ((int)LibVarValue("aasoptimize", "0")) AAS_Optimize();
 		//save the AAS file
 		if (AAS_WriteAASFile(aasworld.filename))
 		{
@@ -156,31 +147,6 @@ int AAS_StartFrame(float time)
 	AAS_ContinueInit(time);
 	//
 	aasworld.frameroutingupdates = 0;
-	//
-	if (botDeveloper)
-	{
-		if (LibVarGetValue("showcacheupdates"))
-		{
-			AAS_RoutingInfo();
-			LibVarSet("showcacheupdates", "0");
-		} //end if
-		if (LibVarGetValue("showmemoryusage"))
-		{
-			PrintUsedMemorySize();
-			LibVarSet("showmemoryusage", "0");
-		} //end if
-		if (LibVarGetValue("memorydump"))
-		{
-			PrintMemoryLabels();
-			LibVarSet("memorydump", "0");
-		} //end if
-	} //end if
-	//
-	if (saveroutingcache->value)
-	{
-		AAS_WriteRouteCache();
-		LibVarSet("saveroutingcache", "0");
-	} //end if
 	//
 	aasworld.numframes++;
 	return BLERR_NOERROR;
@@ -292,18 +258,15 @@ int AAS_LoadMap(const char *mapname)
 //===========================================================================
 int AAS_Setup(void)
 {
-	aasworld.maxclients = (int) LibVarValue("maxclients", "128");
-	aasworld.maxentities = (int) LibVarValue("maxentities", "4096");
+	aasworld.maxclients = 128;
+	aasworld.maxentities = 4096;
 	// as soon as it's set to 1 the routing cache will be saved
-	saveroutingcache = LibVar("saveroutingcache", "0");
+	saveroutingcache = 0;
 	//allocate memory for the entities
-	if (aasworld.entities) FreeMemory(aasworld.entities);
-	aasworld.entities = (aas_entity_t *) GetClearedHunkMemory(aasworld.maxentities * sizeof(aas_entity_t));
+	if (aasworld.entities) free(aasworld.entities);
+	aasworld.entities = (aas_entity_t *) malloc(aasworld.maxentities * sizeof(aas_entity_t));
 	//invalidate all the entities
 	AAS_InvalidateEntities();
-	//force some recalculations
-	//LibVarSet("forceclustering", "1");			//force clustering calculation
-	//LibVarSet("forcereachability", "1");		//force reachability calculation
 	aasworld.numframes = 0;
 	return BLERR_NOERROR;
 } //end of the function AAS_Setup
@@ -327,7 +290,7 @@ void AAS_Shutdown(void)
 	//free the aas data
 	AAS_DumpAASData();
 	//free the entities
-	if (aasworld.entities) FreeMemory(aasworld.entities);
+	if (aasworld.entities) free(aasworld.entities);
 	//clear the aasworld structure
 	Com_Memset(&aasworld, 0, sizeof(aas_t));
 	//aas has not been initialized

@@ -30,12 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
-#include "l_utils.h"
-#include "l_memory.h"
-#include "l_log.h"
-#include "l_script.h"
-#include "l_precomp.h"
-#include "l_struct.h"
 #include "aasfile.h"
 #include "botlib.h"
 #include "be_aas.h"
@@ -153,7 +147,6 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal, int g
 		midrangeareas[i].valid = qtrue;
 		midrangeareas[i].starttime = starttime;
 		midrangeareas[i].goaltime = goaltime;
-		Log_Write("%d midrange area %d", nummidrangeareas, i);
 		nummidrangeareas++;
 	} //end for
 	//
@@ -216,10 +209,10 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal, int g
 void AAS_InitAlternativeRouting(void)
 {
 #ifdef ENABLE_ALTROUTING
-	if (midrangeareas) FreeMemory(midrangeareas);
-	midrangeareas = (midrangearea_t *) GetMemory(aasworld.numareas * sizeof(midrangearea_t));
-	if (clusterareas) FreeMemory(clusterareas);
-	clusterareas = (int *) GetMemory(aasworld.numareas * sizeof(int));
+	if (midrangeareas) free(midrangeareas);
+	midrangeareas = (midrangearea_t *) malloc(aasworld.numareas * sizeof(midrangearea_t));
+	if (clusterareas) free(clusterareas);
+	clusterareas = (int *) malloc(aasworld.numareas * sizeof(int));
 #endif
 } //end of the function AAS_InitAlternativeRouting
 //===========================================================================
@@ -231,9 +224,9 @@ void AAS_InitAlternativeRouting(void)
 void AAS_ShutdownAlternativeRouting(void)
 {
 #ifdef ENABLE_ALTROUTING
-	if (midrangeareas) FreeMemory(midrangeareas);
+	if (midrangeareas) free(midrangeareas);
 	midrangeareas = NULL;
-	if (clusterareas) FreeMemory(clusterareas);
+	if (clusterareas) free(clusterareas);
 	clusterareas = NULL;
 	numclusterareas = 0;
 #endif

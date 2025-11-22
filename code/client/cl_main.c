@@ -46,8 +46,6 @@ cvar_t	*cl_serverStatusResendTime;
 
 cvar_t	*cl_lanForcePackets;
 
-cvar_t	*cl_reconnectArgs;
-
 cvar_t *r_swapInterval;
 cvar_t *r_fullscreen;
 cvar_t *r_resolution;
@@ -1036,7 +1034,6 @@ CL_Disconnect_f
 */
 void CL_Disconnect_f( void ) {
 	SCR_StopCinematic();
-	Cvar_Set( "ui_singlePlayerActive", "0" );
 	Cvar_Set( "cl_changeqvm", "0" );
 	if ( cls.state != CA_DISCONNECTED && cls.state != CA_CINEMATIC ) {
 		if ( (uivm && uivm->callLevel) || (cgvm && cgvm->callLevel) ) {
@@ -1061,20 +1058,6 @@ void CL_Disconnect_f( void ) {
 		}
 	}
 }
-
-
-/*
-================
-CL_Reconnect_f
-================
-*/
-static void CL_Reconnect_f( void ) {
-	if ( cl_reconnectArgs->string[0] == '\0' || Q_stricmp( cl_reconnectArgs->string, "localhost" ) == 0 )
-		return;
-	Cvar_Set( "ui_singlePlayerActive", "0" );
-	Cbuf_AddText( va( "connect %s\n", cl_reconnectArgs->string ) );
-}
-
 
 /*
 ================
@@ -1150,8 +1133,6 @@ static void CL_Connect_f( void ) {
 
 	// save arguments for reconnect
 	Q_strncpyz( args, Cmd_ArgsFrom( 1 ), sizeof( args ) );
-
-	Cvar_Set( "ui_singlePlayerActive", "0" );
 
 	// clear any previous "server full" type messages
 	clc.serverMessage[0] = '\0';
@@ -3356,7 +3337,6 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("cinematic", CL_PlayCinematic_f);
 	Cmd_AddCommand ("stoprecord", CL_StopRecord_f);
 	Cmd_AddCommand ("connect", CL_Connect_f);
-	Cmd_AddCommand ("reconnect", CL_Reconnect_f);
 	Cmd_AddCommand ("localservers", CL_LocalServers_f);
 	Cmd_AddCommand ("globalservers", CL_GlobalServers_f);
 	Cmd_AddCommand ("rcon", CL_Rcon_f);
@@ -3430,7 +3410,6 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Cmd_RemoveCommand ("cinematic");
 	Cmd_RemoveCommand ("stoprecord");
 	Cmd_RemoveCommand ("connect");
-	Cmd_RemoveCommand ("reconnect");
 	Cmd_RemoveCommand ("localservers");
 	Cmd_RemoveCommand ("globalservers");
 	Cmd_RemoveCommand ("rcon");

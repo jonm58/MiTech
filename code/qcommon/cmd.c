@@ -643,26 +643,6 @@ void Cmd_ExecuteString(const char* text) {
 #endif
 }
 
-static void Cmd_List_f(void) {
-	const cmd_function_t* cmd;
-	const char* match;
-	int i;
-
-	if(Cmd_Argc() > 1) {
-		match = Cmd_Argv(1);
-	} else {
-		match = NULL;
-	}
-
-	i = 0;
-	for(cmd = cmd_functions; cmd; cmd = cmd->next) {
-		if(match && !Com_Filter(match, cmd->name)) continue;
-		Com_Printf("%s\n", cmd->name);
-		i++;
-	}
-	Com_Printf("%i commands\n", i);
-}
-
 static void Cmd_CompleteCfgName(const char* args, int argNum) {
 	if(argNum == 2) {
 		Field_CompleteFilename("", "cfg", qfalse, FS_MATCH_ANY | FS_MATCH_STICK | FS_MATCH_SUBDIRS);
@@ -676,7 +656,6 @@ void Cmd_CompleteWriteCfgName(const char* args, int argNum) {
 }
 
 void Cmd_Init(void) {
-	Cmd_AddCommand("cmdlist", Cmd_List_f);
 	Cmd_AddCommand("exec", Cmd_Exec_f);
 	Cmd_AddCommand("execq", Cmd_Exec_f);
 	Cmd_SetCommandCompletionFunc("exec", Cmd_CompleteCfgName);

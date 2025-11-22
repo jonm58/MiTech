@@ -31,11 +31,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
-#include "l_libvar.h"
-#include "l_memory.h"
-#include "l_script.h"
-#include "l_precomp.h"
-#include "l_struct.h"
 #include "aasfile.h"
 #include "botlib.h"
 #include "be_aas.h"
@@ -217,22 +212,22 @@ static void AAS_OptimizeArea(optimized_t *optimized, int areanum)
 //===========================================================================
 static void AAS_OptimizeAlloc(optimized_t *optimized)
 {
-	optimized->vertexes = (aas_vertex_t *) GetClearedMemory(aasworld.numvertexes * sizeof(aas_vertex_t));
+	optimized->vertexes = (aas_vertex_t *) malloc(aasworld.numvertexes * sizeof(aas_vertex_t));
 	optimized->numvertexes = 0;
-	optimized->edges = (aas_edge_t *) GetClearedMemory(aasworld.numedges * sizeof(aas_edge_t));
+	optimized->edges = (aas_edge_t *) malloc(aasworld.numedges * sizeof(aas_edge_t));
 	optimized->numedges = 1; //edge zero is a dummy
-	optimized->edgeindex = (aas_edgeindex_t *) GetClearedMemory(aasworld.edgeindexsize * sizeof(aas_edgeindex_t));
+	optimized->edgeindex = (aas_edgeindex_t *) malloc(aasworld.edgeindexsize * sizeof(aas_edgeindex_t));
 	optimized->edgeindexsize = 0;
-	optimized->faces = (aas_face_t *) GetClearedMemory(aasworld.numfaces * sizeof(aas_face_t));
+	optimized->faces = (aas_face_t *) malloc(aasworld.numfaces * sizeof(aas_face_t));
 	optimized->numfaces = 1; //face zero is a dummy
-	optimized->faceindex = (aas_faceindex_t *) GetClearedMemory(aasworld.faceindexsize * sizeof(aas_faceindex_t));
+	optimized->faceindex = (aas_faceindex_t *) malloc(aasworld.faceindexsize * sizeof(aas_faceindex_t));
 	optimized->faceindexsize = 0;
-	optimized->areas = (aas_area_t *) GetClearedMemory(aasworld.numareas * sizeof(aas_area_t));
+	optimized->areas = (aas_area_t *) malloc(aasworld.numareas * sizeof(aas_area_t));
 	optimized->numareas = aasworld.numareas;
 	//
-	optimized->vertexoptimizeindex = (int *) GetClearedMemory(aasworld.numvertexes * sizeof(int));
-	optimized->edgeoptimizeindex = (int *) GetClearedMemory(aasworld.numedges * sizeof(int));
-	optimized->faceoptimizeindex = (int *) GetClearedMemory(aasworld.numfaces * sizeof(int));
+	optimized->vertexoptimizeindex = (int *) malloc(aasworld.numvertexes * sizeof(int));
+	optimized->edgeoptimizeindex = (int *) malloc(aasworld.numedges * sizeof(int));
+	optimized->faceoptimizeindex = (int *) malloc(aasworld.numfaces * sizeof(int));
 } //end of the function AAS_OptimizeAlloc
 //===========================================================================
 //
@@ -243,33 +238,33 @@ static void AAS_OptimizeAlloc(optimized_t *optimized)
 static void AAS_OptimizeStore(optimized_t *optimized)
 {
 	//store the optimized vertexes
-	if (aasworld.vertexes) FreeMemory(aasworld.vertexes);
+	if (aasworld.vertexes) free(aasworld.vertexes);
 	aasworld.vertexes = optimized->vertexes;
 	aasworld.numvertexes = optimized->numvertexes;
 	//store the optimized edges
-	if (aasworld.edges) FreeMemory(aasworld.edges);
+	if (aasworld.edges) free(aasworld.edges);
 	aasworld.edges = optimized->edges;
 	aasworld.numedges = optimized->numedges;
 	//store the optimized edge index
-	if (aasworld.edgeindex) FreeMemory(aasworld.edgeindex);
+	if (aasworld.edgeindex) free(aasworld.edgeindex);
 	aasworld.edgeindex = optimized->edgeindex;
 	aasworld.edgeindexsize = optimized->edgeindexsize;
 	//store the optimized faces
-	if (aasworld.faces) FreeMemory(aasworld.faces);
+	if (aasworld.faces) free(aasworld.faces);
 	aasworld.faces = optimized->faces;
 	aasworld.numfaces = optimized->numfaces;
 	//store the optimized face index
-	if (aasworld.faceindex) FreeMemory(aasworld.faceindex);
+	if (aasworld.faceindex) free(aasworld.faceindex);
 	aasworld.faceindex = optimized->faceindex;
 	aasworld.faceindexsize = optimized->faceindexsize;
 	//store the optimized areas
-	if (aasworld.areas) FreeMemory(aasworld.areas);
+	if (aasworld.areas) free(aasworld.areas);
 	aasworld.areas = optimized->areas;
 	aasworld.numareas = optimized->numareas;
 	//free optimize indexes
-	FreeMemory(optimized->vertexoptimizeindex);
-	FreeMemory(optimized->edgeoptimizeindex);
-	FreeMemory(optimized->faceoptimizeindex);
+	free(optimized->vertexoptimizeindex);
+	free(optimized->edgeoptimizeindex);
+	free(optimized->faceoptimizeindex);
 } //end of the function AAS_OptimizeStore
 //===========================================================================
 //

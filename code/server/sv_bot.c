@@ -382,12 +382,6 @@ void SV_BotInitBotLib(void) {
 	botlib_import.BSPModelMinsMaxsOrigin = BotImport_BSPModelMinsMaxsOrigin;
 	botlib_import.BotClientCommand = BotClientCommand;
 
-	//memory management
-	botlib_import.GetMemory = BotImport_GetMemory;
-	botlib_import.FreeMemory = BotImport_FreeMemory;
-	botlib_import.AvailableMemory = Z_AvailableMemory;
-	botlib_import.HunkAlloc = BotImport_HunkAlloc;
-
 	// file system access
 	botlib_import.FS_FOpenFile = FS_FOpenFileByMode;
 	botlib_import.FS_Read = FS_Read;
@@ -435,23 +429,5 @@ int SV_BotGetConsoleMessage( int client, char *buf, int size )
 		return qtrue;
 	} else {
 		return qfalse;
-	}
-}
-
-/*
-==================
-SV_BotGetSnapshotEntity
-==================
-*/
-int SV_BotGetSnapshotEntity( int client, int sequence ) {
-	if ( (unsigned) client < sv.maxclients ) {
-		const client_t* cl = &svs.clients[client];
-		const clientSnapshot_t* frame = &cl->frames[cl->netchan.outgoingSequence & PACKET_MASK];
-		if ( (unsigned) sequence >= frame->num_entities ) {
-			return -1;
-		}
-		return frame->ents[sequence]->number;
-	} else {
-		return -1;
 	}
 }

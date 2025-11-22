@@ -30,14 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
-#include "l_utils.h"
-#include "l_memory.h"
-#include "l_log.h"
-#include "l_crc.h"
-#include "l_libvar.h"
-#include "l_script.h"
-#include "l_precomp.h"
-#include "l_struct.h"
 #include "aasfile.h"
 #include "botlib.h"
 #include "be_aas.h"
@@ -237,7 +229,7 @@ void AAS_FreeRoutingCache(aas_routingcache_t *cache)
 {
 	AAS_UnlinkCache(cache);
 	routingcachesize -= cache->size;
-	FreeMemory(cache);
+	free(cache);
 } //end of the function AAS_FreeRoutingCache
 //===========================================================================
 //
@@ -403,8 +395,8 @@ static void AAS_InitAreaContentsTravelFlags(void)
 {
 	int i;
 
-	if (aasworld.areacontentstravelflags) FreeMemory(aasworld.areacontentstravelflags);
-	aasworld.areacontentstravelflags = (int *) GetClearedMemory(aasworld.numareas * sizeof(int));
+	if (aasworld.areacontentstravelflags) free(aasworld.areacontentstravelflags);
+	aasworld.areacontentstravelflags = (int *) malloc(aasworld.numareas * sizeof(int));
 	//
 	for (i = 0; i < aasworld.numareas; i++) {
 		aasworld.areacontentstravelflags[i] = AAS_GetAreaContentsTravelFlags(i);
@@ -429,9 +421,9 @@ static void AAS_CreateReversedReachability(void)
 	starttime = Sys_MilliSeconds();
 #endif
 	//free reversed links that have already been created
-	if (aasworld.reversedreachability) FreeMemory(aasworld.reversedreachability);
+	if (aasworld.reversedreachability) free(aasworld.reversedreachability);
 	//allocate memory for the reversed reachability links
-	ptr = (char *) GetClearedMemory(aasworld.numareas * sizeof(aas_reversedreachability_t) +
+	ptr = (char *) malloc(aasworld.numareas * sizeof(aas_reversedreachability_t) +
 							aasworld.reachabilitysize * sizeof(aas_reversedlink_t));
 	//
 	aasworld.reversedreachability = (aas_reversedreachability_t *) ptr;
@@ -512,7 +504,7 @@ static void AAS_CalculateAreaTravelTimes(void)
 	starttime = Sys_MilliSeconds();
 #endif
 	//if there are still area travel times, free the memory
-	if (aasworld.areatraveltimes) FreeMemory(aasworld.areatraveltimes);
+	if (aasworld.areatraveltimes) free(aasworld.areatraveltimes);
 	//get the total size of all the area travel times
 	size = aasworld.numareas * sizeof(unsigned short **);
 	for (i = 0; i < aasworld.numareas; i++)
@@ -527,7 +519,7 @@ static void AAS_CalculateAreaTravelTimes(void)
 			PAD(revreach->numlinks, sizeof(long)) * sizeof(unsigned short);
 	} //end for
 	//allocate memory for the area travel times
-	ptr = (char *) GetClearedMemory(size);
+	ptr = (char *) malloc(size);
 	aasworld.areatraveltimes = (unsigned short ***) ptr;
 	ptr += aasworld.numareas * sizeof(unsigned short **);
 	//calcluate the travel times for all the areas
@@ -604,9 +596,9 @@ static void AAS_InitPortalMaxTravelTimes(void)
 {
 	int i;
 
-	if (aasworld.portalmaxtraveltimes) FreeMemory(aasworld.portalmaxtraveltimes);
+	if (aasworld.portalmaxtraveltimes) free(aasworld.portalmaxtraveltimes);
 
-	aasworld.portalmaxtraveltimes = (int *) GetClearedMemory(aasworld.numportals * sizeof(int));
+	aasworld.portalmaxtraveltimes = (int *) malloc(aasworld.numportals * sizeof(int));
 
 	for (i = 0; i < aasworld.numportals; i++)
 	{
@@ -746,7 +738,7 @@ static aas_routingcache_t *AAS_AllocRoutingCache(int numtraveltimes)
 	//
 	routingcachesize += size;
 	//
-	cache = (aas_routingcache_t *) GetClearedMemory(size);
+	cache = (aas_routingcache_t *) malloc(size);
 	cache->reachabilities = (unsigned char *) cache + sizeof(aas_routingcache_t)
 								+ numtraveltimes * sizeof(unsigned short int);
 	cache->size = size;
@@ -781,7 +773,7 @@ static void AAS_FreeAllClusterAreaCache(void)
 		} //end for
 	} //end for
 	//free the cluster cache array
-	FreeMemory(aasworld.clusterareacache);
+	free(aasworld.clusterareacache);
 	aasworld.clusterareacache = NULL;
 } //end of the function AAS_FreeAllClusterAreaCache
 //===========================================================================
@@ -802,7 +794,7 @@ static void AAS_InitClusterAreaCache(void)
 	} //end for
 	//two dimensional array with pointers for every cluster to routing cache
 	//for every area in that cluster
-	ptr = (char *) GetClearedMemory(
+	ptr = (char *) malloc(
 				aasworld.numclusters * sizeof(aas_routingcache_t **) +
 				size * sizeof(aas_routingcache_t *));
 	aasworld.clusterareacache = (aas_routingcache_t ***) ptr;
@@ -836,7 +828,7 @@ static void AAS_FreeAllPortalCache(void)
 		} //end for
 		aasworld.portalcache[i] = NULL;
 	} //end for
-	FreeMemory(aasworld.portalcache);
+	free(aasworld.portalcache);
 	aasworld.portalcache = NULL;
 } //end of the function AAS_FreeAllPortalCache
 //===========================================================================
@@ -848,7 +840,7 @@ static void AAS_FreeAllPortalCache(void)
 static void AAS_InitPortalCache(void)
 {
 	//
-	aasworld.portalcache = (aas_routingcache_t **) GetClearedMemory(
+	aasworld.portalcache = (aas_routingcache_t **) malloc(
 								aasworld.numareas * sizeof(aas_routingcache_t *));
 } //end of the function AAS_InitPortalCache
 //===========================================================================
@@ -862,7 +854,7 @@ static void AAS_InitRoutingUpdate(void)
 	int i, maxreachabilityareas;
 
 	//free routing update fields if already existing
-	if (aasworld.areaupdate) FreeMemory(aasworld.areaupdate);
+	if (aasworld.areaupdate) free(aasworld.areaupdate);
 	//
 	maxreachabilityareas = 0;
 	for (i = 0; i < aasworld.numclusters; i++)
@@ -873,12 +865,12 @@ static void AAS_InitRoutingUpdate(void)
 		} //end if
 	} //end for
 	//allocate memory for the routing update fields
-	aasworld.areaupdate = (aas_routingupdate_t *) GetClearedMemory(
+	aasworld.areaupdate = (aas_routingupdate_t *) malloc(
 									maxreachabilityareas * sizeof(aas_routingupdate_t));
 	//
-	if (aasworld.portalupdate) FreeMemory(aasworld.portalupdate);
+	if (aasworld.portalupdate) free(aasworld.portalupdate);
 	//allocate memory for the portal update fields
-	aasworld.portalupdate = (aas_routingupdate_t *) GetClearedMemory(
+	aasworld.portalupdate = (aas_routingupdate_t *) malloc(
 									(aasworld.numportals+1) * sizeof(aas_routingupdate_t));
 } //end of the function AAS_InitRoutingUpdate
 //===========================================================================
@@ -902,8 +894,6 @@ void AAS_CreateAllRoutingCache(void)
 			if (i == j) continue;
 			if (!AAS_AreaReachability(j)) continue;
 			AAS_AreaTravelTimeToGoalArea(i, aasworld.areas[i].center, j, TFL_DEFAULT);
-			//t = AAS_AreaTravelTimeToGoalArea(i, aasworld.areas[i].center, j, TFL_DEFAULT);
-			//Log_Write("traveltime from %d to %d is %d", i, j, t);
 		} //end for
 	} //end for
 	aasworld.initialized = qfalse;
@@ -978,8 +968,8 @@ void AAS_WriteRouteCache(void)
 	routecacheheader.version = RCVERSION;
 	routecacheheader.numareas = aasworld.numareas;
 	routecacheheader.numclusters = aasworld.numclusters;
-	routecacheheader.areacrc = CRC_ProcessString( (unsigned char *)aasworld.areas, sizeof(aas_area_t) * aasworld.numareas );
-	routecacheheader.clustercrc = CRC_ProcessString( (unsigned char *)aasworld.clusters, sizeof(aas_cluster_t) * aasworld.numclusters );
+	routecacheheader.areacrc = 0;
+	routecacheheader.clustercrc = 0;
 	routecacheheader.numportalcache = numportalcache;
 	routecacheheader.numareacache = numareacache;
 	//write the header
@@ -1039,7 +1029,7 @@ static aas_routingcache_t *AAS_ReadCache(fileHandle_t fp)
 	aas_routingcache_t *cache;
 
 	botimport.FS_Read(&size, sizeof(size), fp);
-	cache = (aas_routingcache_t *) GetMemory(size);
+	cache = (aas_routingcache_t *) malloc(size);
 	cache->size = size;
 	botimport.FS_Read((unsigned char *)cache + sizeof(size), size - sizeof(size), fp);
 	cache->reachabilities = (unsigned char *) cache + sizeof(aas_routingcache_t) - sizeof(unsigned short) +
@@ -1087,14 +1077,12 @@ static int AAS_ReadRouteCache(void)
 		//AAS_Error("route cache dump has wrong number of clusters\n");
 		return qfalse;
 	} //end if
-	if (routecacheheader.areacrc !=
-		CRC_ProcessString( (unsigned char *)aasworld.areas, sizeof(aas_area_t) * aasworld.numareas ))
+	if (routecacheheader.areacrc != 0)
 	{
 		//AAS_Error("route cache dump area CRC incorrect\n");
 		return qfalse;
 	} //end if
-	if (routecacheheader.clustercrc !=
-		CRC_ProcessString( (unsigned char *)aasworld.clusters, sizeof(aas_cluster_t) * aasworld.numclusters ))
+	if (routecacheheader.clustercrc != 0)
 	{
 		//AAS_Error("route cache dump cluster CRC incorrect\n");
 		return qfalse;
@@ -1120,20 +1108,6 @@ static int AAS_ReadRouteCache(void)
 			aasworld.clusterareacache[cache->cluster][clusterareanum]->prev = cache;
 		aasworld.clusterareacache[cache->cluster][clusterareanum] = cache;
 	} //end for
-	// read the visareas
-	/*
-	aasworld.areavisibility = (byte **) GetClearedMemory(aasworld.numareas * sizeof(byte *));
-	aasworld.decompressedvis = (byte *) GetClearedMemory(aasworld.numareas * sizeof(byte));
-	for (i = 0; i < aasworld.numareas; i++)
-	{
-		botimport.FS_Read(&size, sizeof(size), fp );
-		if (size) {
-			aasworld.areavisibility[i] = (byte *) GetMemory(size);
-			botimport.FS_Read(aasworld.areavisibility[i], size, fp );
-		}
-	}
-	*/
-	//
 	botimport.FS_FCloseFile(fp);
 	return qtrue;
 } //end of the function AAS_ReadRouteCache
@@ -1153,14 +1127,14 @@ static void AAS_InitReachabilityAreas(void)
 	vec3_t start, end;
 
 	if (aasworld.reachabilityareas)
-		FreeMemory(aasworld.reachabilityareas);
+		free(aasworld.reachabilityareas);
 	if (aasworld.reachabilityareaindex)
-		FreeMemory(aasworld.reachabilityareaindex);
+		free(aasworld.reachabilityareaindex);
 
 	aasworld.reachabilityareas = (aas_reachabilityareas_t *)
-				GetClearedMemory(aasworld.reachabilitysize * sizeof(aas_reachabilityareas_t));
+				malloc(aasworld.reachabilitysize * sizeof(aas_reachabilityareas_t));
 	aasworld.reachabilityareaindex = (int *)
-				GetClearedMemory(aasworld.reachabilitysize * MAX_REACHABILITYPASSAREAS * sizeof(int));
+				malloc(aasworld.reachabilitysize * MAX_REACHABILITYPASSAREAS * sizeof(int));
 	numreachareas = 0;
 	for (i = 0; i < aasworld.reachabilitysize; i++)
 	{
@@ -1243,7 +1217,7 @@ void AAS_InitRouting(void)
 #endif //ROUTING_DEBUG
 	//
 	routingcachesize = 0;
-	max_routingcachesize = 1024 * (int) LibVarValue("max_routingcache", "4096");
+	max_routingcachesize = 1024 * 4096;
 	// read any routing cache if available
 	AAS_ReadRouteCache();
 } //end of the function AAS_InitRouting
@@ -1260,27 +1234,27 @@ void AAS_FreeRoutingCaches(void)
 	// free all the existing portal cache
 	AAS_FreeAllPortalCache();
 	// free cached travel times within areas
-	if (aasworld.areatraveltimes) FreeMemory(aasworld.areatraveltimes);
+	if (aasworld.areatraveltimes) free(aasworld.areatraveltimes);
 	aasworld.areatraveltimes = NULL;
 	// free cached maximum travel time through cluster portals
-	if (aasworld.portalmaxtraveltimes) FreeMemory(aasworld.portalmaxtraveltimes);
+	if (aasworld.portalmaxtraveltimes) free(aasworld.portalmaxtraveltimes);
 	aasworld.portalmaxtraveltimes = NULL;
 	// free reversed reachability links
-	if (aasworld.reversedreachability) FreeMemory(aasworld.reversedreachability);
+	if (aasworld.reversedreachability) free(aasworld.reversedreachability);
 	aasworld.reversedreachability = NULL;
 	// free routing algorithm memory
-	if (aasworld.areaupdate) FreeMemory(aasworld.areaupdate);
+	if (aasworld.areaupdate) free(aasworld.areaupdate);
 	aasworld.areaupdate = NULL;
-	if (aasworld.portalupdate) FreeMemory(aasworld.portalupdate);
+	if (aasworld.portalupdate) free(aasworld.portalupdate);
 	aasworld.portalupdate = NULL;
 	// free lists with areas the reachabilities go through
-	if (aasworld.reachabilityareas) FreeMemory(aasworld.reachabilityareas);
+	if (aasworld.reachabilityareas) free(aasworld.reachabilityareas);
 	aasworld.reachabilityareas = NULL;
 	// free the reachability area index
-	if (aasworld.reachabilityareaindex) FreeMemory(aasworld.reachabilityareaindex);
+	if (aasworld.reachabilityareaindex) free(aasworld.reachabilityareaindex);
 	aasworld.reachabilityareaindex = NULL;
 	// free area contents travel flags look up table
-	if (aasworld.areacontentstravelflags) FreeMemory(aasworld.areacontentstravelflags);
+	if (aasworld.areacontentstravelflags) free(aasworld.areacontentstravelflags);
 	aasworld.areacontentstravelflags = NULL;
 } //end of the function AAS_FreeRoutingCaches
 //===========================================================================
@@ -1638,17 +1612,6 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 	{
 		travelflags |= TFL_DONOTENTER;
 	} //end if
-	//NOTE: the number of routing updates is limited per frame
-	/*
-	if (aasworld.frameroutingupdates > MAX_FRAMEROUTINGUPDATES)
-	{
-#ifdef DEBUG
-		//Log_Write("WARNING: AAS_AreaTravelTimeToGoalArea: frame routing updates overflowed");
-#endif
-		return 0;
-	} //end if
-	*/
-	//
 	clusternum = aasworld.areasettings[areanum].cluster;
 	goalclusternum = aasworld.areasettings[goalareanum].cluster;
 	//check if the area is a portal of the goal area cluster
@@ -2029,8 +1992,6 @@ int AAS_RandomGoalArea(int areanum, int travelflags, int *goalareanum, vec3_t go
 					return qtrue;
 				} //end if
 				VectorCopy(aasworld.areas[n].center, start);
-				if (!AAS_PointAreaNum(start))
-					Log_Write("area %d center %f %f %f in solid?", n, start[0], start[1], start[2]);
 				VectorCopy(start, end);
 				end[2] -= 300;
 				trace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, -1);
@@ -2080,7 +2041,7 @@ int AAS_NearestHideArea(int srcnum, vec3_t origin, int areanum, int enemynum, ve
 	//
 	if (!hidetraveltimes)
 	{
-		hidetraveltimes = (unsigned short int *) GetClearedMemory(aasworld.numareas * sizeof(unsigned short int));
+		hidetraveltimes = (unsigned short int *) malloc(aasworld.numareas * sizeof(unsigned short int));
 	} //end if
 	else
 	{
