@@ -496,12 +496,12 @@ int S_MP3_Decode(snd_stream_t *stream)
 		if(samplecount < pcm->length)
 		{
 			// The pcm buffer was not large enough. Make it bigger.
-			byte *newbuf = Z_Malloc(cursize);
+			byte *newbuf = malloc(cursize);
 
 			if(mp3info->pcmbuf)
 			{
 				memcpy(newbuf, mp3info->pcmbuf, mp3info->buflen);
-				Z_Free(mp3info->pcmbuf);
+				free(mp3info->pcmbuf);
 			}
 
 			mp3info->pcmbuf = newbuf;
@@ -553,7 +553,7 @@ snd_stream_t *S_MP3_CodecOpenStream(const char *filename)
 	}
 
 	// Initialize the mp3 info structure we need for streaming
-	mp3info = Z_Malloc(sizeof(*mp3info));
+	mp3info = malloc(sizeof(*mp3info));
 	if(!mp3info)
 	{
 		S_CodecUtilClose(&stream);
@@ -598,13 +598,13 @@ void S_MP3_CodecCloseStream(snd_stream_t *stream)
 		mp3info = stream->ptr;
 
 		if(mp3info->pcmbuf)
-			Z_Free(mp3info->pcmbuf);
+			free(mp3info->pcmbuf);
 
 		mad_synth_finish(&mp3info->madsynth);
 		mad_frame_finish(&mp3info->madframe);
 		mad_stream_finish(&mp3info->madstream);
 
-		Z_Free(stream->ptr);
+		free(stream->ptr);
 	}
 
 	S_CodecUtilClose(&stream);
@@ -696,7 +696,7 @@ void *S_MP3_CodecLoad(const char *filename, snd_info_t *info)
         info->dataofs = stream->info.dataofs;
 
 	// allocate enough buffer for all pcm data
-	pcmbuffer = Hunk_AllocateTempMemory(stream->info.size);
+	pcmbuffer = malloc(stream->info.size);
 	if(!pcmbuffer)
 	{
 		S_MP3_CodecCloseStream(stream);
@@ -708,7 +708,7 @@ void *S_MP3_CodecLoad(const char *filename, snd_info_t *info)
 	if(info->size <= 0)
 	{
 		// we didn't read anything at all. darn.
-		Hunk_FreeTempMemory(pcmbuffer);
+		free(pcmbuffer);
 		pcmbuffer = NULL;
 	}
 

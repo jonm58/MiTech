@@ -212,7 +212,7 @@ static void Con_Dump_f( void )
 	}
 
 	bufferlen = con.linewidth + ARRAY_LEN( Q_NEWLINE ) * sizeof( char );
-	buffer = Hunk_AllocateTempMemory( bufferlen );
+	buffer = malloc( bufferlen );
 
 	// write the remaining lines
 	buffer[ bufferlen - 1 ] = '\0';
@@ -235,7 +235,7 @@ static void Con_Dump_f( void )
 		FS_Write( buffer, strlen( buffer ), f );
 	}
 
-	Hunk_FreeTempMemory( buffer );
+	free( buffer );
 	FS_FCloseFile( f );
 }
 

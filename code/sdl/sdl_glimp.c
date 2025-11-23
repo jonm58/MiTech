@@ -84,7 +84,7 @@ static int FindNearestDisplay( int *x, int *y, int w, int h ) {
 
 	glw_state.monitorCount = numDisplays;
 
-	list = Z_Malloc( numDisplays * sizeof( list[0] ) );
+	list = malloc( numDisplays * sizeof( list[0] ) );
 
 	for ( i = 0; i < numDisplays; i++ ) {
 		SDL_GetDisplayBounds( i, list + i );
@@ -128,7 +128,7 @@ static int FindNearestDisplay( int *x, int *y, int w, int h ) {
 			*y = m->y;
 	}
 
-	Z_Free( list );
+	free( list );
 
 	return index;
 }
@@ -601,7 +601,7 @@ char *Sys_GetClipboardData( void ) {
 		if ( cliptext[0] != '\0' ) {
 			size_t bufsize = strlen( cliptext ) + 1;
 
-			data = Z_Malloc( bufsize );
+			data = malloc( bufsize );
 			Q_strncpyz( data, cliptext, bufsize );
 
 			// find first listed char and set to '\0'

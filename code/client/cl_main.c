@@ -752,24 +752,6 @@ void CL_ShutdownAll( void ) {
 
 /*
 =================
-CL_ClearMemory
-=================
-*/
-void CL_ClearMemory( void ) {
-	// if not running a server clear the whole hunk
-	if ( !com_sv_running->integer ) {
-		// clear the whole hunk
-		Hunk_Clear();
-		// clear collision map data
-		CM_ClearMap();
-	} else {
-		// clear all the client data on the hunk
-		Hunk_ClearToMark();
-	}
-}
-
-/*
-=================
 CL_FlushMemory
 
 Called by CL_Disconnect_f, CL_DownloadsComplete
@@ -777,13 +759,7 @@ Also called by Com_Error
 =================
 */
 void CL_FlushMemory( void ) {
-
-	// shutdown all the client stuff
 	CL_ShutdownAll();
-
-	CL_ClearMemory();
-
-	CL_StartHunkUsers();
 }
 
 /*
@@ -1299,7 +1275,7 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	// unpause so the cgame definitely gets a snapshot and renders a frame
 	Cvar_Set( "cl_paused", "0" );
 
-	CL_ClearMemory();
+	Hunk_Clear();
 
 	// startup all the client stuff
 	CL_StartHunkUsers();
@@ -2452,7 +2428,7 @@ CL_RefMalloc
 ============
 */
 static void *CL_RefMalloc( int size ) {
-	return Z_TagMalloc( size, TAG_RENDERER );
+	return malloc( size );
 }
 
 
@@ -2462,7 +2438,7 @@ CL_RefFreeAll
 ============
 */
 static void CL_RefFreeAll( void ) {
-	Z_FreeTags( TAG_RENDERER );
+	freeTags( TAG_RENDERER );
 }
 
 
@@ -2532,16 +2508,6 @@ static void CL_InitRef( void ) {
 	rimp.Error = Com_Error;
 	rimp.Milliseconds = CL_ScaledMilliseconds;
 	rimp.Microseconds = Sys_Microseconds;
-	rimp.Malloc = CL_RefMalloc;
-	rimp.FreeAll = CL_RefFreeAll;
-	rimp.Free = Z_Free;
-#ifdef HUNK_DEBUG
-	rimp.Hunk_AllocDebug = Hunk_AllocDebug;
-#else
-	rimp.Hunk_Alloc = Hunk_Alloc;
-#endif
-	rimp.Hunk_AllocateTempMemory = Hunk_AllocateTempMemory;
-	rimp.Hunk_FreeTempMemory = Hunk_FreeTempMemory;
 
 	rimp.CM_ClusterPVS = CM_ClusterPVS;
 

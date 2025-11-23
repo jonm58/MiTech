@@ -399,7 +399,7 @@ static void FS_CopyFile( const char *fromOSPath, const char *toOSPath ) {
 
 	len = FS_FileLength( f );
 
-	// we are using direct malloc instead of Z_Malloc here, so it
+	// we are using direct malloc instead of malloc here, so it
 	// probably won't work on a mac... It's only for developers anyway...
 	buf = malloc( len );
 	if ( !buf ) {
@@ -1810,7 +1810,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 				return len;
 			}
 
-			buf = Hunk_AllocateTempMemory(len+1);
+			buf = malloc(len+1);
 			*buffer = buf;
 
 			r = FS_Read( buf, len, com_journalDataFile );
@@ -1856,7 +1856,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 		return len;
 	}
 
-	buf = Hunk_AllocateTempMemory( len + 1 );
+	buf = malloc( len + 1 );
 	*buffer = buf;
 
 	FS_Read( buf, len, h );
@@ -1893,12 +1893,7 @@ void FS_FreeFile( void *buffer ) {
 	}
 	fs_loadStack--;
 
-	Hunk_FreeTempMemory( buffer );
-
-	// if all of our temp files are free, clear all of our space
-	if ( fs_loadStack == 0 ) {
-		Hunk_ClearTempMemory();
-	}
+	free( buffer );
 }
 
 
@@ -2370,7 +2365,7 @@ static qboolean FS_LoadPakFromFile( FILE *f )
 	size += pakBaseLen;
 	size += pk.numHeaderLongs * sizeof( pack->headerLongs[0] );
 
-	pack = Z_TagMalloc( size, TAG_PACK );
+	pack = malloc( size );
 	Com_Memset( pack, 0, size );
 
 	pack->mtime = pk.mtime;
@@ -2686,7 +2681,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 #ifdef USE_PK3_CACHE
 	size += ( filecount + 1 ) * sizeof( fs_headerLongs[0] );
 #endif
-	pack = Z_TagMalloc( size, TAG_PACK );
+	pack = malloc( size );
 	Com_Memset( pack, 0, size );
 
 	pack->handle = uf;
@@ -2703,7 +2698,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 #ifdef USE_PK3_CACHE
 	fs_headerLongs = (int*)( pack->pakBasename + PAD( baseNameLen, sizeof( int ) ) );
 #else
-	fs_headerLongs = Z_Malloc( ( filecount + 1 ) * sizeof( fs_headerLongs[0] ) );
+	fs_headerLongs = malloc( ( filecount + 1 ) * sizeof( fs_headerLongs[0] ) );
 #endif
 
 	fs_numHeaderLongs = 0;
@@ -2761,7 +2756,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 	pack->numHeaderLongs = fs_numHeaderLongs;
 	pack->checksumFeed = fs_checksumFeed;
 #else
-	Z_Free( fs_headerLongs );
+	free( fs_headerLongs );
 #endif
 
 #ifdef USE_HANDLE_CACHE
@@ -2804,7 +2799,7 @@ static void FS_FreePak( pack_t *pak )
 		pak->handle = NULL;
 	}
 
-	Z_Free( pak );
+	free( pak );
 }
 
 
@@ -2899,7 +2894,7 @@ static int FS_ReturnPath( const char *zname, char *zpath, int *depth ) {
 char *FS_CopyString( const char *in ) {
 	char *out;
 	//out = S_Malloc( strlen( in ) + 1 );
-	out = Z_Malloc( strlen( in ) + 1 );
+	out = malloc( strlen( in ) + 1 );
 	strcpy( out, in );
 	return out;
 }
@@ -3079,7 +3074,7 @@ static char **FS_ListFilteredFiles( const char *path, const char *extension, con
 		return NULL;
 	}
 
-	listCopy = Z_Malloc( ( nfiles + 1 ) * sizeof( listCopy[0] ) );
+	listCopy = malloc( ( nfiles + 1 ) * sizeof( listCopy[0] ) );
 	for ( i = 0 ; i < nfiles ; i++ ) {
 		listCopy[i] = list[i];
 	}
@@ -3117,10 +3112,10 @@ void FS_FreeFileList( char **list ) {
 	}
 
 	for ( i = 0 ; list[i] ; i++ ) {
-		Z_Free( list[i] );
+		free( list[i] );
 	}
 
-	Z_Free( list );
+	free( list );
 }
 
 
@@ -3199,7 +3194,7 @@ static char** Sys_ConcatenateFileLists( char **list0, char **list1 )
 	totalLength += Sys_CountFileList( list1 );
 
 	/* Create new list. */
-	dst = cat = Z_Malloc( ( totalLength + 1 ) * sizeof( char* ) );
+	dst = cat = malloc( ( totalLength + 1 ) * sizeof( char* ) );
 
 	/* Copy over lists. */
 	if ( list0 )
@@ -3219,8 +3214,8 @@ static char** Sys_ConcatenateFileLists( char **list0, char **list1 )
 
 	// Free our old lists.
 	// NOTE: not freeing their content, it's been merged in dst and still being used
-	if ( list0 ) Z_Free( list0 );
-	if ( list1 ) Z_Free( list1 );
+	if ( list0 ) free( list0 );
+	if ( list1 ) free( list1 );
 
 	return cat;
 }
@@ -3731,7 +3726,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 	dir_len = PAD( dir_len, sizeof( int ) );
 	len = sizeof( *search ) + sizeof( *search->dir ) + path_len + dir_len;
 
-	search = Z_TagMalloc( len, TAG_SEARCH_PATH );
+	search = malloc( len );
 	Com_Memset( search, 0, len );
 	search->dir = (directory_t*)( search + 1 );
 	search->dir->path = (char*)( search->dir + 1 );
@@ -3806,7 +3801,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 			fs_packFiles += pak->numfiles;
 			fs_packCount++;
 
-			search = Z_TagMalloc( sizeof( *search ), TAG_SEARCH_PACK );
+			search = malloc( sizeof( *search ) );
 			Com_Memset( search, 0, sizeof( *search ) );
 			search->pack = pak;
 
@@ -3832,7 +3827,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 			dir_len = PAD( len + 1, sizeof( int ) );
 			len = sizeof( *search ) + sizeof( *search->dir ) + path_len + dir_len;
 
-			search = Z_TagMalloc( len, TAG_SEARCH_DIR );
+			search = malloc( len );
 			Com_Memset( search, 0, len );
 			search->dir = (directory_t*)(search + 1);
 			search->dir->path = (char*)( search->dir + 1 );
@@ -4020,7 +4015,7 @@ void FS_Shutdown( qboolean closemfp )
 			p->pack = NULL;
 		}
 
-		Z_Free( p );
+		free( p );
 	}
 
 	// any FS_ calls will now be an error until reinitialized
@@ -4057,7 +4052,7 @@ static void FS_ReorderSearchPaths( void ) {
 	// relink path chains in following order:
 	// 1. pk3dirs @ pak files
 	// 2. directories
-	list = (searchpath_t **)Z_Malloc( cnt * sizeof( list[0] ) );
+	list = (searchpath_t **)malloc( cnt * sizeof( list[0] ) );
 	paks = list;
 	dirs = list + fs_pk3dirCount + fs_packCount;
 
@@ -4078,7 +4073,7 @@ static void FS_ReorderSearchPaths( void ) {
 	}
 	list[cnt-1]->next = NULL;
 
-	Z_Free( list );
+	free( list );
 }
 
 /*

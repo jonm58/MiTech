@@ -1065,10 +1065,10 @@ static void   zcfree  OF((voidp opaque, voidp ptr));
 #endif
 
 #ifndef ALLOC
-# define ALLOC(size) (Z_Malloc(size))
+# define ALLOC(size) (malloc(size))
 #endif
 #ifndef TRYFREE
-# define TRYFREE(p) {if (p) Z_Free(p);}
+# define TRYFREE(p) {if (p) free(p);}
 #endif
 
 #define SIZECENTRALDIRITEM (0x2e)
@@ -4211,6 +4211,6 @@ voidp zcalloc (voidp opaque, unsigned items, unsigned size)
 
 void  zcfree (voidp opaque, voidp ptr)
 {
-    Z_Free(ptr);
+    free(ptr);
     if (opaque) return; /* make compiler happy */
 }
