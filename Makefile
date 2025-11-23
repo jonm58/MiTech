@@ -20,7 +20,7 @@ BUILD_SERVER        = 1
 MOUNT_DIR           = code
 
 # General
-USE_LOCAL_HEADERS   = 1
+USE_LOCAL_HEADERS   = 0
 
 # Audio
 USE_OGG_VORBIS      = 1
