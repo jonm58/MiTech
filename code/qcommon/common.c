@@ -3510,6 +3510,7 @@ static int Com_TimeVal( int minMsec )
 	return timeVal;
 }
 
+#ifndef DEDICATED
 SDL_Thread* serverThread = NULL;
 qboolean threadServerEnabled = qfalse;
 
@@ -3526,6 +3527,7 @@ int serverThread_main(void* data) {
     
     return 0;
 }
+#endif
 
 /*
 =================
@@ -3535,7 +3537,9 @@ Com_FrameInit
 void Com_FrameInit( void )
 {
 	lastTime = com_frameTime = Com_Milliseconds();
+#ifndef DEDICATED
 	serverThread = SDL_CreateThread(serverThread_main, "server", NULL);
+#endif
 }
 
 /*
@@ -3662,7 +3666,11 @@ void Com_Frame( qboolean noDelay ) {
 		timeBeforeServer = Sys_Milliseconds();
 	}
 
+#ifndef DEDICATED
 	threadServerEnabled = qtrue;
+#else
+    SV_Frame(msec);
+#endif
 
 	// if "dedicated" has been modified, start up
 	// or shut down the client system.
