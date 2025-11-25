@@ -34,6 +34,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../client/keys.h"
 
+#include <SDL.h>
+
 #if ARCH == x86
     #define DEF_COMHUNKMEGS 1023
 #elif ARCH == x86_64
