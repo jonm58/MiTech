@@ -1217,9 +1217,13 @@ happen before SV_Frame is called
 void SV_Frame( int msec ) {
 	int		frameMsec;
 	int		startTime;
+	
+	Com_Printf("Server thread: start\n");
 
 	if ( Cvar_CheckGroup( CVG_SERVER ) )
 		SV_TrackCvarChanges(); // update rate settings, etc.
+		
+	Com_Printf("Server thread: cvar\n");
 
 	// the menu kills the server with this cvar
 	if ( sv_killserver->integer ) {
@@ -1227,6 +1231,8 @@ void SV_Frame( int msec ) {
 		Cvar_Set( "sv_killserver", "0" );
 		return;
 	}
+	
+	Com_Printf("Server thread: killserver check\n");
 
 	if ( !com_sv_running->integer )
 	{
@@ -1238,11 +1244,15 @@ void SV_Frame( int msec ) {
 		}
 		return;
 	}
+	
+	Com_Printf("Server thread: sleep\n");
 
 	// allow pause if only the local client is connected
 	if ( SV_CheckPaused() ) {
 		return;
 	}
+    
+	Com_Printf("Server thread: pause check\n");
 
 	// if it isn't time for the next frame, do nothing
 
@@ -1254,11 +1264,15 @@ void SV_Frame( int msec ) {
 		Com_DPrintf( "timescale adjusted to %f\n", com_timescale->value );
 		frameMsec = 1;
 	}
+	
+	Com_Printf("Server thread: timescale\n");
 
 	sv.timeResidual += msec;
 
 	if ( !com_dedicated->integer )
 		SV_BotFrame( sv.time + sv.timeResidual );
+		
+	Com_Printf("Server thread: AI\n");
 
 	// if time is about to hit the 32nd bit, kick all clients
 	// and clear sv.time, rather
@@ -1298,6 +1312,8 @@ void SV_Frame( int msec ) {
 
 	// update ping based on the all received frames
 	SV_CalcPings();
+	
+	Com_Printf("Server thread: ping\n");
 
 	if (com_dedicated->integer) SV_BotFrame (sv.time);
 
@@ -1310,22 +1326,30 @@ void SV_Frame( int msec ) {
 		// let everything in the world think and move
 		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 	}
+	
+	Com_Printf("Server thread: qvm\n");
 
 	if ( com_speeds->integer ) {
 		time_game = Sys_Milliseconds () - startTime;
 	}
+	
+	Com_Printf("Server thread: shit\n");
 
 	// check timeouts
 	SV_CheckTimeouts();
+	Com_Printf("Server thread: SV_CheckTimeouts\n");
 
 	// reset current and build new snapshot on first query
-	SV_IssueNewSnapshot();
+	SV_IssueNewSnapshot()
+	Com_Printf("Server thread: SV_IssueNewSnapshot\n");
 
 	// send messages back to the clients
 	SV_SendClientMessages();
+	Com_Printf("Server thread: SV_SendClientMessages\n");
 
 	// send a heartbeat to the master if needed
 	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+	Com_Printf("Server thread: SV_MasterHeartbeat\n");
 }
 
 

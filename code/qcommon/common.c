@@ -3668,12 +3668,11 @@ void Com_Frame( qboolean noDelay ) {
 		timeBeforeServer = Sys_Milliseconds();
 	}
 
-//#ifndef DEDICATED
-//	threadServerEnabled = qtrue;
-//#else
-    Com_Printf("Server single-thread tick: %d ms\n", msec);
+#ifndef DEDICATED
+	threadServerEnabled = qtrue;
+#else
     SV_Frame(msec);
-//#endif	
+#endif	
 
 	// if "dedicated" has been modified, start up
 	// or shut down the client system.
