@@ -1117,31 +1117,6 @@ static qboolean SV_CheckPaused( void ) {
 #endif // !DEDICATED
 }
 
-
-/*
-==================
-SV_FrameMsec
-Return time in millseconds until processing of the next server frame.
-==================
-*/
-int SV_FrameMsec( void )
-{
-	if ( sv_fps )
-	{
-		int frameMsec;
-		
-		frameMsec = 1000.0f / sv_fps->value;
-		
-		if ( frameMsec < sv.timeResidual )
-			return 0;
-		else
-			return frameMsec - sv.timeResidual;
-	}
-	else
-		return 1;
-}
-
-
 /*
 ==================
 SV_TrackCvarChanges
@@ -1214,7 +1189,7 @@ happen before SV_Frame is called
 ==================
 */
 #define RESTART_BUFFER_MS 10000
-void SV_Frame( int msec ) {
+void SV_Frame( void ) {
 	int		frameMsec;
 	int		startTime;
 	
@@ -1265,13 +1240,6 @@ void SV_Frame( int msec ) {
 	
 	Com_Printf("Server thread: timescale\n");
 
-	sv.timeResidual += msec;
-
-	if ( !com_dedicated->integer )
-		SV_BotFrame( sv.time + sv.timeResidual );
-		
-	Com_Printf("Server thread: AI\n");
-
 	// if time is about to hit the 32nd bit, kick all clients
 	// and clear sv.time, rather
 	// than checking for negative time wraparound everywhere.
@@ -1302,35 +1270,20 @@ void SV_Frame( int msec ) {
 		cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 	}
 
-	if ( com_speeds->integer ) {
-		startTime = Sys_Milliseconds();
-	} else {
-		startTime = 0;	// quite a compiler warning
-	}
-
 	// update ping based on the all received frames
 	SV_CalcPings();
 	
 	Com_Printf("Server thread: ping\n");
 
-	if (com_dedicated->integer) SV_BotFrame (sv.time);
+	SV_BotFrame (sv.time);
 
 	// run the game simulation in chunks
-	while ( sv.timeResidual >= frameMsec ) {
-		sv.timeResidual -= frameMsec;
-		svs.time += frameMsec;
-		sv.time += frameMsec;
+	svs.time += frameMsec;
+	sv.time += frameMsec;
 
-        VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
-	}
+    VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 	
 	Com_Printf("Server thread: qvm\n");
-
-	if ( com_speeds->integer ) {
-		time_game = Sys_Milliseconds () - startTime;
-	}
-	
-	Com_Printf("Server thread: shit\n");
 
 	// check timeouts
 	SV_CheckTimeouts();

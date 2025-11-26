@@ -1141,15 +1141,11 @@ void CL_StartConvertOBJ(const char *name);
 //
 void SV_Init( void );
 void SV_Shutdown( const char *finalmsg );
-void SV_Frame( int msec );
+void SV_Frame( void );
 void SV_TrackCvarChanges( void );
 void SV_PacketEvent( const netadr_t *from, msg_t *msg );
-int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
 int SV_SendQueuedPackets( void );
-
-void SV_AddDedicatedCommands( void );
-void SV_RemoveDedicatedCommands( void );
 
 
 //

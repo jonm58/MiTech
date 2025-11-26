@@ -3521,13 +3521,30 @@ SDL_Thread* serverThread = NULL;
 qboolean threadServerEnabled = qfalse;
 
 int serverThread_main(void* data) {
-    int	msec, realMsec;
+    int minMsec, sleepMsec, realMsec timeVal, timeValSV, sv_frameTime;
     while(1) {
-        if(threadServerEnabled){
-            realMsec = com_frameTime - lastTime;
-	        msec = Com_ModifyMsec( realMsec );
-            SV_Frame(msec);
-        }
+        
+	minMsec = 16;
+
+	do {
+		if ( com_sv_running->integer ) {
+			timeValSV = SV_SendQueuedPackets();
+			timeVal = Com_TimeVal( minMsec );
+			if ( timeValSV < timeVal )
+				timeVal = timeValSV;
+		} else {
+			timeVal = Com_TimeVal( minMsec );
+		}
+		sleepMsec = timeVal;
+		
+		NET_Sleep( sleepMsec * 1000 - 500 );
+	} while( Com_TimeVal( minMsec ) );
+	
+		lastTime = sv_frameTime;
+	    sv_frameTime = Com_EventLoop();
+        realMsec = sv_frameTime - lastTime;
+        
+        SV_Frame();
         SDL_Delay(16);
     }
     
@@ -3553,8 +3570,7 @@ void Com_FrameInit( void )
 Com_Frame
 =================
 */
-void Com_Frame( qboolean noDelay ) {
-
+void Com_Frame( void ) {
 #ifndef DEDICATED
 	static int bias = 0;
 #endif
@@ -3563,25 +3579,11 @@ void Com_Frame( qboolean noDelay ) {
 	int	timeVal;
 	int	timeValSV;
 
-	int	timeBeforeFirstEvents;
-	int	timeBeforeServer;
-	int	timeBeforeEvents;
-	int	timeBeforeClient;
-	int	timeAfter;
-
 	if ( Q_setjmp( abortframe ) ) {
 		return;			// an ERR_DROP was thrown
 	}
 
 	minMsec = 0; // silent compiler warning
-
-	// bk001204 - init to zero.
-	//  also:  might be clobbered by `longjmp' or `vfork'
-	timeBeforeFirstEvents = 0;
-	timeBeforeServer = 0;
-	timeBeforeEvents = 0;
-	timeBeforeClient = 0;
-	timeAfter = 0;
 
 	// if "viewlog" has been modified, show or hide the log console
 	if ( com_viewlog->modified ) {
@@ -3595,48 +3597,26 @@ void Com_Frame( qboolean noDelay ) {
 	}
 #endif
 
-	//
-	// main event loop
-	//
-	if ( com_speeds->integer ) {
-		timeBeforeFirstEvents = Sys_Milliseconds();
-	}
+#ifdef DEDICATED
+	minMsec = 16;
+#else
+	if ( !gw_active && com_maxfpsUnfocused->integer > 0 )
+		minMsec = 1000 / com_maxfpsUnfocused->integer;
+	else if ( com_maxfps->integer > 0 )
+		minMsec = 1000 / com_maxfps->integer;
+	else
+		minMsec = 1;
 
-	// we may want to spin here if things are going too fast
-	if ( com_dedicated->integer ) {
-		minMsec = SV_FrameMsec();
-#ifndef DEDICATED
-		bias = 0;
+	timeVal = com_frameTime - lastTime;
+	bias += timeVal - minMsec;
+
+	if ( bias > minMsec )
+		bias = minMsec;
+			
+	minMsec -= bias;
 #endif
-	} else {
-#ifndef DEDICATED
-		if ( noDelay ) {
-			minMsec = 0;
-			bias = 0;
-		} else {
-			if ( !gw_active && com_maxfpsUnfocused->integer > 0 )
-				minMsec = 1000 / com_maxfpsUnfocused->integer;
-			else
-			if ( com_maxfps->integer > 0 )
-				minMsec = 1000 / com_maxfps->integer;
-			else
-				minMsec = 1;
-
-			timeVal = com_frameTime - lastTime;
-			bias += timeVal - minMsec;
-
-			if ( bias > minMsec )
-				bias = minMsec;
-
-			// Adjust minMsec if previous frame took too long to render so
-			// that framerate is stable at the requested value.
-			minMsec -= bias;
-		}
-#endif
-	}
 
 	// waiting for incoming packets
-	if ( noDelay == qfalse )
 	do {
 		if ( com_sv_running->integer ) {
 			timeValSV = SV_SendQueuedPackets();
@@ -3665,129 +3645,21 @@ void Com_Frame( qboolean noDelay ) {
 	// mess with msec if needed
 	msec = Com_ModifyMsec( realMsec );
 
-	//
-	// server side
-	//
-	if ( com_speeds->integer ) {
-		timeBeforeServer = Sys_Milliseconds();
-	}
-
-#ifndef DEDICATED
-    if(c_serverThread->integer) {
-	    threadServerEnabled = qtrue;
-    } else {
-        threadServerEnabled = qfalse;
-        SV_Frame(msec);
-    }
-#else
-    SV_Frame(msec);
+	// server system
+#ifdef DEDICATED
+    SV_Frame();
 #endif	
 
-	// if "dedicated" has been modified, start up
-	// or shut down the client system.
-	// Do this after the server may have started,
-	// but before the client tries to auto-connect
-	if ( com_dedicated->modified ) {
-		// get the latched value
-		Cvar_Get( "dedicated", "0", 0 );
-		com_dedicated->modified = qfalse;
-		if ( !com_dedicated->integer ) {
-			SV_Shutdown( "dedicated set to 0" );
-			SV_RemoveDedicatedCommands();
 #ifndef DEDICATED
-			CL_Init();
-#endif
-#ifndef DEDICATED
-			gw_minimized = qfalse;
-			CL_StartHunkUsers();
-#endif
-		} else {
-#ifndef DEDICATED
-			CL_Shutdown( "", qfalse );
-			CL_ClearMemory();
-#endif
-			SV_AddDedicatedCommands();
-			gw_minimized = qtrue;
-		}
-	}
-
-#ifdef DEDICATED
-	if ( com_speeds->integer ) {
-		timeAfter = Sys_Milliseconds ();
-		timeBeforeEvents = timeAfter;
-		timeBeforeClient = timeAfter;
-	}
-#else
-	//
-	// client system
-	//
-	if ( !com_dedicated->integer ) {
-		//
-		// run event loop a second time to get server to client packets
-		// without a frame of latency
-		//
-		if ( com_speeds->integer ) {
-			timeBeforeEvents = Sys_Milliseconds();
-		}
-		Com_EventLoop();
-
-		Cbuf_Execute();
-
-		//
-		// client side
-		//
-		if ( com_speeds->integer ) {
-			timeBeforeClient = Sys_Milliseconds();
-		}
-
-		CL_Frame( msec, realMsec );
-
-		if ( com_speeds->integer ) {
-			timeAfter = Sys_Milliseconds();
-		}
-	}
+	Com_EventLoop();
+	Cbuf_Execute();
+	CL_Frame( msec, realMsec );
 #endif
 
 	NET_FlushPacketQueue( 0 );
-
 	Cbuf_Wait();
-
-	//
-	// report timing information
-	//
-	if ( com_speeds->integer ) {
-		int			all, sv, ev, cl;
-
-		all = timeAfter - timeBeforeServer;
-		sv = timeBeforeEvents - timeBeforeServer;
-		ev = timeBeforeServer - timeBeforeFirstEvents + timeBeforeClient - timeBeforeEvents;
-		cl = timeAfter - timeBeforeClient;
-		sv -= time_game;
-		cl -= time_frontend + time_backend;
-
-		Com_Printf ("frame:%i all:%3i sv:%3i ev:%3i cl:%3i gm:%3i rf:%3i bk:%3i\n",
-					 com_frameNumber, all, sv, ev, cl, time_game, time_frontend, time_backend );
-	}
-
-	//
-	// trace optimization tracking
-	//
-	if ( com_showtrace->integer ) {
-
-		extern	int c_traces, c_brush_traces, c_patch_traces;
-		extern	int	c_pointcontents;
-
-		Com_Printf ("%4i traces  (%ib %ip) %4i points\n", c_traces,
-			c_brush_traces, c_patch_traces, c_pointcontents);
-		c_traces = 0;
-		c_brush_traces = 0;
-		c_patch_traces = 0;
-		c_pointcontents = 0;
-	}
-
 	com_frameNumber++;
 }
-
 
 /*
 =================

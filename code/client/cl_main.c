@@ -2181,21 +2181,6 @@ qboolean CL_CheckPaused( void )
 	return qfalse;
 }
 
-
-/*
-==================
-CL_NoDelay
-==================
-*/
-qboolean CL_NoDelay( void )
-{
-	if (CL_VideoRecording())
-		return qtrue;
-
-	return qfalse;
-}
-
-
 /*
 ==================
 CL_CheckUserinfo
