@@ -3524,7 +3524,7 @@ int serverThread_main(void* data) {
 	        msec = Com_ModifyMsec( realMsec );
             SV_Frame(msec);
         }
-        SDL_Delay(1);
+        SDL_Delay(16);
     }
     
     return 0;

@@ -1323,8 +1323,7 @@ void SV_Frame( int msec ) {
 		svs.time += frameMsec;
 		sv.time += frameMsec;
 
-		// let everything in the world think and move
-		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+        if(gvm != NULL) VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 	}
 	
 	Com_Printf("Server thread: qvm\n");
