@@ -1234,10 +1234,8 @@ void SV_Frame( int msec ) {
 	
 	Com_Printf("Server thread: killserver check\n");
 
-	if ( !com_sv_running->integer )
-	{
-		if ( com_dedicated->integer )
-		{
+	if (!com_sv_running->integer || gvm == NULL){
+		if (com_dedicated->integer) {
 			// Block indefinitely until something interesting happens
 			// on STDIN.
 			Sys_Sleep( -1 );
@@ -1323,7 +1321,7 @@ void SV_Frame( int msec ) {
 		svs.time += frameMsec;
 		sv.time += frameMsec;
 
-        if(gvm != NULL) VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+        VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 	}
 	
 	Com_Printf("Server thread: qvm\n");
