@@ -1340,7 +1340,7 @@ void SV_Frame( int msec ) {
 	Com_Printf("Server thread: SV_CheckTimeouts\n");
 
 	// reset current and build new snapshot on first query
-	SV_IssueNewSnapshot()
+	SV_IssueNewSnapshot();
 	Com_Printf("Server thread: SV_IssueNewSnapshot\n");
 
 	// send messages back to the clients
