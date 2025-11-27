@@ -36,20 +36,8 @@ void AAS_InvalidateEntities(void);
 void AAS_UnlinkInvalidEntities(void);
 //resets the entity AAS and BSP links (sets areas and leaves pointers to NULL)
 void AAS_ResetEntityLinks(void);
-//updates an entity
-int AAS_UpdateEntity(int ent, bot_entitystate_t *state);
 //gives the entity data used for collision detection
 #endif //AASINTERN
-//returns the BSP model number of the entity
-int AAS_EntityModelNum(int entnum);
-//returns the origin of an entity with the given model number
-int AAS_OriginOfMoverWithModelNum(int modelnum, vec3_t origin);
 //returns the info of the given entity
 void AAS_EntityInfo(int entnum, aas_entityinfo_t *info);
-//returns the next entity
-int AAS_NextEntity(int entnum);
-//returns the entity type
-int AAS_EntityType(int entnum);
-//returns the model index of the entity
-int AAS_EntityModelindex(int entnum);
 

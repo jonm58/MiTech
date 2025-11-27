@@ -446,7 +446,7 @@ static bot_moveresult_t BotTravel_Walk(bot_movestate_t* ms, aas_reachability_t* 
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
 	//
-	BotCheckBlocked(ms, hordir, qtrue, &result);
+	//BotCheckBlocked(ms, hordir, qtrue, &result);
 	//
 	if(dist < 10) {
 		// walk straight to the reachability end

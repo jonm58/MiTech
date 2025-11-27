@@ -196,19 +196,6 @@ static int Export_BotLibLoadMap(const char *mapname)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static int Export_BotLibUpdateEntity(int ent, bot_entitystate_t *state)
-{
-	if (!BotLibSetup("BotUpdateEntity")) return BLERR_LIBRARYNOTSETUP;
-	if (!ValidEntityNumber(ent, "BotUpdateEntity")) return BLERR_INVALIDENTITYNUMBER;
-
-	return AAS_UpdateEntity(ent, state);
-} //end of the function Export_BotLibUpdateEntity
-//===========================================================================
-//
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
-//===========================================================================
 void ElevatorBottomCenter(aas_reachability_t *reach, vec3_t bottomcenter);
 int BotGetReachabilityToGoal(vec3_t origin, int areanum,
 									  int lastgoalareanum, int lastareanum,
@@ -301,7 +288,6 @@ botlib_export_t *GetBotLibAPI(int apiVersion, botlib_import_t *import) {
 
 	be_botlib_export.BotLibStartFrame = Export_BotLibStartFrame;
 	be_botlib_export.BotLibLoadMap = Export_BotLibLoadMap;
-	be_botlib_export.BotLibUpdateEntity = Export_BotLibUpdateEntity;
 
 	return &be_botlib_export;
 }

@@ -251,8 +251,6 @@ typedef struct botlib_export_s
 	int (*BotLibStartFrame)(float time);
 	//load a new map in the bot library
 	int (*BotLibLoadMap)(const char *mapname);
-	//entity updates
-	int (*BotLibUpdateEntity)(int ent, bot_entitystate_t *state);
 } botlib_export_t;
 
 //linking of bot library
