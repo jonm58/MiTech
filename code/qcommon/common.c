@@ -3292,9 +3292,9 @@ void Com_Init( char *commandLine ) {
 	Netchan_Init( qport & 0xffff );
 
 	VM_Init();
-#ifdef DEDICATED
+//#ifdef DEDICATED
 	SV_Init();
-#endif
+//#endif
 
 #ifndef DEDICATED
 	CL_Init();
@@ -3519,9 +3519,9 @@ void Com_Frame( void ) {
 	// mess with msec if needed
 	msec = Com_ModifyMsec( realMsec );
 
-#ifdef DEDICATED
+//#ifdef DEDICATED
 	SV_Frame( msec );
-#endif
+//#endif
 
 #ifndef DEDICATED
 	// client system
